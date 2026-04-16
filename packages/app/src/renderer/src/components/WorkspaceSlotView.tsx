@@ -1,10 +1,7 @@
-import type { PluginViewModel, WorkspaceViewProps } from '@sessionry/plugin-api'
+import type { WorkspaceViewProps } from '@sessionry/plugin-api'
 import { resolveActiveView } from '@sessionry/plugin-api'
 
-import { getRendererView } from '../plugins'
-
 interface WorkspaceSlotViewProps extends WorkspaceViewProps {
-  plugins: PluginViewModel
   selectedViewId?: string
   preferredViewId?: string
 }
@@ -20,11 +17,11 @@ export const WorkspaceSlotView = ({
     return <section className="workspace-empty">No workspace view registered.</section>
   }
 
-  const registration = getRendererView(activeView.id)
+  const registration = viewProps.resolveRendererView(activeView.id)
   if (!registration) {
     return <section className="workspace-empty">Workspace view renderer not found.</section>
   }
 
   const Component = registration.component
-  return <Component {...viewProps} />
+  return <Component {...viewProps} plugins={plugins} />
 }

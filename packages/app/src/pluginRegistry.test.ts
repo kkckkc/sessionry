@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
+import { getPaneSlotId, normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
 
 describe('normalizePlugins', () => {
   it('collects toolbar, sidebar, status, and slot view contributions into a renderer model', () => {
@@ -59,5 +59,26 @@ describe('normalizePlugins', () => {
     expect(resolveActiveView(plugins, 'workspace', 'workspace.beta')?.id).toBe('workspace.beta')
     expect(resolveActiveView(plugins, 'workspace', 'missing')?.id).toBe('workspace.alpha')
     expect(resolveActiveView(plugins, 'workspace', undefined, 'workspace.beta')?.id).toBe('workspace.beta')
+  })
+
+  it('preserves plugin registration order for pane slots', () => {
+    const plugins = normalizePlugins([
+      {
+        id: 'one',
+        name: 'One',
+        views: [{ id: 'pane.terminal.one', title: 'Zeta Terminal', slot: getPaneSlotId('terminal') }]
+      },
+      {
+        id: 'two',
+        name: 'Two',
+        views: [{ id: 'pane.terminal.two', title: 'Alpha Terminal', slot: getPaneSlotId('terminal') }]
+      }
+    ])
+
+    expect(plugins.viewsBySlot[getPaneSlotId('terminal')].map((view) => view.id)).toEqual([
+      'pane.terminal.one',
+      'pane.terminal.two'
+    ])
+    expect(resolveActiveView(plugins, getPaneSlotId('terminal'))?.id).toBe('pane.terminal.one')
   })
 })

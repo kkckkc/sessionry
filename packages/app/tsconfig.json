@@ -3,6 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@sessionry/terminal-pane-plugin/renderer": ["../../plugins/terminal-pane-plugin/src/renderer.tsx"],
+      "@sessionry/terminal-pane-plugin": ["../../plugins/terminal-pane-plugin/src/index.ts"],
       "@sessionry/default-workspace-pane-plugin/renderer": ["../../plugins/default-workspace-pane-plugin/src/renderer.tsx"],
       "@sessionry/default-workspace-pane-plugin": ["../../plugins/default-workspace-pane-plugin/src/index.ts"],
       "@app-shared/*": ["src/shared/*"],

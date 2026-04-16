@@ -8,9 +8,25 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin({ exclude: ['@sessionry/plugin-api', '@sessionry/default-workspace-pane-plugin'] })],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: [
+          '@sessionry/plugin-api',
+          '@sessionry/default-workspace-pane-plugin',
+          '@sessionry/terminal-pane-plugin'
+        ]
+      })
+    ],
     resolve: {
       alias: [
+        {
+          find: '@sessionry/terminal-pane-plugin/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/terminal-pane-plugin/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/terminal-pane-plugin',
+          replacement: path.resolve(rootDir, '../../plugins/terminal-pane-plugin/src/index.ts')
+        },
         {
           find: '@sessionry/default-workspace-pane-plugin/renderer',
           replacement: path.resolve(rootDir, '../../plugins/default-workspace-pane-plugin/src/renderer.tsx')
@@ -31,7 +47,15 @@ export default defineConfig({
     }
   },
   preload: {
-    plugins: [externalizeDepsPlugin({ exclude: ['@sessionry/plugin-api', '@sessionry/default-workspace-pane-plugin'] })],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: [
+          '@sessionry/plugin-api',
+          '@sessionry/default-workspace-pane-plugin',
+          '@sessionry/terminal-pane-plugin'
+        ]
+      })
+    ],
     resolve: {
       alias: [
         {
@@ -61,6 +85,14 @@ export default defineConfig({
     },
     resolve: {
       alias: [
+        {
+          find: '@sessionry/terminal-pane-plugin/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/terminal-pane-plugin/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/terminal-pane-plugin',
+          replacement: path.resolve(rootDir, '../../plugins/terminal-pane-plugin/src/index.ts')
+        },
         {
           find: '@sessionry/default-workspace-pane-plugin/renderer',
           replacement: path.resolve(rootDir, '../../plugins/default-workspace-pane-plugin/src/renderer.tsx')

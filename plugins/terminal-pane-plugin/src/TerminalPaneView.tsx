@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
 
-import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
+import { Terminal } from '@xterm/xterm'
 
-import type { TerminalAppBridge, TerminalSessionInfo } from '@sessionry/plugin-api'
+import type { PaneViewProps, TerminalAppBridge } from '@sessionry/plugin-api'
 
 import '@xterm/xterm/css/xterm.css'
 
@@ -13,13 +13,11 @@ declare global {
   }
 }
 
-interface TerminalViewProps {
-  session: TerminalSessionInfo | null
-  clearSignal: number
-  visible?: boolean
-}
-
-export const TerminalView = ({ session, clearSignal, visible = true }: TerminalViewProps) => {
+export const TerminalPaneView = ({
+  terminalSession,
+  clearSignal,
+  visible = true
+}: PaneViewProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
@@ -61,7 +59,7 @@ export const TerminalView = ({ session, clearSignal, visible = true }: TerminalV
     terminal.open(containerRef.current)
     fitAddon.fit()
 
-    const currentSession = session?.id ?? 'primary'
+    const currentSession = terminalSession?.id ?? 'primary'
 
     terminal.onData((data) => {
       window.terminalApp.sendTerminalInput({
@@ -101,7 +99,7 @@ export const TerminalView = ({ session, clearSignal, visible = true }: TerminalV
       terminalRef.current = null
       fitAddonRef.current = null
     }
-  }, [session?.id])
+  }, [terminalSession?.id])
 
   useEffect(() => {
     if (!terminalRef.current) return
@@ -109,15 +107,15 @@ export const TerminalView = ({ session, clearSignal, visible = true }: TerminalV
   }, [clearSignal])
 
   useEffect(() => {
-    if (!visible || !terminalRef.current || !fitAddonRef.current || !session?.id) return
+    if (!visible || !terminalRef.current || !fitAddonRef.current || !terminalSession?.id) return
 
     fitAddonRef.current.fit()
     window.terminalApp.resizeTerminal({
-      sessionId: session.id,
+      sessionId: terminalSession.id,
       cols: terminalRef.current.cols,
       rows: terminalRef.current.rows
     })
-  }, [visible, session?.id])
+  }, [visible, terminalSession?.id])
 
   return <div className="terminal-surface" ref={containerRef} />
 }

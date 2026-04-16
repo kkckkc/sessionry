@@ -8,7 +8,7 @@ import { getActiveVisibleTerminalPaneId } from '@sessionry/default-workspace-pan
 import { AppShell } from './components/AppShell'
 import { WorkspaceSlotView } from './components/WorkspaceSlotView'
 import { readWorkspaceSnapshot, workspace } from './lib/workspace'
-import { loadUserPluginRenderers } from './plugins'
+import { getRendererView, loadUserPluginRenderers } from './plugins'
 
 const emptyPlugins: PluginViewModel = {
   toolbar: [],
@@ -99,6 +99,7 @@ export const App = () => {
         <WorkspaceSlotView
           plugins={plugins}
           selectedViewId={activeProject?.activeViews.workspace}
+          resolveRendererView={getRendererView}
           snapshot={workspaceSnapshot}
           projectId={activeProjectId}
           sessionId={activeWorkspaceSessionId}

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@sessionry/default-workspace-pane-plugin": "workspace:*",
+    "@sessionry/terminal-pane-plugin": "workspace:*",
     "@sessionry/plugin-api": "workspace:*",
     "@base-ui-components/react": "1.0.0-beta.3",
     "@xterm/addon-fit": "^0.10.0",

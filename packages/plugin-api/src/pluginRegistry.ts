@@ -30,10 +30,6 @@ export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
     }, new Map()).entries()
   )
 
-  for (const group of Object.values(viewsBySlot)) {
-    group.sort((a, b) => a.title.localeCompare(b.title))
-  }
-
   return {
     toolbar,
     leftPanels: sortPanels('left'),

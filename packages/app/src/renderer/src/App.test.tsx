@@ -23,12 +23,37 @@ vi.mock('@sessionry/default-workspace-pane-plugin/renderer', () => ({
   getActiveVisibleTerminalPaneId: () => 'pane-terminal'
 }))
 
+vi.mock('@sessionry/terminal-pane-plugin/renderer', () => ({
+  terminalPaneRendererPlugin: {
+    id: 'terminal-pane-plugin',
+    name: 'Terminal Pane',
+    views: [
+      {
+        id: 'pane.terminal.default',
+        title: 'Terminal',
+        slot: 'pane:terminal',
+        isDefault: true,
+        component: () => <div data-testid="terminal-pane-renderer">terminal renderer</div>
+      }
+    ]
+  }
+}))
+
 const pluginModel: PluginViewModel = {
   toolbar: [],
   leftPanels: [],
   rightPanels: [],
   statusItems: [],
   viewsBySlot: {
+    'pane:terminal': [
+      {
+        id: 'pane.terminal.default',
+        title: 'Terminal',
+        slot: 'pane:terminal',
+        pluginId: 'terminal-pane-plugin',
+        isDefault: true
+      }
+    ],
     workspace: [
       {
         id: 'workspace.default',

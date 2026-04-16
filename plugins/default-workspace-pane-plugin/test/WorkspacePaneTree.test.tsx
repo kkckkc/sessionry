@@ -4,19 +4,43 @@ import * as React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type { PaneViewProps, PluginViewModel, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
 import { WorkspacePaneTree } from '../src/WorkspacePaneTree'
 
-vi.mock('../src/TerminalView', () => ({
-  TerminalView: () => (
-    <div data-testid="terminal-view">
-      <button type="button" data-testid="terminal-focus-target">
-        terminal
-      </button>
-    </div>
-  )
-}))
+const paneRendererSpy = vi.fn()
+
+const plugins: PluginViewModel = {
+  toolbar: [],
+  leftPanels: [],
+  rightPanels: [],
+  statusItems: [],
+  viewsBySlot: {
+    'pane:terminal': [
+      {
+        id: 'pane.terminal.default',
+        title: 'Terminal',
+        slot: 'pane:terminal',
+        pluginId: 'terminal-pane-plugin',
+        isDefault: true
+      }
+    ]
+  }
+}
+
+const paneRendererRegistration = {
+  component: (props: PaneViewProps) => {
+    paneRendererSpy(props)
+    return (
+      <div data-testid="terminal-view">
+        <button type="button" data-testid="terminal-focus-target">
+          terminal
+        </button>
+        <span data-testid="terminal-visible">{String(props.visible)}</span>
+      </div>
+    )
+  }
+}
 
 const snapshot: WorkspaceStateSnapshot = {
   projects: [{ id: 'project-1', name: 'Project', folder: '/tmp/project', metadata: {}, activeViews: {}, sessionIds: ['session-1'] }],
@@ -82,8 +106,11 @@ describe('WorkspacePaneTree', () => {
   it('renders horizontal, vertical, and stacked groups with preferred sizes', () => {
     render(
       <WorkspacePaneTree
+        plugins={plugins}
         snapshot={snapshot}
+        projectId="project-1"
         sessionId="session-1"
+        resolveRendererView={() => paneRendererRegistration}
         terminalSession={null}
         clearSignal={0}
         activeTerminalPaneId="pane-terminal"
@@ -103,14 +130,17 @@ describe('WorkspacePaneTree', () => {
     expect(screen.getByTestId('pane-pane-outline').querySelector('.pane-card__header')).not.toBeNull()
   })
 
-  it('switches active tab content through the model callback', () => {
+  it('switches active tab content through the model callback and passes visibility to the pane renderer', () => {
     const Harness = () => {
       const [currentSnapshot, setCurrentSnapshot] = React.useState(snapshot)
 
       return (
         <WorkspacePaneTree
+          plugins={plugins}
           snapshot={currentSnapshot}
+          projectId="project-1"
           sessionId="session-1"
+          resolveRendererView={() => paneRendererRegistration}
           terminalSession={null}
           clearSignal={0}
           activeTerminalPaneId="pane-terminal"
@@ -129,10 +159,13 @@ describe('WorkspacePaneTree', () => {
     render(<Harness />)
 
     expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
+    expect(screen.getByTestId('terminal-visible')).toHaveTextContent('true')
     expect(screen.getByLabelText('Terminal').closest('.workspace-stacked-panel')).toHaveClass('workspace-stacked-panel--active')
+
     fireEvent.click(screen.getByRole('tab', { name: 'Activity' }))
 
     expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
+    expect(screen.getByTestId('terminal-visible')).toHaveTextContent('false')
     expect(screen.getByLabelText('Activity').closest('.workspace-stacked-panel')).toHaveClass('workspace-stacked-panel--active')
     expect(screen.getByLabelText('Terminal').closest('.workspace-stacked-panel')).not.toHaveClass('workspace-stacked-panel--active')
   })
@@ -143,8 +176,11 @@ describe('WorkspacePaneTree', () => {
 
       return (
         <WorkspacePaneTree
+          plugins={plugins}
           snapshot={currentSnapshot}
+          projectId="project-1"
           sessionId="session-1"
+          resolveRendererView={() => paneRendererRegistration}
           terminalSession={null}
           clearSignal={0}
           activeTerminalPaneId="pane-terminal"
@@ -172,5 +208,24 @@ describe('WorkspacePaneTree', () => {
     await waitFor(() => {
       expect(document.activeElement).toBe(terminalFocusTarget)
     })
+  })
+
+  it('falls back to placeholder content when no pane renderer is registered', () => {
+    render(
+      <WorkspacePaneTree
+        plugins={{ ...plugins, viewsBySlot: {} }}
+        snapshot={snapshot}
+        projectId="project-1"
+        sessionId="session-1"
+        resolveRendererView={() => null}
+        terminalSession={null}
+        clearSignal={0}
+        activeTerminalPaneId="pane-terminal"
+        onSelectStackedChild={() => {}}
+      />
+    )
+
+    expect(screen.queryByTestId('terminal-view')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Workspace content preview')).toHaveLength(5)
   })
 })

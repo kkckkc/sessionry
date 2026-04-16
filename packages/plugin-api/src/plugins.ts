@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 
 import type { TerminalSessionInfo, TerminalSessionState } from './terminal'
-import type { WorkspaceApi, WorkspaceStateSnapshot } from './workspace'
+import type { Pane, PaneType, WorkspaceApi, WorkspaceStateSnapshot } from './workspace'
 
 export type ToolbarActionId =
   | 'terminal:new'
@@ -10,6 +10,7 @@ export type ToolbarActionId =
   | 'layout:toggle-right'
 
 export type SidebarSide = 'left' | 'right'
+/** Host-defined slot ids, for example `workspace` or `pane:terminal`. */
 export type PluginViewSlotId = 'workspace' | (string & {})
 
 export interface PluginViewDefinition {
@@ -51,17 +52,30 @@ export interface PluginViewModel {
 }
 
 export interface WorkspaceViewProps {
+  plugins: PluginViewModel
   snapshot: WorkspaceStateSnapshot
   projectId?: string
   sessionId?: string
+  resolveRendererView: (viewId: string) => RendererViewRegistration | null
   terminalSession: TerminalSessionInfo | null
   clearSignal: number
   activeTerminalPaneId: string | null
   onSelectStackedChild: (paneGroupId: string, childId: string) => void
 }
 
+export interface PaneViewProps {
+  pane: Pane
+  snapshot: WorkspaceStateSnapshot
+  projectId?: string
+  sessionId?: string
+  terminalSession: TerminalSessionInfo | null
+  clearSignal: number
+  activeTerminalPaneId: string | null
+  visible: boolean
+}
+
 export interface RendererViewRegistration {
-  component: ComponentType<WorkspaceViewProps>
+  component: ComponentType<any>
 }
 
 export interface AppPlugin {
@@ -80,6 +94,8 @@ export interface RendererPluginViewDefinition extends PluginViewDefinition, Rend
 export interface RendererAppPlugin extends Omit<AppPlugin, 'views'> {
   views?: RendererPluginViewDefinition[]
 }
+
+export const getPaneSlotId = (paneType: PaneType): PluginViewSlotId => `pane:${paneType}`
 
 export interface StatusSnapshot {
   state: TerminalSessionState

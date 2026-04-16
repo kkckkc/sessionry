@@ -1,9 +1,14 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 
-import type { WorkspaceViewProps } from '@sessionry/plugin-api'
-import type { Pane, PaneGroup, PaneGroupChild, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
-
-import { TerminalView } from './TerminalView'
+import {
+  getPaneSlotId,
+  resolveActiveView,
+  type Pane,
+  type PaneGroup,
+  type PaneGroupChild,
+  type WorkspaceStateSnapshot,
+  type WorkspaceViewProps
+} from '@sessionry/plugin-api'
 
 const getNodeId = (child: PaneGroupChild): string =>
   child.kind === 'pane' ? child.paneId : child.paneGroupId
@@ -152,8 +157,11 @@ const StackedGroupPanels = ({
 }
 
 export const WorkspacePaneTree = ({
+  plugins,
   snapshot,
+  projectId,
   sessionId,
+  resolveRendererView,
   terminalSession,
   clearSignal,
   activeTerminalPaneId,
@@ -172,8 +180,10 @@ export const WorkspacePaneTree = ({
   const renderPane = (pane: Pane, bare = false, isVisible = true) => {
     const title = getPaneTitle(pane)
     const description = getPaneDescription(pane)
-    const isTerminal = pane.type === 'terminal'
-    const isLiveTerminal = isTerminal && pane.id === activeTerminalPaneId
+    const isLiveTerminal = pane.type === 'terminal' && pane.id === activeTerminalPaneId
+    const paneView = resolveActiveView(plugins, getPaneSlotId(pane.type))
+    const paneRenderer = paneView ? resolveRendererView(paneView.id) : null
+    const PaneRenderer = paneRenderer?.component
 
     return (
       <article
@@ -198,8 +208,17 @@ export const WorkspacePaneTree = ({
           </header>
         )}
         <div className="pane-card__body">
-          {isTerminal ? (
-            <TerminalView session={terminalSession} clearSignal={clearSignal} visible={isVisible} />
+          {PaneRenderer ? (
+            <PaneRenderer
+              pane={pane}
+              snapshot={snapshot}
+              projectId={projectId}
+              sessionId={sessionId}
+              terminalSession={terminalSession}
+              clearSignal={clearSignal}
+              activeTerminalPaneId={activeTerminalPaneId}
+              visible={isVisible}
+            />
           ) : (
             <div className="pane-card__placeholder">
               <p>{description ?? 'Workspace content preview'}</p>

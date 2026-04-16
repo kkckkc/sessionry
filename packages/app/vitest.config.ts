@@ -9,6 +9,14 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: '@sessionry/terminal-pane-plugin/renderer',
+        replacement: path.resolve(rootDir, '../../plugins/terminal-pane-plugin/src/renderer.tsx')
+      },
+      {
+        find: '@sessionry/terminal-pane-plugin',
+        replacement: path.resolve(rootDir, '../../plugins/terminal-pane-plugin/src/index.ts')
+      },
+      {
         find: '@sessionry/default-workspace-pane-plugin/renderer',
         replacement: path.resolve(rootDir, '../../plugins/default-workspace-pane-plugin/src/renderer.tsx')
       },
