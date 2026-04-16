@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { createWorkspaceApi, type AppPlugin } from '@sessionry/plugin-api'
+import { terminalPanePlugin } from '@sessionry/terminal-pane-plugin'
 
 import { ActionRegistry } from './actionRegistry'
 import { WorkspaceStore } from './workspaceStore'
@@ -170,5 +171,40 @@ describe('ActionRegistry', () => {
 
     expect(result).toEqual({ status: 'completed' })
     expect(workspaceStore.read().sessions.some((session) => session.name === 'Planning')).toBe(true)
+  })
+
+  it('creates a usable terminal session from the built-in create session action', async () => {
+    const { registry, workspaceStore } = createRegistry([terminalPanePlugin])
+
+    const result = await registry.execute({
+      actionId: 'session:create',
+      source: 'toolbar',
+      args: { name: 'Planning' }
+    })
+
+    expect(result).toEqual({ status: 'completed' })
+
+    const snapshot = workspaceStore.read()
+    const createdSession = snapshot.sessions.find((session) => session.name === 'Planning')
+    expect(createdSession).toBeDefined()
+    expect(snapshot.activeSessionId).toBe(createdSession?.id)
+
+    const rootPaneGroup = snapshot.paneGroups.find((paneGroup) => paneGroup.id === createdSession?.rootPaneGroupId)
+    expect(rootPaneGroup).toBeDefined()
+    expect(rootPaneGroup?.direction).toBe('stacked')
+    expect(rootPaneGroup?.children).toHaveLength(1)
+
+    const childPaneId =
+      rootPaneGroup?.children[0]?.kind === 'pane' ? rootPaneGroup.children[0].paneId : undefined
+    expect(rootPaneGroup?.activeChildId).toBe(childPaneId)
+
+    const pane = snapshot.panes.find((candidate) => candidate.id === childPaneId)
+    expect(pane).toMatchObject({
+      sessionId: createdSession?.id,
+      type: 'terminal',
+      state: {
+        title: 'Terminal'
+      }
+    })
   })
 })

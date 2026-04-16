@@ -53,6 +53,7 @@ describe('createWorkspaceApi', () => {
     const workspace = createWorkspaceApi(transport)
 
     await workspace.projects[0].update({ name: 'Updated', activeViews: { workspace: 'workspace.default' } })
+    await workspace.projects[0].sessions[0].activate()
     await workspace.projects[0].sessions[0].rootPaneGroup.update({ activeChildId: 'pane-1', preferredSizePct: 80 })
     await workspace.createProject({ name: 'Two', folder: '/tmp/two' })
 
@@ -62,11 +63,15 @@ describe('createWorkspaceApi', () => {
       input: { name: 'Updated', activeViews: { workspace: 'workspace.default' } }
     })
     expect(executeCommand).toHaveBeenNthCalledWith(2, {
+      type: 'session.activate',
+      sessionId: 'session-1'
+    })
+    expect(executeCommand).toHaveBeenNthCalledWith(3, {
       type: 'paneGroup.update',
       paneGroupId: 'group-1',
       input: { activeChildId: 'pane-1', preferredSizePct: 80 }
     })
-    expect(executeCommand).toHaveBeenNthCalledWith(3, {
+    expect(executeCommand).toHaveBeenNthCalledWith(4, {
       type: 'project.create',
       input: { name: 'Two', folder: '/tmp/two' }
     })

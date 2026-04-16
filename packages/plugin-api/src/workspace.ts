@@ -281,6 +281,7 @@ export interface SessionHandle {
   readonly data: SessionData
   readonly project: ProjectHandle
   readonly rootPaneGroup: PaneGroupHandle
+  activate(): Promise<void>
   update(input: UpdateSessionInput): Promise<void>
   remove(): Promise<void>
   setRootPaneGroup(rootPaneGroupId: string): Promise<void>

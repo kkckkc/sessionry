@@ -118,6 +118,10 @@ export const createWorkspaceApi = (bridge: WorkspaceBridge): WorkspaceApi => {
       return new PaneGroupHandleImpl(this.data.rootPaneGroupId)
     }
 
+    async activate(): Promise<void> {
+      await bridge.executeCommand({ type: 'session.activate', sessionId: this.id })
+    }
+
     async update(input: UpdateSessionInput): Promise<void> {
       await bridge.executeCommand({ type: 'session.update', sessionId: this.id, input })
     }

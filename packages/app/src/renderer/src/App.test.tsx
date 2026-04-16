@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { PluginViewModel } from '@sessionry/plugin-api'
+import type { ActionExecutionResult, PluginViewModel } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
 import type { WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
@@ -150,7 +150,7 @@ describe('App', () => {
       getUserPluginRenderers: vi.fn(async () => []),
       actions: {
         list: vi.fn(async () => []),
-        execute: vi.fn(async () => ({ status: 'completed' }))
+        execute: vi.fn(async (): Promise<ActionExecutionResult> => ({ status: 'completed' }))
       },
       workspace: {
         read: vi.fn(() => snapshot),
@@ -208,7 +208,7 @@ describe('App', () => {
       getUserPluginRenderers: vi.fn(async () => []),
       actions: {
         list: vi.fn(async () => []),
-        execute: vi.fn(async () => ({ status: 'completed' }))
+        execute: vi.fn(async (): Promise<ActionExecutionResult> => ({ status: 'completed' }))
       },
       workspace: {
         read: vi.fn(() => snapshot),

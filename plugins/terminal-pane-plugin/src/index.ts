@@ -97,10 +97,18 @@ export const terminalPanePlugin: AppPlugin = {
           throw new Error(`Project "${projectId}" was not found.`)
         }
 
-        await project.createSession({
+        const session = await project.createSession({
           name,
           folder: folderArg.length > 0 ? folderArg : project.data.folder
         })
+        await session.createPane({
+          type: 'terminal',
+          state: {
+            title: 'Terminal'
+          },
+          parentPaneGroupId: session.data.rootPaneGroupId
+        })
+        await session.activate()
 
         return { status: 'completed' }
       }
