@@ -14,6 +14,7 @@ declare global {
 }
 
 export const TerminalPaneView = ({
+  pane,
   terminalSession,
   clearSignal,
   visible = true
@@ -59,7 +60,11 @@ export const TerminalPaneView = ({
     terminal.open(containerRef.current)
     fitAddon.fit()
 
-    const currentSession = terminalSession?.id ?? 'primary'
+    const currentSession = pane.id
+
+    if (terminalSession?.buffer) {
+      terminal.write(terminalSession.buffer)
+    }
 
     terminal.onData((data) => {
       window.terminalApp.sendTerminalInput({
@@ -99,7 +104,7 @@ export const TerminalPaneView = ({
       terminalRef.current = null
       fitAddonRef.current = null
     }
-  }, [terminalSession?.id])
+  }, [pane.id, terminalSession?.buffer])
 
   useEffect(() => {
     if (!terminalRef.current) return
@@ -107,15 +112,15 @@ export const TerminalPaneView = ({
   }, [clearSignal])
 
   useEffect(() => {
-    if (!visible || !terminalRef.current || !fitAddonRef.current || !terminalSession?.id) return
+    if (!visible || !terminalRef.current || !fitAddonRef.current) return
 
     fitAddonRef.current.fit()
     window.terminalApp.resizeTerminal({
-      sessionId: terminalSession.id,
+      sessionId: pane.id,
       cols: terminalRef.current.cols,
       rows: terminalRef.current.rows
     })
-  }, [visible, terminalSession?.id])
+  }, [pane.id, visible])
 
   return <div className="terminal-surface" ref={containerRef} />
 }

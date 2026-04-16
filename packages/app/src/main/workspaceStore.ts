@@ -27,6 +27,7 @@ type EntityMaps = {
   paneGroups: Map<string, PaneGroup>
   panes: Map<string, Pane>
   projectOrder: string[]
+  activeSessionId?: string
 }
 
 const cloneValue = <T>(value: T): T => structuredClone(value)
@@ -42,7 +43,8 @@ export class WorkspaceStore {
     sessions: new Map(),
     paneGroups: new Map(),
     panes: new Map(),
-    projectOrder: []
+    projectOrder: [],
+    activeSessionId: undefined
   }
 
   private readonly listeners = new Set<WorkspaceEventListener>()
@@ -58,7 +60,8 @@ export class WorkspaceStore {
       projects: this.state.projectOrder.map((projectId) => cloneValue(this.getProjectRequired(projectId))),
       sessions: Array.from(this.state.sessions.values()).map((session) => cloneValue(session)),
       paneGroups: Array.from(this.state.paneGroups.values()).map((paneGroup) => cloneValue(paneGroup)),
-      panes: Array.from(this.state.panes.values()).map((pane) => cloneValue(pane))
+      panes: Array.from(this.state.panes.values()).map((pane) => cloneValue(pane)),
+      activeSessionId: this.state.activeSessionId
     }
   }
 
@@ -105,6 +108,8 @@ export class WorkspaceStore {
         return { entityId: command.projectId }
       case 'session.create':
         return { entityId: this.createSession(command.input).id }
+      case 'session.activate':
+        return { entityId: this.activateSession(command.sessionId).id }
       case 'session.update':
         return { entityId: this.updateSession(command.sessionId, command.input).id }
       case 'session.remove':
@@ -253,6 +258,9 @@ export class WorkspaceStore {
 
     this.state.sessions.set(sessionId, session)
     project.sessionIds = [...project.sessionIds, sessionId]
+    if (!this.state.activeSessionId) {
+      this.state.activeSessionId = session.id
+    }
 
     this.emit({
       type: 'session.created',
@@ -291,13 +299,32 @@ export class WorkspaceStore {
     return cloneValue(session)
   }
 
+  activateSession(sessionId: string): Session {
+    const session = this.getSessionRequired(sessionId)
+    const beforeSessionId = this.state.activeSessionId
+    this.state.activeSessionId = session.id
+    this.emit({
+      type: 'session.activated',
+      entityType: 'session',
+      entityId: session.id,
+      projectId: session.projectId,
+      sessionId: session.id,
+      beforeSessionId,
+      afterSessionId: session.id
+    })
+    return cloneValue(session)
+  }
+
   removeSession(sessionId: string): void {
     const session = this.getSessionRequired(sessionId)
     const project = this.getProjectRequired(session.projectId)
+    const nextActiveSessionId =
+      this.state.activeSessionId === session.id ? this.getNextActiveSessionId(session) : this.state.activeSessionId
 
     this.removePaneGroupRecursive(session.rootPaneGroupId)
     this.state.sessions.delete(sessionId)
     project.sessionIds = project.sessionIds.filter((id) => id !== sessionId)
+    this.state.activeSessionId = nextActiveSessionId
 
     this.emit({
       type: 'session.removed',
@@ -737,6 +764,16 @@ export class WorkspaceStore {
     return this.getSessionRequired(sessionId).projectId
   }
 
+  private getNextActiveSessionId(removedSession: Session): string | undefined {
+    const sameProjectSessionId = removedSession.projectId
+      ? this.getProjectRequired(removedSession.projectId).sessionIds.find((id) => id !== removedSession.id)
+      : undefined
+
+    if (sameProjectSessionId) return sameProjectSessionId
+
+    return Array.from(this.state.sessions.values()).find((session) => session.id !== removedSession.id)?.id
+  }
+
   private getProjectRequired(projectId: string): Project {
     const project = this.state.projects.get(projectId)
     if (!project) throw new Error(`Project "${projectId}" was not found.`)
@@ -877,6 +914,31 @@ export class WorkspaceStore {
       state: { title: 'Problems', description: 'Diagnostics, warnings, and tasks' },
       parentPaneGroupId: bottomTabs.id
     })
+
+    const secondarySession = this.createSession({
+      id: 'session-secondary',
+      projectId: project.id,
+      name: 'Secondary Session',
+      folder: process.cwd(),
+      rootPaneGroupId: 'pane-group-secondary-root'
+    })
+
+    this.updatePaneGroup('pane-group-secondary-root', {
+      name: 'Secondary Workspace',
+      direction: 'stacked',
+      preferredSizePct: 100
+    })
+
+    this.createPane({
+      id: 'pane-terminal-secondary',
+      sessionId: secondarySession.id,
+      type: 'terminal',
+      preferredSizePct: 100,
+      state: { title: 'Secondary Terminal', description: 'Alternate terminal surface for session switching' },
+      parentPaneGroupId: 'pane-group-secondary-root'
+    })
+
+    this.state.activeSessionId = session.id
   }
 
   private generateId(prefix: string): string {

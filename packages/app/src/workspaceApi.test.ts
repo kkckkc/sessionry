@@ -18,7 +18,8 @@ const snapshot: WorkspaceStateSnapshot = {
       children: [{ kind: 'pane', paneId: 'pane-1' }]
     }
   ],
-  panes: [{ id: 'pane-1', sessionId: 'session-1', type: 'terminal', preferredSizePct: 30, state: {} }]
+  panes: [{ id: 'pane-1', sessionId: 'session-1', type: 'terminal', preferredSizePct: 30, state: {} }],
+  activeSessionId: 'session-1'
 }
 
 describe('createWorkspaceApi', () => {

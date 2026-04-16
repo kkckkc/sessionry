@@ -8,7 +8,8 @@ describe('WorkspaceStore', () => {
 
     const snapshot = service.read()
     expect(snapshot.projects).toHaveLength(1)
-    expect(snapshot.sessions).toHaveLength(1)
+    expect(snapshot.sessions).toHaveLength(2)
+    expect(snapshot.projects[0]?.sessionIds).toEqual(['session-primary', 'session-secondary'])
     expect(snapshot.paneGroups.find((paneGroup) => paneGroup.id === 'pane-group-root')).toMatchObject({
       direction: 'horizontal',
       children: [
@@ -21,9 +22,107 @@ describe('WorkspaceStore', () => {
       activeChildId: 'pane-terminal-primary'
     })
     expect(snapshot.projects[0]?.activeViews).toEqual({})
+    expect(snapshot.activeSessionId).toBe('session-primary')
     expect(snapshot.panes.find((pane) => pane.id === 'pane-terminal-primary')).toMatchObject({
       preferredSizePct: 50
     })
+    expect(snapshot.paneGroups.find((paneGroup) => paneGroup.id === 'pane-group-secondary-root')).toMatchObject({
+      direction: 'stacked',
+      activeChildId: 'pane-terminal-secondary'
+    })
+  })
+
+  it('activates sessions explicitly and preserves the current session when adding more', () => {
+    const service = new WorkspaceStore()
+    const events: Array<{ type: string; beforeSessionId?: string; afterSessionId?: string }> = []
+    service.subscribeAll((event) => {
+      if (event.type === 'session.activated') {
+        events.push({
+          type: event.type,
+          beforeSessionId: event.beforeSessionId,
+          afterSessionId: event.afterSessionId
+        })
+      }
+    })
+    const project = service.createProject({ id: 'project-2', name: 'Two', folder: '/tmp/two' })
+
+    const sessionA = service.createSession({
+      id: 'session-a',
+      projectId: project.id,
+      name: 'A',
+      folder: '/tmp/two/a',
+      rootPaneGroupId: 'root-a'
+    })
+    const sessionB = service.createSession({
+      id: 'session-b',
+      projectId: project.id,
+      name: 'B',
+      folder: '/tmp/two/b',
+      rootPaneGroupId: 'root-b'
+    })
+
+    expect(service.read().activeSessionId).toBe('session-primary')
+
+    service.activateSession(sessionB.id)
+
+    expect(service.read().activeSessionId).toBe(sessionB.id)
+    expect(events).toContainEqual({
+      type: 'session.activated',
+      beforeSessionId: 'session-primary',
+      afterSessionId: sessionB.id
+    })
+    expect(sessionA.id).toBe('session-a')
+  })
+
+  it('falls back to the next appropriate session when removing the active session', () => {
+    const service = new WorkspaceStore()
+    const project = service.createProject({ id: 'project-2', name: 'Two', folder: '/tmp/two' })
+    const sessionA = service.createSession({
+      id: 'session-a',
+      projectId: project.id,
+      name: 'A',
+      folder: '/tmp/two/a',
+      rootPaneGroupId: 'root-a'
+    })
+    const sessionB = service.createSession({
+      id: 'session-b',
+      projectId: project.id,
+      name: 'B',
+      folder: '/tmp/two/b',
+      rootPaneGroupId: 'root-b'
+    })
+
+    service.activateSession(sessionA.id)
+    service.removeSession(sessionA.id)
+    expect(service.read().activeSessionId).toBe(sessionB.id)
+
+    service.activateSession('session-primary')
+    service.removeSession('session-primary')
+    expect(service.read().activeSessionId).toBe('session-secondary')
+
+    service.removeSession('session-secondary')
+    service.removeSession(sessionB.id)
+    expect(service.read().activeSessionId).toBeUndefined()
+  })
+
+  it('sets the first created session active when starting from an empty workspace', () => {
+    const service = new WorkspaceStore()
+
+    service.removeSession('session-primary')
+    expect(service.read().activeSessionId).toBe('session-secondary')
+    service.removeSession('session-secondary')
+    expect(service.read().activeSessionId).toBeUndefined()
+
+    const project = service.createProject({ id: 'project-2', name: 'Two', folder: '/tmp/two' })
+    const session = service.createSession({
+      id: 'session-a',
+      projectId: project.id,
+      name: 'A',
+      folder: '/tmp/two/a',
+      rootPaneGroupId: 'root-a'
+    })
+
+    expect(service.read().activeSessionId).toBe(session.id)
   })
 
   it('creates sessions and pane trees, and rejects cross-session inserts', () => {

@@ -50,11 +50,12 @@ const baseProps: PaneViewProps = {
   projectId: 'project-1',
   sessionId: 'session-1',
   terminalSession: {
-    id: 'terminal-session',
+    id: 'pane-terminal',
     shell: '/bin/zsh',
     cwd: '/tmp',
     pid: 42,
-    state: 'ready'
+    state: 'ready',
+    buffer: 'hello'
   },
   clearSignal: 0,
   activeTerminalPaneId: 'pane-terminal',
@@ -89,8 +90,9 @@ describe('TerminalPaneView', () => {
   it('clears the terminal and resizes when becoming visible', () => {
     const { rerender } = render(<TerminalPaneView {...baseProps} visible={false} />)
 
+    expect(writeMock).toHaveBeenCalledWith('hello')
     expect(window.terminalApp.resizeTerminal).toHaveBeenCalledWith({
-      sessionId: 'terminal-session',
+      sessionId: 'pane-terminal',
       cols: 80,
       rows: 24
     })
@@ -100,7 +102,7 @@ describe('TerminalPaneView', () => {
     expect(clearMock).toHaveBeenCalledTimes(2)
     expect(fitMock).toHaveBeenCalled()
     expect(window.terminalApp.resizeTerminal).toHaveBeenLastCalledWith({
-      sessionId: 'terminal-session',
+      sessionId: 'pane-terminal',
       cols: 80,
       rows: 24
     })

@@ -20,7 +20,7 @@ const emptyPlugins: PluginViewModel = {
 
 export const App = () => {
   const [plugins, setPlugins] = useState<PluginViewModel>(emptyPlugins)
-  const [session, setSession] = useState<TerminalSessionInfo | null>(null)
+  const [terminalSessions, setTerminalSessions] = useState<Record<string, TerminalSessionInfo>>({})
   const [workspaceSnapshot, setWorkspaceSnapshot] = useState<WorkspaceStateSnapshot>(() => readWorkspaceSnapshot())
   const [leftVisible, setLeftVisible] = useState(true)
   const [rightVisible, setRightVisible] = useState(true)
@@ -34,17 +34,20 @@ export const App = () => {
     void Promise.all([window.terminalApp.getPluginModel(), loadUserPluginRenderers()]).then(
       ([pluginModel]) => setPlugins(pluginModel)
     )
-    void window.terminalApp.createTerminalSession().then(setSession)
     setWorkspaceSnapshot(readWorkspaceSnapshot())
 
     const unsubscribeState = window.terminalApp.onTerminalState((event: TerminalStateEvent) => {
-      setSession({
-        id: event.sessionId,
-        shell: event.shell,
-        cwd: event.cwd,
-        pid: event.pid,
-        state: event.state
-      })
+      setTerminalSessions((value) => ({
+        ...value,
+        [event.sessionId]: {
+          ...(value[event.sessionId] ?? {}),
+          id: event.sessionId,
+          shell: event.shell,
+          cwd: event.cwd,
+          pid: event.pid,
+          state: event.state
+        }
+      }))
     })
     const unsubscribeWorkspace = workspace.subscribeAll(() => {
       setWorkspaceSnapshot(readWorkspaceSnapshot())
@@ -56,7 +59,7 @@ export const App = () => {
     }
   }, [])
 
-  const activeWorkspaceSessionId = workspaceSnapshot.sessions[0]?.id
+  const activeWorkspaceSessionId = workspaceSnapshot.activeSessionId ?? workspaceSnapshot.sessions[0]?.id
   const activeProjectId =
     workspaceSnapshot.sessions.find((session) => session.id === activeWorkspaceSessionId)?.projectId ??
     workspaceSnapshot.projects[0]?.id
@@ -65,11 +68,41 @@ export const App = () => {
       ? workspaceSnapshot.projects.find((project) => project.id === activeProjectId)
       : undefined
   const activeTerminalPaneId = getActiveVisibleTerminalPaneId(workspaceSnapshot, activeWorkspaceSessionId)
+  const activeTerminalSession = activeTerminalPaneId ? terminalSessions[activeTerminalPaneId] ?? null : null
+
+  useEffect(() => {
+    if (!activeTerminalPaneId) return
+
+    const activeWorkspaceSession = workspaceSnapshot.sessions.find((value) => value.id === activeWorkspaceSessionId)
+    void window.terminalApp
+      .createTerminalSession({
+        sessionId: activeTerminalPaneId,
+        cwd: activeWorkspaceSession?.folder
+      })
+      .then((terminalSession) => {
+        setTerminalSessions((value) => ({
+          ...value,
+          [terminalSession.id]: terminalSession
+        }))
+      })
+  }, [activeTerminalPaneId, activeWorkspaceSessionId, workspaceSnapshot.sessions])
 
   const handleToolbarAction = (action: ToolbarActionId) => {
     switch (action) {
       case 'terminal:new':
-        void window.terminalApp.createTerminalSession().then(setSession)
+        if (!activeTerminalPaneId) break
+        void window.terminalApp
+          .createTerminalSession({
+            sessionId: activeTerminalPaneId,
+            cwd: workspaceSnapshot.sessions.find((value) => value.id === activeWorkspaceSessionId)?.folder,
+            restart: true
+          })
+          .then((terminalSession) => {
+            setTerminalSessions((value) => ({
+              ...value,
+              [terminalSession.id]: terminalSession
+            }))
+          })
         break
       case 'terminal:clear':
         setClearSignal((value) => value + 1)
@@ -89,10 +122,16 @@ export const App = () => {
     void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: childId })
   }
 
+  const handleActivateSession = (sessionId: string) => {
+    void window.terminalApp.workspace.executeCommand({ type: 'session.activate', sessionId })
+  }
+
   return (
     <AppShell
       plugins={plugins}
-      session={session}
+      session={activeTerminalSession}
+      snapshot={workspaceSnapshot}
+      activeSessionId={activeWorkspaceSessionId}
       leftVisible={leftVisible}
       rightVisible={rightVisible}
       mainContent={
@@ -103,13 +142,15 @@ export const App = () => {
           snapshot={workspaceSnapshot}
           projectId={activeProjectId}
           sessionId={activeWorkspaceSessionId}
-          terminalSession={session}
+          terminalSession={activeTerminalSession}
           clearSignal={clearSignal}
           activeTerminalPaneId={activeTerminalPaneId}
           onSelectStackedChild={handleSelectStackedChild}
         />
       }
       onToolbarAction={handleToolbarAction}
+      onActivateSession={handleActivateSession}
+      resolveRendererView={getRendererView}
     />
   )
 }

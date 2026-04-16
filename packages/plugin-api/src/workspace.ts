@@ -62,6 +62,7 @@ export interface WorkspaceStateSnapshot {
   sessions: Session[]
   paneGroups: PaneGroup[]
   panes: Pane[]
+  activeSessionId?: string
 }
 
 export type WorkspaceEntityType = 'project' | 'session' | 'paneGroup' | 'pane'
@@ -71,6 +72,7 @@ export type WorkspaceEventType =
   | 'project.updated'
   | 'project.removed'
   | 'session.created'
+  | 'session.activated'
   | 'session.updated'
   | 'session.removed'
   | 'paneGroup.created'
@@ -105,6 +107,11 @@ export interface ProjectRemovedEvent extends WorkspaceEventBase<'project.removed
 
 export interface SessionCreatedEvent extends WorkspaceEventBase<'session.created', 'session'> {
   after: SessionData
+}
+
+export interface SessionActivatedEvent extends WorkspaceEventBase<'session.activated', 'session'> {
+  beforeSessionId?: string
+  afterSessionId: string
 }
 
 export interface SessionUpdatedEvent extends WorkspaceEventBase<'session.updated', 'session'> {
@@ -153,6 +160,7 @@ export type WorkspaceEvent =
   | ProjectUpdatedEvent
   | ProjectRemovedEvent
   | SessionCreatedEvent
+  | SessionActivatedEvent
   | SessionUpdatedEvent
   | SessionRemovedEvent
   | PaneGroupCreatedEvent
@@ -230,6 +238,7 @@ export type WorkspaceCommand =
   | { type: 'project.update'; projectId: string; input: UpdateProjectInput }
   | { type: 'project.remove'; projectId: string }
   | { type: 'session.create'; input: CreateSessionInput }
+  | { type: 'session.activate'; sessionId: string }
   | { type: 'session.update'; sessionId: string; input: UpdateSessionInput }
   | { type: 'session.remove'; sessionId: string }
   | { type: 'session.setRootPaneGroup'; sessionId: string; rootPaneGroupId: string }

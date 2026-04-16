@@ -7,6 +7,7 @@ import { createRequire } from 'node:module'
 import { spawn, type IPty } from 'node-pty'
 
 import type {
+  CreateTerminalSessionInput,
   TerminalDataEvent,
   TerminalExitEvent,
   TerminalInputPayload,
@@ -18,6 +19,11 @@ import type {
 const DEFAULT_PATH = '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
 const EXECUTABLE_MODE = 0o755
 const require = createRequire(import.meta.url)
+
+interface ManagedTerminalSession {
+  pty?: IPty
+  state: TerminalSessionInfo
+}
 
 const isExecutable = (candidate: string | null | undefined): candidate is string => {
   if (!candidate) return false
@@ -35,14 +41,7 @@ const resolveShellCandidates = (): string[] => {
     return [process.env.COMSPEC, 'powershell.exe', 'cmd.exe'].filter((value): value is string => Boolean(value))
   }
 
-  const candidates = [
-    process.env.SHELL,
-    os.userInfo().shell,
-    '/bin/zsh',
-    '/bin/bash',
-    '/bin/sh'
-  ]
-
+  const candidates = [process.env.SHELL, os.userInfo().shell, '/bin/zsh', '/bin/bash', '/bin/sh']
   return [...new Set(candidates.filter(isExecutable))]
 }
 
@@ -73,25 +72,15 @@ const shellArgs = (shell: string): string[] => {
   if (process.platform === 'win32') return []
 
   const shellName = path.basename(shell)
-
   if (shellName === 'zsh' || shellName === 'bash') return ['-il']
   if (shellName === 'sh') return ['-i']
-
   return []
 }
 
 export class TerminalService {
-  private pty?: IPty
   private readonly cwd = process.cwd()
   private readonly shellCandidates = resolveShellCandidates()
-  private readonly sessionId = 'primary'
-  private state: TerminalSessionInfo = {
-    id: this.sessionId,
-    shell: this.shellCandidates[0] ?? 'unavailable',
-    cwd: this.cwd,
-    pid: -1,
-    state: 'idle'
-  }
+  private readonly sessions = new Map<string, ManagedTerminalSession>()
 
   constructor(
     private readonly sendData: (event: TerminalDataEvent) => void,
@@ -99,22 +88,43 @@ export class TerminalService {
     private readonly sendExit: (event: TerminalExitEvent) => void
   ) {}
 
-  createSession(): TerminalSessionInfo {
+  createSession(input: CreateTerminalSessionInput): TerminalSessionInfo {
     ensureNodePtyHelpersExecutable()
 
-    this.disposePty()
-    this.state = { ...this.state, state: 'starting', pid: -1 }
-    this.emitState()
+    const cwd = input.cwd ?? this.cwd
+    const existing = this.sessions.get(input.sessionId)
+    if (existing && !input.restart) {
+      if (cwd !== existing.state.cwd) {
+        existing.state = { ...existing.state, cwd }
+      }
+      this.emitState(existing.state)
+      return existing.state
+    }
+
+    if (existing) {
+      this.disposeSession(input.sessionId)
+    }
+
+    const startingState: TerminalSessionInfo = {
+      id: input.sessionId,
+      shell: this.shellCandidates[0] ?? 'unavailable',
+      cwd,
+      pid: -1,
+      state: 'starting',
+      buffer: ''
+    }
+    this.sessions.set(input.sessionId, { state: startingState })
+    this.emitState(startingState)
 
     let lastError: unknown
 
     for (const shell of this.shellCandidates) {
       try {
-        this.pty = spawn(shell, shellArgs(shell), {
+        const pty = spawn(shell, shellArgs(shell), {
           name: 'xterm-256color',
           cols: 80,
           rows: 24,
-          cwd: this.cwd,
+          cwd,
           env: {
             ...process.env,
             HOME: process.env.HOME ?? os.homedir(),
@@ -124,89 +134,107 @@ export class TerminalService {
           }
         })
 
-        this.state = {
-          id: this.sessionId,
-          shell,
-          cwd: this.cwd,
-          pid: this.pty.pid,
-          state: 'ready'
+        const session: ManagedTerminalSession = {
+          pty,
+          state: {
+            id: input.sessionId,
+            shell,
+            cwd,
+            pid: pty.pid,
+            state: 'ready',
+            buffer: ''
+          }
         }
-        this.emitState()
+        this.sessions.set(input.sessionId, session)
+        this.emitState(session.state)
 
-        this.pty.onData((data) => {
+        pty.onData((data) => {
+          session.state = {
+            ...session.state,
+            buffer: `${session.state.buffer ?? ''}${data}`
+          }
           this.sendData({
-            sessionId: this.sessionId,
+            sessionId: input.sessionId,
             data
           })
         })
 
-        this.pty.onExit(({ exitCode }) => {
-          this.state = {
-            ...this.state,
-            state: 'exited',
-            pid: -1
+        pty.onExit(({ exitCode }) => {
+          const current = this.sessions.get(input.sessionId)
+          if (!current) return
+
+          current.pty = undefined
+          current.state = {
+            ...current.state,
+            pid: -1,
+            state: 'exited'
           }
-          this.emitState()
+          this.emitState(current.state)
           this.sendExit({
-            sessionId: this.sessionId,
+            sessionId: input.sessionId,
             exitCode
           })
         })
 
-        return this.state
+        return session.state
       } catch (error) {
         lastError = error
       }
     }
 
-    this.state = {
-      ...this.state,
+    const failedState: TerminalSessionInfo = {
+      id: input.sessionId,
       shell: this.shellCandidates[0] ?? 'unavailable',
+      cwd,
+      pid: -1,
       state: 'exited',
-      pid: -1
+      buffer: ''
     }
-    this.emitState()
+    this.sessions.set(input.sessionId, { state: failedState })
+    this.emitState(failedState)
 
     const reason = lastError instanceof Error ? lastError.message : 'Unknown PTY spawn failure'
     this.sendData({
-      sessionId: this.sessionId,
+      sessionId: input.sessionId,
       data: `\r\n[sessionry] Failed to start shell.\r\nTried: ${this.shellCandidates.join(', ') || 'none'}\r\nReason: ${reason}\r\n`
     })
 
     throw new Error(`Unable to start a terminal shell. Tried: ${this.shellCandidates.join(', ') || 'none'}. ${reason}`)
   }
 
-  getState(): TerminalSessionInfo {
-    return this.state
-  }
-
   handleInput(payload: TerminalInputPayload): void {
-    if (payload.sessionId !== this.sessionId || !this.pty) return
-    this.pty.write(payload.data)
+    this.sessions.get(payload.sessionId)?.pty?.write(payload.data)
   }
 
   handleResize(payload: TerminalResizePayload): void {
-    if (payload.sessionId !== this.sessionId || !this.pty) return
+    const pty = this.sessions.get(payload.sessionId)?.pty
+    if (!pty) return
     if (payload.cols < 2 || payload.rows < 1) return
-    this.pty.resize(payload.cols, payload.rows)
+    pty.resize(payload.cols, payload.rows)
   }
 
   dispose(): void {
-    this.disposePty()
+    for (const sessionId of this.sessions.keys()) {
+      this.disposeSession(sessionId)
+    }
+    this.sessions.clear()
   }
 
-  private disposePty(): void {
-    this.pty?.kill()
-    this.pty = undefined
+  private disposeSession(sessionId: string): void {
+    const session = this.sessions.get(sessionId)
+    session?.pty?.kill()
+    if (session) {
+      session.pty = undefined
+    }
   }
 
-  private emitState(): void {
+  private emitState(state: TerminalSessionInfo): void {
     this.sendState({
-      sessionId: this.sessionId,
-      shell: this.state.shell,
-      cwd: this.state.cwd,
-      pid: this.state.pid,
-      state: this.state.state
+      sessionId: state.id,
+      shell: state.shell,
+      cwd: state.cwd,
+      pid: state.pid,
+      state: state.state
     })
   }
 }

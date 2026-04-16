@@ -1,8 +1,13 @@
 import type { RendererAppPlugin, RendererPluginViewDefinition } from '@sessionry/plugin-api'
 import { defaultWorkspacePaneRendererPlugin } from '@sessionry/default-workspace-pane-plugin/renderer'
+import { projectSessionsSidebarRendererPlugin } from '@sessionry/project-sessions-sidebar-plugin/renderer'
 import { terminalPaneRendererPlugin } from '@sessionry/terminal-pane-plugin/renderer'
 
-const builtInRendererPlugins = [terminalPaneRendererPlugin, defaultWorkspacePaneRendererPlugin]
+const builtInRendererPlugins = [
+  terminalPaneRendererPlugin,
+  defaultWorkspacePaneRendererPlugin,
+  projectSessionsSidebarRendererPlugin
+]
 
 const rendererViews = builtInRendererPlugins.flatMap((plugin) =>
   (plugin.views ?? []).map((view) => ({

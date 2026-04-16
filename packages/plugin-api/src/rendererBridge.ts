@@ -6,6 +6,7 @@ import type {
   WorkspaceStateSnapshot
 } from './workspace'
 import type {
+  CreateTerminalSessionInput,
   TerminalDataEvent,
   TerminalExitEvent,
   TerminalInputPayload,
@@ -20,7 +21,7 @@ export interface UserPluginRendererInfo {
 }
 
 export interface TerminalAppBridge {
-  createTerminalSession: () => Promise<TerminalSessionInfo>
+  createTerminalSession: (input: CreateTerminalSessionInput) => Promise<TerminalSessionInfo>
   sendTerminalInput: (payload: TerminalInputPayload) => void
   resizeTerminal: (payload: TerminalResizePayload) => void
   getPluginModel: () => Promise<PluginViewModel>

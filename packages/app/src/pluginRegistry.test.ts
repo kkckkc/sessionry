@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getPaneSlotId, normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
+import { getPaneSlotId, getSidebarPanelSlotId, normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
 
 describe('normalizePlugins', () => {
   it('collects toolbar, sidebar, status, and slot view contributions into a renderer model', () => {
@@ -80,5 +80,10 @@ describe('normalizePlugins', () => {
       'pane.terminal.two'
     ])
     expect(resolveActiveView(plugins, getPaneSlotId('terminal'))?.id).toBe('pane.terminal.one')
+  })
+
+  it('builds stable slot ids for sidebar panel renderers', () => {
+    expect(getSidebarPanelSlotId('left', 'project-sessions.panel')).toBe('sidebar:left:project-sessions.panel')
+    expect(getSidebarPanelSlotId('right', 'inspector.panel')).toBe('sidebar:right:inspector.panel')
   })
 })

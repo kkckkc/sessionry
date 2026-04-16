@@ -6,6 +6,13 @@ export interface TerminalSessionInfo {
   cwd: string
   pid: number
   state: TerminalSessionState
+  buffer?: string
+}
+
+export interface CreateTerminalSessionInput {
+  sessionId: string
+  cwd?: string
+  restart?: boolean
 }
 
 export interface TerminalDataEvent {

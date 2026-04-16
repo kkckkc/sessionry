@@ -2,22 +2,62 @@ import type { ReactNode } from 'react'
 
 import { Toolbar } from '@base-ui-components/react/toolbar'
 
-import type { PluginViewModel, SidebarPanelContribution, ToolbarActionContribution } from '@sessionry/plugin-api'
+import type {
+  PluginViewModel,
+  SidebarPanelViewProps,
+  ToolbarActionContribution
+} from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
+import { getSidebarPanelSlotId } from '@sessionry/plugin-api'
+import { resolveActiveView } from '@sessionry/plugin-api'
+import type { RendererViewRegistration, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
 import { panelDescriptions, resolveStatusValue, sidebarItemCount } from '../lib/pluginPanels'
 
 interface AppShellProps {
   plugins: PluginViewModel
   session: TerminalSessionInfo | null
+  snapshot: WorkspaceStateSnapshot
+  activeSessionId?: string
   leftVisible: boolean
   rightVisible: boolean
   mainContent: ReactNode
   onToolbarAction: (action: ToolbarActionContribution['id']) => void
+  onActivateSession: (sessionId: string) => void
+  resolveRendererView: (viewId: string) => RendererViewRegistration | null
 }
 
-const SidebarPanel = ({ panel }: { panel: SidebarPanelContribution }) => {
+const SidebarPanel = ({
+  panel,
+  plugins,
+  snapshot,
+  activeSessionId,
+  onActivateSession,
+  resolveRendererView
+}: SidebarPanelViewProps & { resolveRendererView: (viewId: string) => RendererViewRegistration | null }) => {
+  const slotId = getSidebarPanelSlotId(panel.side, panel.id)
+  const activeView = resolveActiveView(plugins, slotId)
+  const registration = activeView ? resolveRendererView(activeView.id) : null
   const entries = panelDescriptions[panel.id] ?? ['No content registered']
+
+  if (registration) {
+    const Component = registration.component
+    return (
+      <section className="sidebar-panel" aria-label={panel.title}>
+        <header className="sidebar-panel__header">
+          <span>{panel.title}</span>
+          <span className="sidebar-panel__badge">{sidebarItemCount(panel)}</span>
+        </header>
+        <Component
+          panel={panel}
+          plugins={plugins}
+          snapshot={snapshot}
+          activeSessionId={activeSessionId}
+          onActivateSession={onActivateSession}
+        />
+      </section>
+    )
+  }
 
   return (
     <section className="sidebar-panel" aria-label={panel.title}>
@@ -37,10 +77,14 @@ const SidebarPanel = ({ panel }: { panel: SidebarPanelContribution }) => {
 export const AppShell = ({
   plugins,
   session,
+  snapshot,
+  activeSessionId,
   leftVisible,
   rightVisible,
   mainContent,
-  onToolbarAction
+  onToolbarAction,
+  onActivateSession,
+  resolveRendererView
 }: AppShellProps) => {
   const workspaceClassName = [
     'workspace',
@@ -68,7 +112,15 @@ export const AppShell = ({
       {leftVisible ? (
         <aside className="sidebar sidebar--left">
           {plugins.leftPanels.map((panel) => (
-            <SidebarPanel key={panel.id} panel={panel} />
+            <SidebarPanel
+              key={panel.id}
+              panel={panel}
+              plugins={plugins}
+              snapshot={snapshot}
+              activeSessionId={activeSessionId}
+              onActivateSession={onActivateSession}
+              resolveRendererView={resolveRendererView}
+            />
           ))}
         </aside>
       ) : null}
@@ -78,7 +130,15 @@ export const AppShell = ({
       {rightVisible ? (
         <aside className="sidebar sidebar--right">
           {plugins.rightPanels.map((panel) => (
-            <SidebarPanel key={panel.id} panel={panel} />
+            <SidebarPanel
+              key={panel.id}
+              panel={panel}
+              plugins={plugins}
+              snapshot={snapshot}
+              activeSessionId={activeSessionId}
+              onActivateSession={onActivateSession}
+              resolveRendererView={resolveRendererView}
+            />
           ))}
         </aside>
       ) : null}

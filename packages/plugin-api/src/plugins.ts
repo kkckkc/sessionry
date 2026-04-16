@@ -37,6 +37,14 @@ export interface SidebarPanelContribution {
   pluginId: string
 }
 
+export interface SidebarPanelViewProps {
+  panel: SidebarPanelContribution
+  plugins: PluginViewModel
+  snapshot: WorkspaceStateSnapshot
+  activeSessionId?: string
+  onActivateSession: (sessionId: string) => void
+}
+
 export interface StatusItemContribution {
   id: string
   label: string
@@ -110,3 +118,8 @@ export interface MainPluginContext {
 export interface RendererPluginContext {
   workspace: WorkspaceApi
 }
+
+export const getSidebarPanelSlotId = (
+  side: SidebarSide,
+  panelId: string
+): PluginViewSlotId => `sidebar:${side}:${panelId}`

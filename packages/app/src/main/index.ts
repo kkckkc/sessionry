@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { IPC_CHANNELS } from '@app-shared/ipc'
 import { createWorkspaceApi } from '@sessionry/plugin-api'
 import type { WorkspaceCommand, WorkspaceEvent } from '@sessionry/plugin-api'
-import type { TerminalInputPayload, TerminalResizePayload } from '@sessionry/plugin-api'
+import type { CreateTerminalSessionInput, TerminalInputPayload, TerminalResizePayload } from '@sessionry/plugin-api'
 
 import { WorkspaceStore } from './workspaceStore'
 import { createPluginManager } from './pluginManager'
@@ -106,7 +106,9 @@ app.whenReady().then(async () => {
     mainWindow?.webContents.send(IPC_CHANNELS.workspaceEvent, event)
   })
 
-  ipcMain.handle(IPC_CHANNELS.terminalCreate, () => terminalService.createSession())
+  ipcMain.handle(IPC_CHANNELS.terminalCreate, (_event, input: CreateTerminalSessionInput) =>
+    terminalService.createSession(input)
+  )
   ipcMain.on(IPC_CHANNELS.terminalInput, (_event, payload: TerminalInputPayload) => {
     terminalService.handleInput(payload)
   })

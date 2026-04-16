@@ -188,6 +188,32 @@ button {
   font-size: 0.82rem;
 }
 
+.sidebar-project-label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.sidebar-session-button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.4rem 0.55rem;
+  text-align: left;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.sidebar-session-button:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-session-button--active {
+  color: var(--text-primary);
+  background: rgba(92, 160, 255, 0.18);
+}
+
 .workspace-content {
   display: flex;
   padding: 0.9rem;

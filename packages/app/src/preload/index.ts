@@ -9,6 +9,7 @@ import type {
 } from '@sessionry/plugin-api'
 import type { PluginViewModel, UserPluginRendererInfo } from '@sessionry/plugin-api'
 import type {
+  CreateTerminalSessionInput,
   TerminalDataEvent,
   TerminalExitEvent,
   TerminalInputPayload,
@@ -20,7 +21,8 @@ import type {
 type Unsubscribe = () => void
 
 const api = {
-  createTerminalSession: (): Promise<TerminalSessionInfo> => ipcRenderer.invoke(IPC_CHANNELS.terminalCreate),
+  createTerminalSession: (input: CreateTerminalSessionInput): Promise<TerminalSessionInfo> =>
+    ipcRenderer.invoke(IPC_CHANNELS.terminalCreate, input),
   sendTerminalInput: (payload: TerminalInputPayload): void => {
     ipcRenderer.send(IPC_CHANNELS.terminalInput, payload)
   },

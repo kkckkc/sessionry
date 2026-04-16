@@ -13,7 +13,8 @@ export default defineConfig({
         exclude: [
           '@sessionry/plugin-api',
           '@sessionry/default-workspace-pane-plugin',
-          '@sessionry/terminal-pane-plugin'
+          '@sessionry/terminal-pane-plugin',
+          '@sessionry/project-sessions-sidebar-plugin'
         ]
       })
     ],
@@ -36,6 +37,14 @@ export default defineConfig({
           replacement: path.resolve(rootDir, '../../plugins/default-workspace-pane-plugin/src/index.ts')
         },
         {
+          find: '@sessionry/project-sessions-sidebar-plugin/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/project-sessions-sidebar-plugin/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/project-sessions-sidebar-plugin',
+          replacement: path.resolve(rootDir, '../../plugins/project-sessions-sidebar-plugin/src/index.ts')
+        },
+        {
           find: '@sessionry/plugin-api',
           replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
         },
@@ -52,7 +61,8 @@ export default defineConfig({
         exclude: [
           '@sessionry/plugin-api',
           '@sessionry/default-workspace-pane-plugin',
-          '@sessionry/terminal-pane-plugin'
+          '@sessionry/terminal-pane-plugin',
+          '@sessionry/project-sessions-sidebar-plugin'
         ]
       })
     ],
@@ -61,6 +71,10 @@ export default defineConfig({
         {
           find: '@sessionry/plugin-api',
           replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
+        },
+        {
+          find: '@sessionry/project-sessions-sidebar-plugin',
+          replacement: path.resolve(rootDir, '../../plugins/project-sessions-sidebar-plugin/src/index.ts')
         },
         {
           find: '@app-shared',
@@ -100,6 +114,14 @@ export default defineConfig({
         {
           find: '@sessionry/default-workspace-pane-plugin',
           replacement: path.resolve(rootDir, '../../plugins/default-workspace-pane-plugin/src/index.ts')
+        },
+        {
+          find: '@sessionry/project-sessions-sidebar-plugin/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/project-sessions-sidebar-plugin/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/project-sessions-sidebar-plugin',
+          replacement: path.resolve(rootDir, '../../plugins/project-sessions-sidebar-plugin/src/index.ts')
         },
         {
           find: '@sessionry/plugin-api',
