@@ -2,6 +2,9 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 import { IPC_CHANNELS } from '@app-shared/ipc'
 import type {
+  ActionDescriptor,
+  ActionExecutionRequest,
+  ActionExecutionResult,
   WorkspaceEvent,
   WorkspaceCommand,
   WorkspaceCommandResult,
@@ -32,6 +35,11 @@ const api = {
   getPluginModel: (): Promise<PluginViewModel> => ipcRenderer.invoke(IPC_CHANNELS.pluginModel),
   getUserPluginRenderers: (): Promise<UserPluginRendererInfo[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.userPluginRenderers),
+  actions: {
+    list: (): Promise<ActionDescriptor[]> => ipcRenderer.invoke(IPC_CHANNELS.actionsList),
+    execute: (request: ActionExecutionRequest): Promise<ActionExecutionResult> =>
+      ipcRenderer.invoke(IPC_CHANNELS.actionsExecute, request)
+  },
   workspace: {
     read: (): WorkspaceStateSnapshot =>
       ipcRenderer.sendSync(IPC_CHANNELS.workspaceRead) as WorkspaceStateSnapshot,

@@ -1,13 +1,8 @@
 import type { ComponentType } from 'react'
 
+import type { ActionContribution, ActionDescriptor } from './actions'
 import type { TerminalSessionInfo, TerminalSessionState } from './terminal'
 import type { Pane, PaneType, WorkspaceApi, WorkspaceStateSnapshot } from './workspace'
-
-export type ToolbarActionId =
-  | 'terminal:new'
-  | 'terminal:clear'
-  | 'layout:toggle-left'
-  | 'layout:toggle-right'
 
 export type SidebarSide = 'left' | 'right'
 /** Host-defined slot ids, for example `workspace` or `pane:terminal`. */
@@ -22,12 +17,6 @@ export interface PluginViewDefinition {
 
 export interface PluginViewContribution extends PluginViewDefinition {
   pluginId: string
-}
-
-export interface ToolbarActionContribution {
-  id: ToolbarActionId
-  label: string
-  description: string
 }
 
 export interface SidebarPanelContribution {
@@ -52,7 +41,8 @@ export interface StatusItemContribution {
 }
 
 export interface PluginViewModel {
-  toolbar: ToolbarActionContribution[]
+  actions: ActionDescriptor[]
+  toolbarActionIds: string[]
   leftPanels: SidebarPanelContribution[]
   rightPanels: SidebarPanelContribution[]
   statusItems: StatusItemContribution[]
@@ -89,7 +79,7 @@ export interface RendererViewRegistration {
 export interface AppPlugin {
   id: string
   name: string
-  toolbar?: ToolbarActionContribution[]
+  actions?: ActionContribution[]
   panels?: SidebarPanelContribution[]
   statusItems?: StatusItemContribution[]
   views?: PluginViewDefinition[]

@@ -1,3 +1,4 @@
+import type { ActionDescriptor, ActionExecutionRequest, ActionExecutionResult } from './actions'
 import type { PluginViewModel } from './plugins'
 import type {
   WorkspaceCommand,
@@ -26,6 +27,10 @@ export interface TerminalAppBridge {
   resizeTerminal: (payload: TerminalResizePayload) => void
   getPluginModel: () => Promise<PluginViewModel>
   getUserPluginRenderers: () => Promise<UserPluginRendererInfo[]>
+  actions: {
+    list: () => Promise<ActionDescriptor[]>
+    execute: (request: ActionExecutionRequest) => Promise<ActionExecutionResult>
+  }
   workspace: {
     read: () => WorkspaceStateSnapshot
     executeCommand: (command: WorkspaceCommand) => Promise<WorkspaceCommandResult>

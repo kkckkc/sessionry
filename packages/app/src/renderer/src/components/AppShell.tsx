@@ -2,11 +2,7 @@ import type { ReactNode } from 'react'
 
 import { Toolbar } from '@base-ui-components/react/toolbar'
 
-import type {
-  PluginViewModel,
-  SidebarPanelViewProps,
-  ToolbarActionContribution
-} from '@sessionry/plugin-api'
+import type { ActionDescriptor, PluginViewModel, SidebarPanelViewProps } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
 import { getSidebarSlotId } from '@sessionry/plugin-api'
 import { resolveActiveView } from '@sessionry/plugin-api'
@@ -22,7 +18,8 @@ interface AppShellProps {
   leftVisible: boolean
   rightVisible: boolean
   mainContent: ReactNode
-  onToolbarAction: (action: ToolbarActionContribution['id']) => void
+  dialog?: ReactNode
+  onToolbarAction: (actionId: string) => void
   onActivateSession: (sessionId: string) => void
   resolveRendererView: (viewId: string) => RendererViewRegistration | null
 }
@@ -82,6 +79,7 @@ export const AppShell = ({
   leftVisible,
   rightVisible,
   mainContent,
+  dialog,
   onToolbarAction,
   onActivateSession,
   resolveRendererView
@@ -93,65 +91,69 @@ export const AppShell = ({
   ].join(' ')
 
   return (
-  <div className="app-frame">
-    <header className="toolbar">
-      <div className="toolbar__brand">
-        <span className="toolbar__eyebrow">AI Term</span>
-        <h1>Workspace</h1>
-      </div>
-      <Toolbar.Root className="toolbar__actions" aria-label="Terminal actions">
-        {plugins.toolbar.map((action) => (
-          <Toolbar.Button key={action.id} className="toolbar__button" onClick={() => onToolbarAction(action.id)}>
-            {action.label}
-          </Toolbar.Button>
-        ))}
-      </Toolbar.Root>
-    </header>
-
-    <main className={workspaceClassName}>
-      {leftVisible ? (
-        <aside className="sidebar sidebar--left">
-          {plugins.leftPanels.map((panel) => (
-            <SidebarPanel
-              key={panel.id}
-              panel={panel}
-              plugins={plugins}
-              snapshot={snapshot}
-              activeSessionId={activeSessionId}
-              onActivateSession={onActivateSession}
-              resolveRendererView={resolveRendererView}
-            />
-          ))}
-        </aside>
-      ) : null}
-
-      <section className="workspace-content">{mainContent}</section>
-
-      {rightVisible ? (
-        <aside className="sidebar sidebar--right">
-          {plugins.rightPanels.map((panel) => (
-            <SidebarPanel
-              key={panel.id}
-              panel={panel}
-              plugins={plugins}
-              snapshot={snapshot}
-              activeSessionId={activeSessionId}
-              onActivateSession={onActivateSession}
-              resolveRendererView={resolveRendererView}
-            />
-          ))}
-        </aside>
-      ) : null}
-    </main>
-
-    <footer className="status-bar">
-      {plugins.statusItems.map((item) => (
-        <div key={item.id} className="status-bar__item">
-          <span>{item.label}</span>
-          <strong>{resolveStatusValue(item, session)}</strong>
+    <div className="app-frame">
+      <header className="toolbar">
+        <div className="toolbar__brand">
+          <span className="toolbar__eyebrow">AI Term</span>
+          <h1>Workspace</h1>
         </div>
-      ))}
-    </footer>
-  </div>
+        <Toolbar.Root className="toolbar__actions" aria-label="Terminal actions">
+          {plugins.toolbarActionIds
+            .map((actionId) => plugins.actions.find((candidate) => candidate.id === actionId))
+            .filter((action): action is ActionDescriptor => action !== undefined)
+            .map((action) => (
+              <Toolbar.Button key={action.id} className="toolbar__button" onClick={() => onToolbarAction(action.id)}>
+                {action.name}
+              </Toolbar.Button>
+            ))}
+        </Toolbar.Root>
+      </header>
+
+      <main className={workspaceClassName}>
+        {leftVisible ? (
+          <aside className="sidebar sidebar--left">
+            {plugins.leftPanels.map((panel) => (
+              <SidebarPanel
+                key={panel.id}
+                panel={panel}
+                plugins={plugins}
+                snapshot={snapshot}
+                activeSessionId={activeSessionId}
+                onActivateSession={onActivateSession}
+                resolveRendererView={resolveRendererView}
+              />
+            ))}
+          </aside>
+        ) : null}
+
+        <section className="workspace-content">{mainContent}</section>
+
+        {rightVisible ? (
+          <aside className="sidebar sidebar--right">
+            {plugins.rightPanels.map((panel) => (
+              <SidebarPanel
+                key={panel.id}
+                panel={panel}
+                plugins={plugins}
+                snapshot={snapshot}
+                activeSessionId={activeSessionId}
+                onActivateSession={onActivateSession}
+                resolveRendererView={resolveRendererView}
+              />
+            ))}
+          </aside>
+        ) : null}
+      </main>
+
+      <footer className="status-bar">
+        {plugins.statusItems.map((item) => (
+          <div key={item.id} className="status-bar__item">
+            <span>{item.label}</span>
+            <strong>{resolveStatusValue(item, session)}</strong>
+          </div>
+        ))}
+      </footer>
+      {dialog}
+    </div>
   )
 }

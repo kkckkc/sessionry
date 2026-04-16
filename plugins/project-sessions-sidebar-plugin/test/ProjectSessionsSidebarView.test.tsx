@@ -6,7 +6,8 @@ import type { PluginViewModel, WorkspaceStateSnapshot } from '@sessionry/plugin-
 import projectSessionsSidebarRendererPlugin from '../src/renderer'
 
 const plugins: PluginViewModel = {
-  toolbar: [],
+  actions: [],
+  toolbarActionIds: [],
   leftPanels: [],
   rightPanels: [],
   statusItems: [],

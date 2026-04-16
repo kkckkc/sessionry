@@ -7,6 +7,8 @@ export const IPC_CHANNELS = {
   terminalState: 'terminal:state',
   pluginModel: 'plugins:model',
   userPluginRenderers: 'plugins:user-renderers',
+  actionsList: 'actions:list',
+  actionsExecute: 'actions:execute',
   workspaceRead: 'workspace:read',
   workspaceCommand: 'workspace:command',
   workspaceEvent: 'workspace:event'

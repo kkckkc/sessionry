@@ -3,12 +3,20 @@ import { describe, expect, it } from 'vitest'
 import { getPaneSlotId, getSidebarSlotId, normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
 
 describe('normalizePlugins', () => {
-  it('collects toolbar, sidebar, status, and slot view contributions into a renderer model', () => {
+  it('collects action, sidebar, status, and slot view contributions into a renderer model', () => {
     const result = normalizePlugins([
       {
         id: 'one',
         name: 'One',
-        toolbar: [{ id: 'terminal:clear', label: 'Clear', description: 'Clear output' }],
+        actions: [
+          {
+            id: 'terminal:clear',
+            name: 'Clear Terminal',
+            description: 'Clear output',
+            surfaces: ['toolbar'],
+            run: () => ({ status: 'completed' })
+          }
+        ],
         panels: [{ id: 'b', title: 'Beta', side: 'right', pluginId: 'one' }],
         statusItems: [{ id: 'state', label: 'State', kind: 'session-state' }],
         views: [
@@ -28,7 +36,8 @@ describe('normalizePlugins', () => {
       }
     ])
 
-    expect(result.toolbar).toHaveLength(1)
+    expect(result.actions).toHaveLength(1)
+    expect(result.toolbarActionIds).toEqual(['terminal:clear'])
     expect(result.leftPanels.map((panel) => panel.title)).toEqual(['Alpha'])
     expect(result.rightPanels.map((panel) => panel.title)).toEqual(['Beta'])
     expect(result.statusItems).toHaveLength(1)

@@ -60,7 +60,8 @@ vi.mock('@sessionry/project-sessions-sidebar-plugin/renderer', () => ({
 }))
 
 const pluginModel: PluginViewModel = {
-  toolbar: [],
+  actions: [],
+  toolbarActionIds: [],
   leftPanels: [],
   rightPanels: [],
   statusItems: [],
@@ -147,6 +148,10 @@ describe('App', () => {
       resizeTerminal: vi.fn(),
       getPluginModel: vi.fn(async () => pluginModel),
       getUserPluginRenderers: vi.fn(async () => []),
+      actions: {
+        list: vi.fn(async () => []),
+        execute: vi.fn(async () => ({ status: 'completed' }))
+      },
       workspace: {
         read: vi.fn(() => snapshot),
         executeCommand: vi.fn(async () => ({})),
@@ -201,6 +206,10 @@ describe('App', () => {
         }
       })),
       getUserPluginRenderers: vi.fn(async () => []),
+      actions: {
+        list: vi.fn(async () => []),
+        execute: vi.fn(async () => ({ status: 'completed' }))
+      },
       workspace: {
         read: vi.fn(() => snapshot),
         executeCommand,
@@ -223,4 +232,111 @@ describe('App', () => {
 
     expect(executeCommand).toHaveBeenCalledWith({ type: 'session.activate', sessionId: 'session-1' })
   })
+
+  it('runs toolbar actions through the action bridge and shows the argument collector when needed', async () => {
+    window.terminalApp = {
+      createTerminalSession: vi.fn(async () => terminalSession),
+      sendTerminalInput: vi.fn(),
+      resizeTerminal: vi.fn(),
+      getPluginModel: vi.fn(
+        async (): Promise<PluginViewModel> => ({
+          ...pluginModel,
+          actions: [
+            {
+              id: 'session:create',
+              name: 'Create Session',
+              description: 'Create a new workspace session.',
+              surfaces: ['toolbar'],
+              args: [
+                {
+                  name: 'projectId',
+                  label: 'Project',
+                  type: 'entity-ref',
+                  entityType: 'project',
+                  required: true,
+                  fromContext: 'activeProjectId'
+                },
+                {
+                  name: 'name',
+                  label: 'Session name',
+                  type: 'string',
+                  required: true
+                }
+              ]
+            }
+          ],
+          toolbarActionIds: ['session:create']
+        })
+      ),
+      getUserPluginRenderers: vi.fn(async () => []),
+      actions: {
+        list: vi.fn(async () => []),
+        execute: vi
+          .fn()
+          .mockResolvedValueOnce({
+            status: 'needs-input',
+            action: {
+              id: 'session:create',
+              name: 'Create Session',
+              description: 'Create a new workspace session.',
+              surfaces: ['toolbar'],
+              args: [
+                {
+                  name: 'projectId',
+                  label: 'Project',
+                  type: 'entity-ref',
+                  entityType: 'project',
+                  required: true,
+                  fromContext: 'activeProjectId'
+                },
+                {
+                  name: 'name',
+                  label: 'Session name',
+                  type: 'string',
+                  required: true
+                }
+              ]
+            },
+            providedArgs: {},
+            resolvedArgs: { projectId: 'project-1' },
+            missing: [{ name: 'name', label: 'Session name', type: 'string', required: true }]
+          })
+          .mockResolvedValueOnce({ status: 'completed' })
+      },
+      workspace: {
+        read: vi.fn(() => snapshot),
+        executeCommand: vi.fn(async () => ({})),
+        onEvent: onWorkspaceEvent
+      },
+      onTerminalData: vi.fn(() => () => {}),
+      onTerminalState,
+      onTerminalExit: vi.fn(() => () => {})
+    }
+
+    const { App } = await import('./App')
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Create Session' })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create Session' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+
+    fireEvent.change(screen.getByLabelText('Session name'), { target: { value: 'Focus' } })
+    fireEvent.submit(screen.getByRole('button', { name: 'Run' }).closest('form') as HTMLFormElement)
+
+    await waitFor(() => {
+      expect(window.terminalApp.actions.execute).toHaveBeenLastCalledWith({
+        actionId: 'session:create',
+        source: 'toolbar',
+        args: { projectId: 'project-1', name: 'Focus' }
+      })
+    })
+  })
+
 })

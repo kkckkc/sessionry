@@ -11,7 +11,8 @@ import { WorkspacePaneTree } from '../src/WorkspacePaneTree'
 const paneRendererSpy = vi.fn()
 
 const plugins: PluginViewModel = {
-  toolbar: [],
+  actions: [],
+  toolbarActionIds: [],
   leftPanels: [],
   rightPanels: [],
   statusItems: [],

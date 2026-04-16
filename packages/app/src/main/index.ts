@@ -9,7 +9,9 @@ import type { WorkspaceCommand, WorkspaceEvent } from '@sessionry/plugin-api'
 import type { CreateTerminalSessionInput, TerminalInputPayload, TerminalResizePayload } from '@sessionry/plugin-api'
 
 import { WorkspaceStore } from './workspaceStore'
+import { ActionRegistry } from './actionRegistry'
 import { createPluginManager } from './pluginManager'
+import { builtInPlugins } from './plugins'
 import { TerminalService } from './terminalService'
 import { loadUserPlugins } from './pluginLoader'
 
@@ -92,6 +94,8 @@ app.whenReady().then(async () => {
     executeCommand: (command: WorkspaceCommand) => workspaceStore.executeCommand(command),
     subscribeAll: (listener) => workspaceStore.subscribeAll(listener)
   })
+  const allPlugins = [...builtInPlugins, ...userPlugins.map((p) => p.plugin)]
+  const actionRegistry = new ActionRegistry(allPlugins, workspaceApi, () => workspaceStore.read())
   const pluginManager = createPluginManager(
     { workspace: workspaceApi },
     userPlugins.map((p) => p.plugin)
@@ -124,6 +128,8 @@ app.whenReady().then(async () => {
         rendererUrl: `sessionry://plugin/${p.dirName}/${p.manifest.renderer}`
       }))
   )
+  ipcMain.handle(IPC_CHANNELS.actionsList, () => actionRegistry.list())
+  ipcMain.handle(IPC_CHANNELS.actionsExecute, (_event, request) => actionRegistry.execute(request))
   ipcMain.on(IPC_CHANNELS.workspaceRead, (event) => {
     event.returnValue = workspaceStore.read()
   })

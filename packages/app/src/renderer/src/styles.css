@@ -418,6 +418,88 @@ button {
   background: transparent;
 }
 
+.action-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(8px);
+}
+
+.action-dialog {
+  width: min(480px, 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+}
+
+.action-dialog__header {
+  padding: 1rem 1rem 0.25rem;
+}
+
+.action-dialog__header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.action-dialog__header p {
+  margin: 0.45rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.action-dialog__form {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.action-dialog__field {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-primary);
+  font-size: 0.84rem;
+}
+
+.action-dialog__field input,
+.action-dialog__field select {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  background: var(--button-bg);
+  color: var(--text-primary);
+}
+
+.action-dialog__field small {
+  color: var(--text-secondary);
+}
+
+.action-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+}
+
+.action-dialog__button {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.55rem 0.9rem;
+  background: var(--accent);
+  color: #0b1020;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.action-dialog__button--ghost {
+  background: var(--button-bg);
+  color: var(--text-primary);
+}
+
 .pane-card__placeholder,
 .workspace-empty {
   display: grid;

@@ -1,4 +1,4 @@
-import type { SidebarPanelContribution, StatusItemContribution, ToolbarActionContribution } from '@sessionry/plugin-api'
+import type { SidebarPanelContribution, StatusItemContribution } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
 
 export const panelDescriptions: Record<string, string[]> = {
@@ -28,5 +28,3 @@ export const resolveStatusValue = (
 
 export const sidebarItemCount = (panel: SidebarPanelContribution): number =>
   panelDescriptions[panel.id]?.length ?? 0
-
-export const toolbarActionClassName = (action: ToolbarActionContribution): string => `action-${action.id}`

@@ -15,7 +15,8 @@ const snapshot: WorkspaceStateSnapshot = {
 }
 
 const plugins: PluginViewModel = {
-  toolbar: [{ id: 'terminal:clear', label: 'Clear', description: 'Clear terminal' }],
+  actions: [{ id: 'terminal:clear', name: 'Clear Terminal', description: 'Clear terminal', surfaces: ['toolbar'] }],
+  toolbarActionIds: ['terminal:clear'],
   leftPanels: [{ id: 'navigation.panel', title: 'Workspace', side: 'left', pluginId: 'nav' }],
   rightPanels: [{ id: 'inspector.panel', title: 'Inspector', side: 'right', pluginId: 'inspector' }],
   statusItems: [{ id: 'state', label: 'State', kind: 'session-state' }],
@@ -40,6 +41,7 @@ describe('AppShell', () => {
         leftVisible
         rightVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
+        dialog={null}
         onToolbarAction={() => {}}
         onActivateSession={() => {}}
         resolveRendererView={() => null}
@@ -50,7 +52,7 @@ describe('AppShell', () => {
     expect(screen.getByLabelText('Workspace')).toBeInTheDocument()
     expect(screen.getByLabelText('Inspector')).toBeInTheDocument()
     expect(screen.getByText('State')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Clear Terminal' })).toBeInTheDocument()
     expect(screen.getByTestId('workspace-content')).toBeInTheDocument()
   })
 
@@ -78,6 +80,7 @@ describe('AppShell', () => {
         leftVisible
         rightVisible={false}
         mainContent={<div data-testid="workspace-content">workspace</div>}
+        dialog={null}
         onToolbarAction={() => {}}
         onActivateSession={() => {}}
         resolveRendererView={() => ({

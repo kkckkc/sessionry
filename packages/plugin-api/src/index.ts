@@ -1,3 +1,4 @@
+export * from './actions'
 export * from './pluginRegistry'
 export * from './plugins'
 export * from './rendererBridge'

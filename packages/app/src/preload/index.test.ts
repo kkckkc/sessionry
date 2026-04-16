@@ -26,9 +26,16 @@ describe('preload workspace bridge', () => {
     await import('./index')
 
     const [, api] = exposeInMainWorld.mock.calls[0]
+    await api.actions.list()
+    await api.actions.execute({ actionId: 'terminal:clear', source: 'toolbar' })
     api.workspace.read()
     await api.workspace.executeCommand({ type: 'project.remove', projectId: 'project-1' })
 
+    expect(invoke).toHaveBeenCalledWith('actions:list')
+    expect(invoke).toHaveBeenCalledWith('actions:execute', {
+      actionId: 'terminal:clear',
+      source: 'toolbar'
+    })
     expect(sendSync).toHaveBeenCalledWith('workspace:read')
     expect(invoke).toHaveBeenCalledWith('workspace:command', {
       type: 'project.remove',

@@ -1,14 +1,16 @@
 import type {
   AppPlugin,
+  PluginViewModel,
   PluginViewContribution,
   PluginViewDefinition,
-  PluginViewModel,
   PluginViewSlotId,
   SidebarPanelContribution
 } from './plugins'
 
 export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
-  const toolbar = plugins.flatMap((plugin) => plugin.toolbar ?? [])
+  const actions = plugins.flatMap((plugin) =>
+    (plugin.actions ?? []).map(({ run: _run, ...action }) => action)
+  )
   const panels = plugins.flatMap((plugin) => plugin.panels ?? [])
   const statusItems = plugins.flatMap((plugin) => plugin.statusItems ?? [])
   const views = plugins.flatMap((plugin) =>
@@ -31,7 +33,8 @@ export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
   )
 
   return {
-    toolbar,
+    actions,
+    toolbarActionIds: actions.filter((action) => action.surfaces?.includes('toolbar')).map((action) => action.id),
     leftPanels: sortPanels('left'),
     rightPanels: sortPanels('right'),
     statusItems,
