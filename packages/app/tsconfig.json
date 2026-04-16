@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@sessionry/default-workspace-pane-plugin/renderer": ["../../plugins/default-workspace-pane-plugin/src/renderer.tsx"],
+      "@sessionry/default-workspace-pane-plugin": ["../../plugins/default-workspace-pane-plugin/src/index.ts"],
+      "@app-shared/*": ["src/shared/*"],
+      "@app-renderer/*": ["src/renderer/src/*"],
+      "@sessionry/plugin-api": ["../plugin-api/src/index.ts"]
+    }
+  },
+  "include": [
+    "electron.vite.config.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "vitest.config.ts"
+  ]
+}

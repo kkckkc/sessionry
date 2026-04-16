@@ -1,0 +1,40 @@
+{
+  "name": "@sessionry/app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Extensible Electron terminal bootstrap built with TypeScript, React, Base UI, and xterm.js.",
+  "main": "out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "postinstall": "node scripts/fix-node-pty.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run -c vitest.config.ts"
+  },
+  "dependencies": {
+    "@sessionry/default-workspace-pane-plugin": "workspace:*",
+    "@sessionry/plugin-api": "workspace:*",
+    "@base-ui-components/react": "1.0.0-beta.3",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
+    "electron": "latest",
+    "node-pty": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "^5.1.0",
+    "electron-vite": "latest",
+    "jsdom": "latest",
+    "typescript": "latest",
+    "vite": "^7.1.12",
+    "vitest": "latest"
+  }
+}

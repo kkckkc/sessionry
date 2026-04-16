@@ -1,0 +1,31 @@
+{
+  "name": "@sessionry/default-workspace-pane-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./renderer": "./src/renderer.tsx"
+  },
+  "scripts": {
+    "test": "vitest run -c vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sessionry/plugin-api": "workspace:*",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
+    "react": "latest"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "jsdom": "latest",
+    "react-dom": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
