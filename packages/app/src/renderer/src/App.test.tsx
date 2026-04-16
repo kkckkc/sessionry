@@ -47,7 +47,7 @@ vi.mock('@sessionry/project-sessions-sidebar-plugin/renderer', () => ({
       {
         id: 'project-sessions.panel.view',
         title: 'Projects',
-        slot: 'sidebar:left:project-sessions.panel',
+        slot: 'sidebar:left',
         isDefault: true,
         component: ({ onActivateSession }: { onActivateSession: (sessionId: string) => void }) => (
           <button type="button" onClick={() => onActivateSession('session-1')}>
@@ -189,11 +189,11 @@ describe('App', () => {
         leftPanels: [{ id: 'project-sessions.panel', title: 'Projects', side: 'left', pluginId: 'nav' }],
         viewsBySlot: {
           ...pluginModel.viewsBySlot,
-          'sidebar:left:project-sessions.panel': [
+          'sidebar:left': [
             {
               id: 'project-sessions.panel.view',
               title: 'Projects',
-              slot: 'sidebar:left:project-sessions.panel',
+              slot: 'sidebar:left',
               pluginId: 'nav',
               isDefault: true
             }

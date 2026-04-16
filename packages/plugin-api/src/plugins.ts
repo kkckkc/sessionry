@@ -119,7 +119,4 @@ export interface RendererPluginContext {
   workspace: WorkspaceApi
 }
 
-export const getSidebarPanelSlotId = (
-  side: SidebarSide,
-  panelId: string
-): PluginViewSlotId => `sidebar:${side}:${panelId}`
+export const getSidebarSlotId = (side: SidebarSide): PluginViewSlotId => `sidebar:${side}`

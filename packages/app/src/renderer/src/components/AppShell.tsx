@@ -8,7 +8,7 @@ import type {
   ToolbarActionContribution
 } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
-import { getSidebarPanelSlotId } from '@sessionry/plugin-api'
+import { getSidebarSlotId } from '@sessionry/plugin-api'
 import { resolveActiveView } from '@sessionry/plugin-api'
 import type { RendererViewRegistration, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
@@ -35,7 +35,7 @@ const SidebarPanel = ({
   onActivateSession,
   resolveRendererView
 }: SidebarPanelViewProps & { resolveRendererView: (viewId: string) => RendererViewRegistration | null }) => {
-  const slotId = getSidebarPanelSlotId(panel.side, panel.id)
+  const slotId = getSidebarSlotId(panel.side)
   const activeView = resolveActiveView(plugins, slotId)
   const registration = activeView ? resolveRendererView(activeView.id) : null
   const entries = panelDescriptions[panel.id] ?? ['No content registered']

@@ -1,5 +1,5 @@
 import type { AppPlugin } from '@sessionry/plugin-api'
-import { getSidebarPanelSlotId } from '@sessionry/plugin-api'
+import { getSidebarSlotId } from '@sessionry/plugin-api'
 
 export const projectSessionsSidebarPlugin: AppPlugin = {
   id: 'project-sessions-sidebar-plugin',
@@ -16,7 +16,7 @@ export const projectSessionsSidebarPlugin: AppPlugin = {
     {
       id: 'project-sessions.panel.view',
       title: 'Projects',
-      slot: getSidebarPanelSlotId('left', 'project-sessions.panel'),
+      slot: getSidebarSlotId('left'),
       isDefault: true
     }
   ]

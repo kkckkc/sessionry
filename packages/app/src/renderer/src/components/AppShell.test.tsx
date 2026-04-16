@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { PluginViewModel, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
-import { getSidebarPanelSlotId } from '@sessionry/plugin-api'
+import { getSidebarSlotId } from '@sessionry/plugin-api'
 
 import { AppShell } from './AppShell'
 
@@ -58,11 +58,11 @@ describe('AppShell', () => {
     const sidebarPlugins: PluginViewModel = {
       ...plugins,
       viewsBySlot: {
-        [getSidebarPanelSlotId('left', 'navigation.panel')]: [
+        [getSidebarSlotId('left')]: [
           {
             id: 'navigation.panel.view',
             title: 'Workspace',
-            slot: getSidebarPanelSlotId('left', 'navigation.panel'),
+            slot: getSidebarSlotId('left'),
             pluginId: 'nav',
             isDefault: true
           }
