@@ -37,6 +37,8 @@ export interface PaneGroup {
   sessionId: string
   name: string
   direction: PaneGroupLayout
+  preferredSizePct?: number
+  activeChildId?: string
   children: PaneGroupChild[]
 }
 
@@ -44,6 +46,7 @@ export interface Pane {
   id: string
   sessionId: string
   type: PaneType
+  preferredSizePct?: number
   state: Record<string, unknown>
 }
 
@@ -189,6 +192,8 @@ export interface CreatePaneGroupInput {
   sessionId: string
   name: string
   direction: PaneGroupLayout
+  preferredSizePct?: number
+  activeChildId?: string
   parentPaneGroupId?: string
   index?: number
 }
@@ -196,12 +201,15 @@ export interface CreatePaneGroupInput {
 export interface UpdatePaneGroupInput {
   name?: string
   direction?: PaneGroupLayout
+  preferredSizePct?: number
+  activeChildId?: string
 }
 
 export interface CreatePaneInput {
   id?: string
   sessionId: string
   type: PaneType
+  preferredSizePct?: number
   state?: Record<string, unknown>
   parentPaneGroupId?: string
   index?: number
@@ -209,6 +217,7 @@ export interface CreatePaneInput {
 
 export interface UpdatePaneInput {
   type?: PaneType
+  preferredSizePct?: number
   state?: Record<string, unknown>
 }
 

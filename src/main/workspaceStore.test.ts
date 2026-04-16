@@ -3,15 +3,26 @@ import { describe, expect, it } from 'vitest'
 import { WorkspaceStore } from './workspaceStore'
 
 describe('WorkspaceStore', () => {
-  it('seeds a default project, session, root pane group, and terminal pane', () => {
+  it('seeds a showcase workspace tree with horizontal, vertical, and stacked layouts', () => {
     const service = new WorkspaceStore()
 
     const snapshot = service.read()
     expect(snapshot.projects).toHaveLength(1)
     expect(snapshot.sessions).toHaveLength(1)
-    expect(snapshot.paneGroups.find((paneGroup) => paneGroup.id === 'pane-group-root')?.children).toEqual([
-      { kind: 'pane', paneId: 'pane-terminal-primary' }
-    ])
+    expect(snapshot.paneGroups.find((paneGroup) => paneGroup.id === 'pane-group-root')).toMatchObject({
+      direction: 'horizontal',
+      children: [
+        { kind: 'group', paneGroupId: 'pane-group-left-tabs' },
+        { kind: 'group', paneGroupId: 'pane-group-right-column' }
+      ]
+    })
+    expect(snapshot.paneGroups.find((paneGroup) => paneGroup.id === 'pane-group-left-tabs')).toMatchObject({
+      direction: 'stacked',
+      activeChildId: 'pane-terminal-primary'
+    })
+    expect(snapshot.panes.find((pane) => pane.id === 'pane-terminal-primary')).toMatchObject({
+      preferredSizePct: 50
+    })
   })
 
   it('creates sessions and pane trees, and rejects cross-session inserts', () => {
@@ -65,21 +76,63 @@ describe('WorkspaceStore', () => {
 
     expect(() =>
       service.setPaneGroupChildren('pane-group-root', [
-        { kind: 'pane', paneId: 'pane-terminal-primary' },
+        { kind: 'group', paneGroupId: 'pane-group-left-tabs' },
+        { kind: 'group', paneGroupId: 'pane-group-right-column' },
         { kind: 'pane', paneId: pane.id },
         { kind: 'pane', paneId: pane.id }
       ])
     ).toThrow(/duplicates/i)
   })
 
-  it('moves nodes within a session and removes nested subtrees cleanly', () => {
+  it('creates and updates preferred sizes and stacked active children', () => {
+    const service = new WorkspaceStore()
+    const group = service.createPaneGroup({
+      id: 'stacked-group',
+      sessionId: 'session-primary',
+      name: 'Stacked',
+      direction: 'stacked',
+      preferredSizePct: 35
+    })
+    const firstPane = service.createPane({
+      id: 'pane-first',
+      sessionId: 'session-primary',
+      type: 'terminal',
+      preferredSizePct: 65,
+      state: {},
+      parentPaneGroupId: group.id
+    })
+    const secondPane = service.createPane({
+      id: 'pane-second',
+      sessionId: 'session-primary',
+      type: 'terminal',
+      state: {},
+      parentPaneGroupId: group.id
+    })
+
+    expect(service.getPaneGroup(group.id)).toMatchObject({
+      preferredSizePct: 35,
+      activeChildId: firstPane.id
+    })
+    expect(service.getPane(firstPane.id)).toMatchObject({ preferredSizePct: 65 })
+
+    service.updatePaneGroup(group.id, { activeChildId: secondPane.id, preferredSizePct: 45 })
+    service.updatePane(firstPane.id, { preferredSizePct: 55 })
+
+    expect(service.getPaneGroup(group.id)).toMatchObject({
+      preferredSizePct: 45,
+      activeChildId: secondPane.id
+    })
+    expect(service.getPane(firstPane.id)).toMatchObject({ preferredSizePct: 55 })
+  })
+
+  it('moves nodes within a session and reconciles stacked active tabs on removal', () => {
     const service = new WorkspaceStore()
     const nested = service.createPaneGroup({
       id: 'nested',
       sessionId: 'session-primary',
       name: 'Nested',
-      direction: 'vertical',
-      parentPaneGroupId: 'pane-group-root'
+      direction: 'stacked',
+      parentPaneGroupId: 'pane-group-left-tabs'
     })
     const pane = service.createPane({
       id: 'pane-nested',
@@ -89,19 +142,25 @@ describe('WorkspaceStore', () => {
       parentPaneGroupId: nested.id
     })
 
-    service.moveNode({ kind: 'pane', paneId: pane.id }, 'pane-group-root', 0)
-    expect(service.getPaneGroup('pane-group-root')?.children).toEqual([
-      { kind: 'pane', paneId: pane.id },
-      { kind: 'pane', paneId: 'pane-terminal-primary' },
-      { kind: 'group', paneGroupId: nested.id }
-    ])
+    service.moveNode({ kind: 'pane', paneId: pane.id }, 'pane-group-left-tabs', 0)
+    expect(service.getPaneGroup('pane-group-left-tabs')).toMatchObject({
+      activeChildId: 'pane-terminal-primary',
+      children: [
+        { kind: 'pane', paneId: pane.id },
+        { kind: 'pane', paneId: 'pane-terminal-primary' },
+        { kind: 'pane', paneId: 'pane-activity' },
+        { kind: 'group', paneGroupId: nested.id }
+      ]
+    })
 
     service.removeNode({ kind: 'group', paneGroupId: nested.id })
     expect(service.getPaneGroup(nested.id)).toBeNull()
     expect(service.getPane(pane.id)).not.toBeNull()
 
+    service.updatePaneGroup('pane-group-left-tabs', { activeChildId: pane.id })
     service.removeNode({ kind: 'pane', paneId: pane.id })
     expect(service.getPane(pane.id)).toBeNull()
+    expect(service.getPaneGroup('pane-group-left-tabs')?.activeChildId).toBe('pane-terminal-primary')
   })
 
   it('emits typed events with before and after payloads', () => {
@@ -133,9 +192,13 @@ describe('WorkspaceStore', () => {
     })
     expect(childrenChangedEvent).toMatchObject({
       entityId: 'pane-group-root',
-      beforeChildren: [{ kind: 'pane', paneId: 'pane-terminal-primary' }],
+      beforeChildren: [
+        { kind: 'group', paneGroupId: 'pane-group-left-tabs' },
+        { kind: 'group', paneGroupId: 'pane-group-right-column' }
+      ],
       afterChildren: [
-        { kind: 'pane', paneId: 'pane-terminal-primary' },
+        { kind: 'group', paneGroupId: 'pane-group-left-tabs' },
+        { kind: 'group', paneGroupId: 'pane-group-right-column' },
         { kind: 'pane', paneId: 'pane-event' }
       ]
     })

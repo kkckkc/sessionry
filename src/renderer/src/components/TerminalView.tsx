@@ -10,9 +10,10 @@ import '@xterm/xterm/css/xterm.css'
 interface TerminalViewProps {
   session: TerminalSessionInfo | null
   clearSignal: number
+  visible?: boolean
 }
 
-export const TerminalView = ({ session, clearSignal }: TerminalViewProps) => {
+export const TerminalView = ({ session, clearSignal, visible = true }: TerminalViewProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
@@ -100,6 +101,17 @@ export const TerminalView = ({ session, clearSignal }: TerminalViewProps) => {
     if (!terminalRef.current) return
     terminalRef.current.clear()
   }, [clearSignal])
+
+  useEffect(() => {
+    if (!visible || !terminalRef.current || !fitAddonRef.current || !session?.id) return
+
+    fitAddonRef.current.fit()
+    window.terminalApp.resizeTerminal({
+      sessionId: session.id,
+      cols: terminalRef.current.cols,
+      rows: terminalRef.current.rows
+    })
+  }, [visible, session?.id])
 
   return <div className="terminal-surface" ref={containerRef} />
 }

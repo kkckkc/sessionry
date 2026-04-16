@@ -235,6 +235,8 @@ export class WorkspaceStore {
       sessionId,
       name: 'Root',
       direction: 'stacked',
+      preferredSizePct: undefined,
+      activeChildId: undefined,
       children: []
     }
     this.state.paneGroups.set(rootPaneGroupId, rootPaneGroup)
@@ -340,6 +342,8 @@ export class WorkspaceStore {
       sessionId: input.sessionId,
       name: input.name,
       direction: input.direction,
+      preferredSizePct: input.preferredSizePct,
+      activeChildId: input.activeChildId,
       children: []
     }
 
@@ -373,6 +377,9 @@ export class WorkspaceStore {
     const before = cloneValue(paneGroup)
     paneGroup.name = input.name ?? paneGroup.name
     paneGroup.direction = input.direction ?? paneGroup.direction
+    paneGroup.preferredSizePct = input.preferredSizePct ?? paneGroup.preferredSizePct
+    paneGroup.activeChildId = input.activeChildId ?? paneGroup.activeChildId
+    this.normalizeStackedGroupActiveChild(paneGroup)
 
     this.emit({
       type: 'paneGroup.updated',
@@ -432,6 +439,7 @@ export class WorkspaceStore {
       { kind: 'pane', paneId },
       index
     )
+    this.ensureStackedGroupHasActiveChild(paneGroup)
 
     this.emitChildrenChanged(paneGroup, beforeChildren)
     return cloneValue(paneGroup)
@@ -467,6 +475,7 @@ export class WorkspaceStore {
       { kind: 'group', paneGroupId: child.id },
       index
     )
+    this.ensureStackedGroupHasActiveChild(paneGroup)
 
     this.emitChildrenChanged(paneGroup, beforeChildren)
     return cloneValue(paneGroup)
@@ -498,10 +507,12 @@ export class WorkspaceStore {
 
     const sourceBefore = cloneValue(sourceParent.children)
     sourceParent.children = sourceParent.children.filter((child) => paneNodeId(child) !== paneNodeId(node))
+    this.reconcileActiveChildAfterRemoval(sourceParent, paneNodeId(node))
     this.emitChildrenChanged(sourceParent, sourceBefore)
 
     const targetBefore = cloneValue(target.children)
     target.children = this.insertChild(target.children, cloneValue(node), index)
+    this.ensureStackedGroupHasActiveChild(target)
     this.emitChildrenChanged(target, targetBefore)
 
     return cloneValue(target)
@@ -512,6 +523,7 @@ export class WorkspaceStore {
     if (!parent) throw new Error('Node is not attached to a pane group.')
     const beforeChildren = cloneValue(parent.children)
     parent.children = parent.children.filter((child) => paneNodeId(child) !== paneNodeId(node))
+    this.reconcileActiveChildAfterRemoval(parent, paneNodeId(node))
     this.emitChildrenChanged(parent, beforeChildren)
 
     if (isPaneChild(node)) {
@@ -528,6 +540,7 @@ export class WorkspaceStore {
       id: input.id ?? this.generateId('pane'),
       sessionId: input.sessionId,
       type: input.type,
+      preferredSizePct: input.preferredSizePct,
       state: cloneValue(input.state ?? {})
     }
 
@@ -556,6 +569,7 @@ export class WorkspaceStore {
     const pane = this.getPaneRequired(paneId)
     const before = cloneValue(pane)
     pane.type = input.type ?? pane.type
+    pane.preferredSizePct = input.preferredSizePct ?? pane.preferredSizePct
     if (input.state) pane.state = cloneValue(input.state)
 
     this.emit({
@@ -576,6 +590,7 @@ export class WorkspaceStore {
     if (parent) {
       const beforeChildren = cloneValue(parent.children)
       parent.children = parent.children.filter((child) => !(isPaneChild(child) && child.paneId === paneId))
+      this.reconcileActiveChildAfterRemoval(parent, paneId)
       this.emitChildrenChanged(parent, beforeChildren)
     }
 
@@ -748,6 +763,28 @@ export class WorkspaceStore {
     return value ? cloneValue(value) : null
   }
 
+  private ensureStackedGroupHasActiveChild(paneGroup: PaneGroup): void {
+    if (paneGroup.direction !== 'stacked' || paneGroup.activeChildId) return
+    paneGroup.activeChildId = paneGroup.children[0] ? paneNodeId(paneGroup.children[0]) : undefined
+  }
+
+  private reconcileActiveChildAfterRemoval(paneGroup: PaneGroup, removedChildId: string): void {
+    if (paneGroup.direction !== 'stacked' || paneGroup.activeChildId !== removedChildId) return
+    paneGroup.activeChildId = paneGroup.children[0] ? paneNodeId(paneGroup.children[0]) : undefined
+  }
+
+  private normalizeStackedGroupActiveChild(paneGroup: PaneGroup): void {
+    if (paneGroup.direction !== 'stacked') return
+    if (!paneGroup.activeChildId) {
+      this.ensureStackedGroupHasActiveChild(paneGroup)
+      return
+    }
+
+    if (!paneGroup.children.some((child) => paneNodeId(child) === paneGroup.activeChildId)) {
+      paneGroup.activeChildId = paneGroup.children[0] ? paneNodeId(paneGroup.children[0]) : undefined
+    }
+  }
+
   private seedInitialState(): void {
     const project = this.createProject({
       id: 'project-primary',
@@ -762,12 +799,80 @@ export class WorkspaceStore {
       folder: process.cwd(),
       rootPaneGroupId: 'pane-group-root'
     })
+    this.updatePaneGroup('pane-group-root', {
+      name: 'Workspace',
+      direction: 'horizontal',
+      preferredSizePct: 100
+    })
+
+    const leftTabs = this.createPaneGroup({
+      id: 'pane-group-left-tabs',
+      sessionId: session.id,
+      name: 'Editors',
+      direction: 'stacked',
+      preferredSizePct: 58,
+      parentPaneGroupId: 'pane-group-root'
+    })
+
+    const rightColumn = this.createPaneGroup({
+      id: 'pane-group-right-column',
+      sessionId: session.id,
+      name: 'Side Column',
+      direction: 'vertical',
+      preferredSizePct: 42,
+      parentPaneGroupId: 'pane-group-root'
+    })
+
     this.createPane({
       id: 'pane-terminal-primary',
       sessionId: session.id,
       type: 'terminal',
-      state: {},
-      parentPaneGroupId: 'pane-group-root'
+      preferredSizePct: 50,
+      state: { title: 'Terminal', description: 'Primary terminal surface' },
+      parentPaneGroupId: leftTabs.id
+    })
+    this.createPane({
+      id: 'pane-activity',
+      sessionId: session.id,
+      type: 'activity',
+      preferredSizePct: 50,
+      state: { title: 'Activity', description: 'Build logs and recent events' },
+      parentPaneGroupId: leftTabs.id
+    })
+
+    this.createPane({
+      id: 'pane-outline',
+      sessionId: session.id,
+      type: 'outline',
+      preferredSizePct: 45,
+      state: { title: 'Outline', description: 'Project structure and symbols' },
+      parentPaneGroupId: rightColumn.id
+    })
+
+    const bottomTabs = this.createPaneGroup({
+      id: 'pane-group-bottom-tabs',
+      sessionId: session.id,
+      name: 'Inspectors',
+      direction: 'stacked',
+      preferredSizePct: 55,
+      parentPaneGroupId: rightColumn.id
+    })
+
+    this.createPane({
+      id: 'pane-inspector',
+      sessionId: session.id,
+      type: 'inspector',
+      preferredSizePct: 60,
+      state: { title: 'Inspector', description: 'Selected node details and metadata' },
+      parentPaneGroupId: bottomTabs.id
+    })
+    this.createPane({
+      id: 'pane-problems',
+      sessionId: session.id,
+      type: 'problems',
+      preferredSizePct: 40,
+      state: { title: 'Problems', description: 'Diagnostics, warnings, and tasks' },
+      parentPaneGroupId: bottomTabs.id
     })
   }
 

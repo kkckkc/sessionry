@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 
 import type { PluginViewModel, ToolbarActionId } from '@shared/plugins'
 import type { TerminalSessionInfo, TerminalStateEvent } from '@shared/terminal'
+import type { WorkspaceStateSnapshot } from '@shared/workspace'
 
 import { AppShell } from './components/AppShell'
+import { WorkspacePaneTree, getActiveVisibleTerminalPaneId } from './components/WorkspacePaneTree'
+import { readWorkspaceSnapshot, workspace } from './lib/workspace'
 
 const emptyPlugins: PluginViewModel = {
   toolbar: [],
@@ -15,6 +18,7 @@ const emptyPlugins: PluginViewModel = {
 export const App = () => {
   const [plugins, setPlugins] = useState<PluginViewModel>(emptyPlugins)
   const [session, setSession] = useState<TerminalSessionInfo | null>(null)
+  const [workspaceSnapshot, setWorkspaceSnapshot] = useState<WorkspaceStateSnapshot>(() => readWorkspaceSnapshot())
   const [leftVisible, setLeftVisible] = useState(true)
   const [rightVisible, setRightVisible] = useState(true)
   const [clearSignal, setClearSignal] = useState(0)
@@ -26,6 +30,7 @@ export const App = () => {
 
     void window.terminalApp.getPluginModel().then(setPlugins)
     void window.terminalApp.createTerminalSession().then(setSession)
+    setWorkspaceSnapshot(readWorkspaceSnapshot())
 
     const unsubscribeState = window.terminalApp.onTerminalState((event: TerminalStateEvent) => {
       setSession({
@@ -36,11 +41,18 @@ export const App = () => {
         state: event.state
       })
     })
+    const unsubscribeWorkspace = workspace.subscribeAll(() => {
+      setWorkspaceSnapshot(readWorkspaceSnapshot())
+    })
 
     return () => {
       unsubscribeState()
+      unsubscribeWorkspace()
     }
   }, [])
+
+  const activeWorkspaceSessionId = workspaceSnapshot.sessions[0]?.id
+  const activeTerminalPaneId = getActiveVisibleTerminalPaneId(workspaceSnapshot, activeWorkspaceSessionId)
 
   const handleToolbarAction = (action: ToolbarActionId) => {
     switch (action) {
@@ -61,13 +73,26 @@ export const App = () => {
     }
   }
 
+  const handleSelectStackedChild = (paneGroupId: string, childId: string) => {
+    void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: childId })
+  }
+
   return (
     <AppShell
       plugins={plugins}
       session={session}
-      clearSignal={clearSignal}
       leftVisible={leftVisible}
       rightVisible={rightVisible}
+      mainContent={
+        <WorkspacePaneTree
+          snapshot={workspaceSnapshot}
+          sessionId={activeWorkspaceSessionId}
+          terminalSession={session}
+          clearSignal={clearSignal}
+          activeTerminalPaneId={activeTerminalPaneId}
+          onSelectStackedChild={handleSelectStackedChild}
+        />
+      }
       onToolbarAction={handleToolbarAction}
     />
   )

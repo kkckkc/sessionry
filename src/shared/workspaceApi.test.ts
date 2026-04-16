@@ -8,8 +8,18 @@ import { createWorkspaceApi } from './workspaceApi'
 const snapshot: WorkspaceStateSnapshot = {
   projects: [{ id: 'project-1', name: 'Project', folder: '/tmp/project', metadata: {}, sessionIds: ['session-1'] }],
   sessions: [{ id: 'session-1', projectId: 'project-1', name: 'Session', folder: '/tmp/project', rootPaneGroupId: 'group-1' }],
-  paneGroups: [{ id: 'group-1', sessionId: 'session-1', name: 'Root', direction: 'stacked', children: [{ kind: 'pane', paneId: 'pane-1' }] }],
-  panes: [{ id: 'pane-1', sessionId: 'session-1', type: 'terminal', state: {} }]
+  paneGroups: [
+    {
+      id: 'group-1',
+      sessionId: 'session-1',
+      name: 'Root',
+      direction: 'stacked',
+      preferredSizePct: 70,
+      activeChildId: 'pane-1',
+      children: [{ kind: 'pane', paneId: 'pane-1' }]
+    }
+  ],
+  panes: [{ id: 'pane-1', sessionId: 'session-1', type: 'terminal', preferredSizePct: 30, state: {} }]
 }
 
 describe('createWorkspaceApi', () => {
@@ -26,7 +36,10 @@ describe('createWorkspaceApi', () => {
     expect(project.data.name).toBe('Project')
     expect(project.sessions[0].data.name).toBe('Session')
     expect(project.sessions[0].rootPaneGroup.children[0].data.id).toBe('pane-1')
+    expect(project.sessions[0].rootPaneGroup.data.activeChildId).toBe('pane-1')
+    expect(project.sessions[0].rootPaneGroup.data.preferredSizePct).toBe(70)
     expect(workspace.getProject('project-1')?.data.folder).toBe('/tmp/project')
+    expect(workspace.getPane('pane-1')?.data.preferredSizePct).toBe(30)
   })
 
   it('routes mutations through handle methods and root project creation', async () => {
@@ -40,7 +53,7 @@ describe('createWorkspaceApi', () => {
     const workspace = createWorkspaceApi(transport)
 
     await workspace.projects[0].update({ name: 'Updated' })
-    await workspace.projects[0].sessions[0].rootPaneGroup.insertPane('pane-2', 0)
+    await workspace.projects[0].sessions[0].rootPaneGroup.update({ activeChildId: 'pane-1', preferredSizePct: 80 })
     await workspace.createProject({ name: 'Two', folder: '/tmp/two' })
 
     expect(executeCommand).toHaveBeenNthCalledWith(1, {
@@ -49,10 +62,9 @@ describe('createWorkspaceApi', () => {
       input: { name: 'Updated' }
     })
     expect(executeCommand).toHaveBeenNthCalledWith(2, {
-      type: 'paneGroup.insertPane',
+      type: 'paneGroup.update',
       paneGroupId: 'group-1',
-      paneId: 'pane-2',
-      index: 0
+      input: { activeChildId: 'pane-1', preferredSizePct: 80 }
     })
     expect(executeCommand).toHaveBeenNthCalledWith(3, {
       type: 'project.create',

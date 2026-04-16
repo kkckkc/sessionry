@@ -1,7 +1,9 @@
 import { createWorkspaceApi } from '@shared/workspaceApi'
 
+export const readWorkspaceSnapshot = () => window.terminalApp.workspace.read()
+
 export const workspace = createWorkspaceApi({
-  read: () => window.terminalApp.workspace.read(),
+  read: readWorkspaceSnapshot,
   executeCommand: (command) => window.terminalApp.workspace.executeCommand(command),
   subscribeAll: (listener) => window.terminalApp.workspace.onEvent(listener)
 })

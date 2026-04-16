@@ -1,17 +1,18 @@
+import type { ReactNode } from 'react'
+
 import { Toolbar } from '@base-ui-components/react/toolbar'
 
 import type { PluginViewModel, SidebarPanelContribution, ToolbarActionContribution } from '@shared/plugins'
 import type { TerminalSessionInfo } from '@shared/terminal'
 
 import { panelDescriptions, resolveStatusValue, sidebarItemCount } from '../lib/pluginPanels'
-import { TerminalView } from './TerminalView'
 
 interface AppShellProps {
   plugins: PluginViewModel
   session: TerminalSessionInfo | null
-  clearSignal: number
   leftVisible: boolean
   rightVisible: boolean
+  mainContent: ReactNode
   onToolbarAction: (action: ToolbarActionContribution['id']) => void
 }
 
@@ -36,9 +37,9 @@ const SidebarPanel = ({ panel }: { panel: SidebarPanelContribution }) => {
 export const AppShell = ({
   plugins,
   session,
-  clearSignal,
   leftVisible,
   rightVisible,
+  mainContent,
   onToolbarAction
 }: AppShellProps) => {
   const workspaceClassName = [
@@ -72,19 +73,7 @@ export const AppShell = ({
         </aside>
       ) : null}
 
-      <section className="terminal-pane">
-        <div className="terminal-pane__header">
-          <div>
-            <span className="terminal-pane__label">Session</span>
-            <strong>{session?.id ?? 'loading'}</strong>
-          </div>
-          <div>
-            <span className="terminal-pane__label">PID</span>
-            <strong>{session?.pid ?? 'pending'}</strong>
-          </div>
-        </div>
-        <TerminalView session={session} clearSignal={clearSignal} />
-      </section>
+      <section className="workspace-content">{mainContent}</section>
 
       {rightVisible ? (
         <aside className="sidebar sidebar--right">

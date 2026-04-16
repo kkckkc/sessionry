@@ -1,15 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { vi } from 'vitest'
 
 import type { PluginViewModel } from '@shared/plugins'
 import type { TerminalSessionInfo } from '@shared/terminal'
 
 import { AppShell } from './AppShell'
-
-vi.mock('./TerminalView', () => ({
-  TerminalView: () => <div data-testid="terminal-view">terminal</div>
-}))
 
 const plugins: PluginViewModel = {
   toolbar: [{ id: 'terminal:clear', label: 'Clear', description: 'Clear terminal' }],
@@ -32,9 +27,9 @@ describe('AppShell', () => {
       <AppShell
         plugins={plugins}
         session={session}
-        clearSignal={0}
         leftVisible
         rightVisible
+        mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
       />
     )
@@ -42,9 +37,8 @@ describe('AppShell', () => {
     expect(screen.getByRole('heading', { name: 'Workspace' })).toBeInTheDocument()
     expect(screen.getByLabelText('Workspace')).toBeInTheDocument()
     expect(screen.getByLabelText('Inspector')).toBeInTheDocument()
-    expect(screen.getByText('Session')).toBeInTheDocument()
     expect(screen.getByText('State')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument()
-    expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-content')).toBeInTheDocument()
   })
 })
