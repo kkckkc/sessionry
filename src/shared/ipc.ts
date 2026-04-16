@@ -5,5 +5,8 @@ export const IPC_CHANNELS = {
   terminalData: 'terminal:data',
   terminalExit: 'terminal:exit',
   terminalState: 'terminal:state',
-  pluginModel: 'plugins:model'
+  pluginModel: 'plugins:model',
+  workspaceRead: 'workspace:read',
+  workspaceCommand: 'workspace:command',
+  workspaceEvent: 'workspace:event'
 } as const

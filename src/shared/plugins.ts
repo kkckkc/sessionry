@@ -1,4 +1,5 @@
 import type { TerminalSessionState } from './terminal'
+import type { WorkspaceApi } from './workspace'
 
 export type ToolbarActionId =
   | 'terminal:new'
@@ -40,12 +41,20 @@ export interface AppPlugin {
   toolbar?: ToolbarActionContribution[]
   panels?: SidebarPanelContribution[]
   statusItems?: StatusItemContribution[]
-  activateMain?: () => void
-  activateRenderer?: () => void
+  activateMain?: (context: MainPluginContext) => void | Promise<void>
+  activateRenderer?: (context: RendererPluginContext) => void | Promise<void>
 }
 
 export interface StatusSnapshot {
   state: TerminalSessionState
   shell: string
   cwd: string
+}
+
+export interface MainPluginContext {
+  workspace: WorkspaceApi
+}
+
+export interface RendererPluginContext {
+  workspace: WorkspaceApi
 }

@@ -1,6 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
 import { IPC_CHANNELS } from '@shared/ipc'
+import type {
+  WorkspaceEvent,
+  WorkspaceCommand,
+  WorkspaceCommandResult,
+  WorkspaceStateSnapshot
+} from '@shared/workspace'
 import type { PluginViewModel } from '@shared/plugins'
 import type {
   TerminalDataEvent,
@@ -22,6 +28,17 @@ const api = {
     ipcRenderer.send(IPC_CHANNELS.terminalResize, payload)
   },
   getPluginModel: (): Promise<PluginViewModel> => ipcRenderer.invoke(IPC_CHANNELS.pluginModel),
+  workspace: {
+    read: (): WorkspaceStateSnapshot =>
+      ipcRenderer.sendSync(IPC_CHANNELS.workspaceRead) as WorkspaceStateSnapshot,
+    executeCommand: (command: WorkspaceCommand): Promise<WorkspaceCommandResult> =>
+      ipcRenderer.invoke(IPC_CHANNELS.workspaceCommand, command),
+    onEvent: (listener: (event: WorkspaceEvent) => void): Unsubscribe => {
+      const wrapped = (_event: Electron.IpcRendererEvent, payload: WorkspaceEvent) => listener(payload)
+      ipcRenderer.on(IPC_CHANNELS.workspaceEvent, wrapped)
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.workspaceEvent, wrapped)
+    }
+  },
   onTerminalData: (listener: (event: TerminalDataEvent) => void): Unsubscribe => {
     const wrapped = (_event: Electron.IpcRendererEvent, payload: TerminalDataEvent) => listener(payload)
     ipcRenderer.on(IPC_CHANNELS.terminalData, wrapped)

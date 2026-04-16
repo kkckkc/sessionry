@@ -1,10 +1,11 @@
+import type { MainPluginContext } from '@shared/plugins'
 import { normalizePlugins } from '@shared/pluginRegistry'
 
 import { builtInPlugins } from './plugins'
 
-export const createPluginManager = () => {
+export const createPluginManager = (context: MainPluginContext) => {
   for (const plugin of builtInPlugins) {
-    plugin.activateMain?.()
+    void plugin.activateMain?.(context)
   }
 
   return {

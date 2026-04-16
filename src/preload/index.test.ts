@@ -1,0 +1,52 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const invoke = vi.fn()
+const sendSync = vi.fn()
+const on = vi.fn()
+const removeListener = vi.fn()
+const exposeInMainWorld = vi.fn()
+
+vi.mock('electron', () => ({
+  contextBridge: { exposeInMainWorld },
+  ipcRenderer: { invoke, sendSync, on, removeListener, send: vi.fn() }
+}))
+
+describe('preload workspace bridge', () => {
+  beforeEach(() => {
+    invoke.mockReset()
+    sendSync.mockReset()
+    on.mockReset()
+    removeListener.mockReset()
+    exposeInMainWorld.mockReset()
+  })
+
+  it('exposes sync reads, async commands, and event subscriptions', async () => {
+    sendSync.mockReturnValue({ projects: [], sessions: [], paneGroups: [], panes: [] })
+
+    await import('./index')
+
+    const [, api] = exposeInMainWorld.mock.calls[0]
+    api.workspace.read()
+    await api.workspace.executeCommand({ type: 'project.remove', projectId: 'project-1' })
+
+    expect(sendSync).toHaveBeenCalledWith('workspace:read')
+    expect(invoke).toHaveBeenCalledWith('workspace:command', {
+      type: 'project.remove',
+      projectId: 'project-1'
+    })
+
+    const listener = vi.fn()
+    const unsubscribe = api.workspace.onEvent(listener)
+    const wrapped = on.mock.calls[0][1]
+    wrapped({}, { type: 'project.updated', entityType: 'project', entityId: 'project-1' })
+    unsubscribe()
+
+    expect(on).toHaveBeenCalledWith('workspace:event', expect.any(Function))
+    expect(listener).toHaveBeenCalledWith({
+      type: 'project.updated',
+      entityType: 'project',
+      entityId: 'project-1'
+    })
+    expect(removeListener).toHaveBeenCalledWith('workspace:event', wrapped)
+  })
+})

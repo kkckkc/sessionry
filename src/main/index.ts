@@ -3,14 +3,15 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { IPC_CHANNELS } from '@shared/ipc'
+import { createWorkspaceApi } from '@shared/workspaceApi'
+import type { WorkspaceCommand, WorkspaceEvent } from '@shared/workspace'
 import type { TerminalInputPayload, TerminalResizePayload } from '@shared/terminal'
 
+import { WorkspaceStore } from './workspaceStore'
 import { createPluginManager } from './pluginManager'
 import { TerminalService } from './terminalService'
 
 let mainWindow: BrowserWindow | null = null
-
-const pluginManager = createPluginManager()
 
 const createWindow = (): void => {
   mainWindow = new BrowserWindow({
@@ -41,11 +42,22 @@ const createWindow = (): void => {
 }
 
 app.whenReady().then(() => {
+  const workspaceStore = new WorkspaceStore()
+  const workspaceApi = createWorkspaceApi({
+    read: () => workspaceStore.read(),
+    executeCommand: (command: WorkspaceCommand) => workspaceStore.executeCommand(command),
+    subscribeAll: (listener) => workspaceStore.subscribeAll(listener)
+  })
+  const pluginManager = createPluginManager({ workspace: workspaceApi })
   const terminalService = new TerminalService(
     (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalData, event),
     (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalState, event),
     (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalExit, event)
   )
+
+  workspaceStore.subscribeAll((event: WorkspaceEvent) => {
+    mainWindow?.webContents.send(IPC_CHANNELS.workspaceEvent, event)
+  })
 
   ipcMain.handle(IPC_CHANNELS.terminalCreate, () => terminalService.createSession())
   ipcMain.on(IPC_CHANNELS.terminalInput, (_event, payload: TerminalInputPayload) => {
@@ -55,6 +67,12 @@ app.whenReady().then(() => {
     terminalService.handleResize(payload)
   })
   ipcMain.handle(IPC_CHANNELS.pluginModel, () => pluginManager.getViewModel())
+  ipcMain.on(IPC_CHANNELS.workspaceRead, (event) => {
+    event.returnValue = workspaceStore.read()
+  })
+  ipcMain.handle(IPC_CHANNELS.workspaceCommand, (_event, command: WorkspaceCommand) =>
+    workspaceStore.executeCommand(command)
+  )
 
   app.on('before-quit', () => {
     terminalService.dispose()

@@ -39,7 +39,7 @@ describe('AppShell', () => {
       />
     )
 
-    expect(screen.getByText('Terminal Workbench')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Workspace' })).toBeInTheDocument()
     expect(screen.getByLabelText('Workspace')).toBeInTheDocument()
     expect(screen.getByLabelText('Inspector')).toBeInTheDocument()
     expect(screen.getByText('Session')).toBeInTheDocument()
