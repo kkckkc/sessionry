@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react'
 
+const MIN_COLS = 55
+const MIN_ROWS = 25
+
 import { FitAddon } from '@xterm/addon-fit'
 import { Terminal } from '@xterm/xterm'
 
@@ -15,13 +18,17 @@ declare global {
 
 export const TerminalPaneView = ({
   pane,
-  terminalSession,
+  snapshot,
   clearSignal,
   visible = true
 }: PaneViewProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
+  const sizeRef = useRef({ cols: 80, rows: 24 })
+  const sessionFolder = snapshot.sessions.find((session) => session.id === pane.sessionId)?.folder
+  const sessionFolderRef = useRef(sessionFolder)
+  sessionFolderRef.current = sessionFolder
 
   useEffect(() => {
     if (!containerRef.current || terminalRef.current) return
@@ -58,53 +65,89 @@ export const TerminalPaneView = ({
 
     terminal.loadAddon(fitAddon)
     terminal.open(containerRef.current)
-    fitAddon.fit()
 
     const currentSession = pane.id
-
-    if (terminalSession?.buffer) {
-      terminal.write(terminalSession.buffer)
+    const resizeTerminal = () => {
+      fitAddon.fit()
+      const cols = Math.max(terminal.cols, MIN_COLS)
+      const rows = Math.max(terminal.rows, MIN_ROWS)
+      if (terminal.cols !== cols || terminal.rows !== rows) {
+        terminal.resize(cols, rows)
+      }
+      sizeRef.current = { cols, rows }
+      window.terminalApp.resizeTerminal({ sessionId: currentSession, cols, rows })
     }
 
-    terminal.onData((data) => {
+    const resizeObserver = new ResizeObserver(resizeTerminal)
+    resizeObserver.observe(containerRef.current)
+
+    // Buffer live data while the historical snapshot is loading to avoid
+    // interleaving real-time writes with the bulk buffer replay.
+    const pendingData: string[] = []
+    let historyLoaded = false
+
+    const unsubscribeData = window.terminalApp.onTerminalData((event) => {
+      if (event.sessionId !== currentSession) return
+      if (historyLoaded) {
+        terminal.write(event.data)
+      } else {
+        pendingData.push(event.data)
+      }
+    })
+    const terminalInputSubscription = terminal.onData((data) => {
       window.terminalApp.sendTerminalInput({
         sessionId: currentSession,
         data
       })
     })
 
-    const handleResize = () => {
-      fitAddon.fit()
-      window.terminalApp.resizeTerminal({
-        sessionId: currentSession,
-        cols: terminal.cols,
-        rows: terminal.rows
-      })
-    }
-
-    const resizeObserver = new ResizeObserver(handleResize)
-    resizeObserver.observe(containerRef.current)
-
-    const unsubscribeData = window.terminalApp.onTerminalData((event) => {
-      if (event.sessionId === currentSession) {
-        terminal.write(event.data)
-      }
-    })
-
     terminalRef.current = terminal
     fitAddonRef.current = fitAddon
 
-    handleResize()
+    resizeTerminal()
+
+    // Load the historical buffer, then drain any real-time data that arrived
+    // while we were waiting. Real-time chunks appended to the buffer after the
+    // snapshot are not duplicated because they land in pendingData.
+    void window.terminalApp
+      .createTerminalSession({
+        sessionId: pane.id,
+        cwd: sessionFolderRef.current,
+        cols: sizeRef.current.cols,
+        rows: sizeRef.current.rows
+      })
+      .then((session) => {
+        if (!terminalRef.current) return
+        const buf = session.buffer ?? ''
+        if (buf) terminal.write(buf)
+        for (const data of pendingData) terminal.write(data)
+        historyLoaded = true
+        pendingData.length = 0
+      })
 
     return () => {
+      historyLoaded = true
+      pendingData.length = 0
       unsubscribeData()
+      terminalInputSubscription.dispose()
       resizeObserver.disconnect()
       terminal.dispose()
       fitAddon.dispose()
       terminalRef.current = null
       fitAddonRef.current = null
     }
-  }, [pane.id, terminalSession?.buffer])
+  }, [pane.id])
+
+  // Keep the session cwd in sync when the workspace folder changes.
+  useEffect(() => {
+    if (!visible || !terminalRef.current) return
+    void window.terminalApp.createTerminalSession({
+      sessionId: pane.id,
+      cwd: sessionFolder,
+      cols: sizeRef.current.cols,
+      rows: sizeRef.current.rows
+    })
+  }, [pane.id, sessionFolder, visible])
 
   useEffect(() => {
     if (!terminalRef.current) return

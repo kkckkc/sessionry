@@ -525,7 +525,8 @@ button {
   min-height: 0;
   height: 100%;
   padding: 0;
-  background: #111214;
+  background: #0b1020;
+  overflow: auto;
 }
 
 .terminal-surface .xterm {

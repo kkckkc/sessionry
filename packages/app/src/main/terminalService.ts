@@ -23,6 +23,10 @@ const require = createRequire(import.meta.url)
 interface ManagedTerminalSession {
   pty?: IPty
   state: TerminalSessionInfo
+  size?: {
+    cols: number
+    rows: number
+  }
 }
 
 const isExecutable = (candidate: string | null | undefined): candidate is string => {
@@ -81,6 +85,7 @@ export class TerminalService {
   private readonly cwd = process.cwd()
   private readonly shellCandidates = resolveShellCandidates()
   private readonly sessions = new Map<string, ManagedTerminalSession>()
+  private readonly pendingSizes = new Map<string, { cols: number; rows: number }>()
 
   constructor(
     private readonly sendData: (event: TerminalDataEvent) => void,
@@ -93,10 +98,15 @@ export class TerminalService {
 
     const cwd = input.cwd ?? this.cwd
     const existing = this.sessions.get(input.sessionId)
+    const size =
+      this.normalizeSize(input.cols, input.rows) ??
+      existing?.size ??
+      this.pendingSizes.get(input.sessionId) ?? { cols: 80, rows: 24 }
     if (existing && !input.restart) {
       if (cwd !== existing.state.cwd) {
         existing.state = { ...existing.state, cwd }
       }
+      existing.size = size
       this.emitState(existing.state)
       return existing.state
     }
@@ -122,8 +132,8 @@ export class TerminalService {
       try {
         const pty = spawn(shell, shellArgs(shell), {
           name: 'xterm-256color',
-          cols: 80,
-          rows: 24,
+          cols: size.cols,
+          rows: size.rows,
           cwd,
           env: {
             ...process.env,
@@ -136,6 +146,7 @@ export class TerminalService {
 
         const session: ManagedTerminalSession = {
           pty,
+          size,
           state: {
             id: input.sessionId,
             shell,
@@ -146,6 +157,7 @@ export class TerminalService {
           }
         }
         this.sessions.set(input.sessionId, session)
+        this.pendingSizes.delete(input.sessionId)
         this.emitState(session.state)
 
         pty.onData((data) => {
@@ -207,9 +219,17 @@ export class TerminalService {
   }
 
   handleResize(payload: TerminalResizePayload): void {
-    const pty = this.sessions.get(payload.sessionId)?.pty
-    if (!pty) return
     if (payload.cols < 2 || payload.rows < 1) return
+    const size = { cols: payload.cols, rows: payload.rows }
+    this.pendingSizes.set(payload.sessionId, size)
+    const session = this.sessions.get(payload.sessionId)
+    if (session) {
+      const sizeUnchanged = session.size?.cols === size.cols && session.size?.rows === size.rows
+      session.size = size
+      if (sizeUnchanged) return
+    }
+    const pty = session?.pty
+    if (!pty) return
     pty.resize(payload.cols, payload.rows)
   }
 
@@ -236,5 +256,11 @@ export class TerminalService {
       pid: state.pid,
       state: state.state
     })
+  }
+
+  private normalizeSize(cols?: number, rows?: number): { cols: number; rows: number } | null {
+    if (typeof cols !== 'number' || typeof rows !== 'number') return null
+    if (cols < 2 || rows < 1) return null
+    return { cols, rows }
   }
 }

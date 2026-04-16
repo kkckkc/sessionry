@@ -175,11 +175,6 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('workspace-tree-view')).toBeInTheDocument()
     })
-
-    expect(window.terminalApp.createTerminalSession).toHaveBeenCalledWith({
-      sessionId: 'pane-terminal',
-      cwd: '/tmp/project'
-    })
   })
 
   it('activates a session from sidebar interactions through workspace commands', async () => {

@@ -12,6 +12,8 @@ export interface TerminalSessionInfo {
 export interface CreateTerminalSessionInput {
   sessionId: string
   cwd?: string
+  cols?: number
+  rows?: number
   restart?: boolean
 }
 

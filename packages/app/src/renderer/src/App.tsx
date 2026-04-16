@@ -218,23 +218,6 @@ export const App = () => {
     }
   }, [])
 
-  useEffect(() => {
-    if (!activeTerminalPaneId) return
-
-    const activeWorkspaceSession = workspaceSnapshot.sessions.find((value) => value.id === activeWorkspaceSessionId)
-    void window.terminalApp
-      .createTerminalSession({
-        sessionId: activeTerminalPaneId,
-        cwd: activeWorkspaceSession?.folder
-      })
-      .then((terminalSession) => {
-        setTerminalSessions((value) => ({
-          ...value,
-          [terminalSession.id]: terminalSession
-        }))
-      })
-  }, [activeTerminalPaneId, activeWorkspaceSessionId, workspaceSnapshot.sessions])
-
   const executeAction = (actionId: string, source: ActionInvocationSource, args?: Record<string, unknown>) => {
     void window.terminalApp.actions.execute({ actionId, source, args }).then((result) => {
       if (result.status === 'needs-input') {
