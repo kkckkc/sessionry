@@ -1,0 +1,7 @@
+{
+  "id": "sample-plugin",
+  "name": "Sample Plugin",
+  "version": "0.1.0",
+  "main": "dist/main.js",
+  "renderer": "dist/renderer.js"
+}

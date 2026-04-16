@@ -1,0 +1,19 @@
+{
+  "name": "@sessionry/sample-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build -c vite.main.config.ts && vite build -c vite.renderer.config.ts",
+    "deploy": "pnpm build && mkdir -p ~/sessionry/plugins/sample-plugin && cp -r dist plugin.json ~/sessionry/plugins/sample-plugin/",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@sessionry/plugin-api": "workspace:*",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "react": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  }
+}
