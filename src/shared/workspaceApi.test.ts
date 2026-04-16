@@ -6,7 +6,7 @@ import type { WorkspaceStateSnapshot } from './workspace'
 import { createWorkspaceApi } from './workspaceApi'
 
 const snapshot: WorkspaceStateSnapshot = {
-  projects: [{ id: 'project-1', name: 'Project', folder: '/tmp/project', metadata: {}, sessionIds: ['session-1'] }],
+  projects: [{ id: 'project-1', name: 'Project', folder: '/tmp/project', metadata: {}, activeViews: {}, sessionIds: ['session-1'] }],
   sessions: [{ id: 'session-1', projectId: 'project-1', name: 'Session', folder: '/tmp/project', rootPaneGroupId: 'group-1' }],
   paneGroups: [
     {
@@ -52,14 +52,14 @@ describe('createWorkspaceApi', () => {
 
     const workspace = createWorkspaceApi(transport)
 
-    await workspace.projects[0].update({ name: 'Updated' })
+    await workspace.projects[0].update({ name: 'Updated', activeViews: { workspace: 'workspace.default' } })
     await workspace.projects[0].sessions[0].rootPaneGroup.update({ activeChildId: 'pane-1', preferredSizePct: 80 })
     await workspace.createProject({ name: 'Two', folder: '/tmp/two' })
 
     expect(executeCommand).toHaveBeenNthCalledWith(1, {
       type: 'project.update',
       projectId: 'project-1',
-      input: { name: 'Updated' }
+      input: { name: 'Updated', activeViews: { workspace: 'workspace.default' } }
     })
     expect(executeCommand).toHaveBeenNthCalledWith(2, {
       type: 'paneGroup.update',

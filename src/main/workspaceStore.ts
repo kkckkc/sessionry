@@ -164,6 +164,7 @@ export class WorkspaceStore {
       name: input.name,
       folder: input.folder,
       metadata: cloneValue(input.metadata ?? {}),
+      activeViews: cloneValue(input.activeViews ?? {}),
       sessionIds: []
     }
 
@@ -189,6 +190,7 @@ export class WorkspaceStore {
     project.name = input.name ?? project.name
     project.folder = input.folder ?? project.folder
     if (input.metadata) project.metadata = cloneValue(input.metadata)
+    if (input.activeViews) project.activeViews = cloneValue(input.activeViews)
 
     this.emit({
       type: 'project.updated',
@@ -790,7 +792,8 @@ export class WorkspaceStore {
       id: 'project-primary',
       name: 'Primary Project',
       folder: process.cwd(),
-      metadata: {}
+      metadata: {},
+      activeViews: {}
     })
     const session = this.createSession({
       id: 'session-primary',

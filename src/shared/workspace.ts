@@ -1,5 +1,6 @@
 export type EntityMetadataValue = string | number | boolean | null
 export type EntityMetadata = Record<string, EntityMetadataValue>
+export type ViewSlotSelection = Partial<Record<string, string>>
 
 export type PaneGroupLayout = 'stacked' | 'horizontal' | 'vertical'
 export type PaneType = 'terminal' | (string & {})
@@ -9,6 +10,7 @@ export interface Project {
   name: string
   folder: string
   metadata: EntityMetadata
+  activeViews: ViewSlotSelection
   sessionIds: string[]
 }
 
@@ -166,12 +168,14 @@ export interface CreateProjectInput {
   name: string
   folder: string
   metadata?: EntityMetadata
+  activeViews?: ViewSlotSelection
 }
 
 export interface UpdateProjectInput {
   name?: string
   folder?: string
   metadata?: EntityMetadata
+  activeViews?: ViewSlotSelection
 }
 
 export interface CreateSessionInput {

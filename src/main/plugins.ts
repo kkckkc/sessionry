@@ -1,4 +1,5 @@
 import type { AppPlugin } from '@shared/plugins'
+import { defaultWorkspacePanePlugin } from '../plugins/defaultWorkspacePanePlugin'
 
 export const builtInPlugins: AppPlugin[] = [
   {
@@ -33,6 +34,7 @@ export const builtInPlugins: AppPlugin[] = [
       { id: 'connection', label: 'Connection', kind: 'connection' }
     ]
   },
+  defaultWorkspacePanePlugin,
   {
     id: 'layout.navigation',
     name: 'Navigation',

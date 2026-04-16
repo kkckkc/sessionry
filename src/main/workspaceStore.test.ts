@@ -20,6 +20,7 @@ describe('WorkspaceStore', () => {
       direction: 'stacked',
       activeChildId: 'pane-terminal-primary'
     })
+    expect(snapshot.projects[0]?.activeViews).toEqual({})
     expect(snapshot.panes.find((pane) => pane.id === 'pane-terminal-primary')).toMatchObject({
       preferredSizePct: 50
     })
@@ -201,6 +202,27 @@ describe('WorkspaceStore', () => {
         { kind: 'group', paneGroupId: 'pane-group-right-column' },
         { kind: 'pane', paneId: 'pane-event' }
       ]
+    })
+  })
+
+  it('persists project-level active view selections through create and update', () => {
+    const service = new WorkspaceStore()
+
+    const project = service.createProject({
+      id: 'project-views',
+      name: 'Views',
+      folder: '/tmp/views',
+      activeViews: { workspace: 'workspace.default' }
+    })
+
+    expect(service.getProject(project.id)).toMatchObject({
+      activeViews: { workspace: 'workspace.default' }
+    })
+
+    service.updateProject(project.id, { activeViews: { workspace: 'workspace.alt' } })
+
+    expect(service.getProject(project.id)).toMatchObject({
+      activeViews: { workspace: 'workspace.alt' }
     })
   })
 })

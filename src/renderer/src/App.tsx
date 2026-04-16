@@ -5,14 +5,16 @@ import type { TerminalSessionInfo, TerminalStateEvent } from '@shared/terminal'
 import type { WorkspaceStateSnapshot } from '@shared/workspace'
 
 import { AppShell } from './components/AppShell'
-import { WorkspacePaneTree, getActiveVisibleTerminalPaneId } from './components/WorkspacePaneTree'
+import { WorkspaceSlotView } from './components/WorkspaceSlotView'
+import { getActiveVisibleTerminalPaneId } from './components/WorkspacePaneTree'
 import { readWorkspaceSnapshot, workspace } from './lib/workspace'
 
 const emptyPlugins: PluginViewModel = {
   toolbar: [],
   leftPanels: [],
   rightPanels: [],
-  statusItems: []
+  statusItems: [],
+  viewsBySlot: {}
 }
 
 export const App = () => {
@@ -52,6 +54,13 @@ export const App = () => {
   }, [])
 
   const activeWorkspaceSessionId = workspaceSnapshot.sessions[0]?.id
+  const activeProjectId =
+    workspaceSnapshot.sessions.find((session) => session.id === activeWorkspaceSessionId)?.projectId ??
+    workspaceSnapshot.projects[0]?.id
+  const activeProject =
+    activeProjectId !== undefined
+      ? workspaceSnapshot.projects.find((project) => project.id === activeProjectId)
+      : undefined
   const activeTerminalPaneId = getActiveVisibleTerminalPaneId(workspaceSnapshot, activeWorkspaceSessionId)
 
   const handleToolbarAction = (action: ToolbarActionId) => {
@@ -84,8 +93,11 @@ export const App = () => {
       leftVisible={leftVisible}
       rightVisible={rightVisible}
       mainContent={
-        <WorkspacePaneTree
+        <WorkspaceSlotView
+          plugins={plugins}
+          selectedViewId={activeProject?.activeViews.workspace}
           snapshot={workspaceSnapshot}
+          projectId={activeProjectId}
           sessionId={activeWorkspaceSessionId}
           terminalSession={session}
           clearSignal={clearSignal}

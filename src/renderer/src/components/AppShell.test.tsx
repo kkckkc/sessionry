@@ -10,7 +10,8 @@ const plugins: PluginViewModel = {
   toolbar: [{ id: 'terminal:clear', label: 'Clear', description: 'Clear terminal' }],
   leftPanels: [{ id: 'navigation.panel', title: 'Workspace', side: 'left', pluginId: 'nav' }],
   rightPanels: [{ id: 'inspector.panel', title: 'Inspector', side: 'right', pluginId: 'inspector' }],
-  statusItems: [{ id: 'state', label: 'State', kind: 'session-state' }]
+  statusItems: [{ id: 'state', label: 'State', kind: 'session-state' }],
+  viewsBySlot: {}
 }
 
 const session: TerminalSessionInfo = {

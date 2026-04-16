@@ -1,18 +1,9 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 
-import type { TerminalSessionInfo } from '@shared/terminal'
+import type { WorkspaceViewProps } from '@shared/plugins'
 import type { Pane, PaneGroup, PaneGroupChild, WorkspaceStateSnapshot } from '@shared/workspace'
 
 import { TerminalView } from './TerminalView'
-
-interface WorkspacePaneTreeProps {
-  snapshot: WorkspaceStateSnapshot
-  sessionId?: string
-  terminalSession: TerminalSessionInfo | null
-  clearSignal: number
-  activeTerminalPaneId: string | null
-  onSelectStackedChild: (paneGroupId: string, childId: string) => void
-}
 
 const getNodeId = (child: PaneGroupChild): string =>
   child.kind === 'pane' ? child.paneId : child.paneGroupId
@@ -167,7 +158,7 @@ export const WorkspacePaneTree = ({
   clearSignal,
   activeTerminalPaneId,
   onSelectStackedChild
-}: WorkspacePaneTreeProps) => {
+}: WorkspaceViewProps) => {
   const activeSession = sessionId
     ? snapshot.sessions.find((session) => session.id === sessionId)
     : snapshot.sessions[0]

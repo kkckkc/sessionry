@@ -18,7 +18,7 @@ vi.mock('./TerminalView', () => ({
 }))
 
 const snapshot: WorkspaceStateSnapshot = {
-  projects: [{ id: 'project-1', name: 'Project', folder: '/tmp/project', metadata: {}, sessionIds: ['session-1'] }],
+  projects: [{ id: 'project-1', name: 'Project', folder: '/tmp/project', metadata: {}, activeViews: {}, sessionIds: ['session-1'] }],
   sessions: [{ id: 'session-1', projectId: 'project-1', name: 'Session', folder: '/tmp/project', rootPaneGroupId: 'root' }],
   paneGroups: [
     {
