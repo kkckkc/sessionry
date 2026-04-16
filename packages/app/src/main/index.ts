@@ -1,6 +1,7 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, net, protocol } from 'electron'
 import path from 'node:path'
 import process from 'node:process'
+import { pathToFileURL } from 'node:url'
 
 import { IPC_CHANNELS } from '@app-shared/ipc'
 import { createWorkspaceApi } from '@sessionry/plugin-api'
@@ -10,6 +11,15 @@ import type { TerminalInputPayload, TerminalResizePayload } from '@sessionry/plu
 import { WorkspaceStore } from './workspaceStore'
 import { createPluginManager } from './pluginManager'
 import { TerminalService } from './terminalService'
+import { loadUserPlugins } from './pluginLoader'
+
+// Must be called before app.whenReady().
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'sessionry',
+    privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true }
+  }
+])
 
 let mainWindow: BrowserWindow | null = null
 
@@ -41,14 +51,51 @@ const createWindow = (): void => {
   })
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  const userPlugins = await loadUserPlugins()
+
+  // Build an allowlist of dir names for loaded plugins to prevent path traversal.
+  const pluginDirMap = new Map(userPlugins.map((p) => [p.dirName, p.pluginDir]))
+  const hostLibsDir = path.join(__dirname, '../host')
+
+  protocol.handle('sessionry', (request) => {
+    const url = new URL(request.url)
+
+    if (url.host === 'host') {
+      const rel = url.pathname.slice(1) // strip leading '/'
+      const filePath = path.resolve(hostLibsDir, rel)
+      if (!filePath.startsWith(hostLibsDir + path.sep) && filePath !== hostLibsDir) {
+        return new Response('Not found', { status: 404 })
+      }
+      return net.fetch(pathToFileURL(filePath).href)
+    }
+
+    if (url.host === 'plugin') {
+      const segments = url.pathname.slice(1).split('/')
+      const dirName = segments[0]
+      const rest = segments.slice(1)
+      const pluginDir = pluginDirMap.get(dirName)
+      if (!pluginDir || rest.length === 0) return new Response('Not found', { status: 404 })
+      const filePath = path.resolve(pluginDir, ...rest)
+      if (!filePath.startsWith(pluginDir + path.sep)) {
+        return new Response('Forbidden', { status: 403 })
+      }
+      return net.fetch(pathToFileURL(filePath).href)
+    }
+
+    return new Response('Not found', { status: 404 })
+  })
+
   const workspaceStore = new WorkspaceStore()
   const workspaceApi = createWorkspaceApi({
     read: () => workspaceStore.read(),
     executeCommand: (command: WorkspaceCommand) => workspaceStore.executeCommand(command),
     subscribeAll: (listener) => workspaceStore.subscribeAll(listener)
   })
-  const pluginManager = createPluginManager({ workspace: workspaceApi })
+  const pluginManager = createPluginManager(
+    { workspace: workspaceApi },
+    userPlugins.map((p) => p.plugin)
+  )
   const terminalService = new TerminalService(
     (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalData, event),
     (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalState, event),
@@ -67,6 +114,14 @@ app.whenReady().then(() => {
     terminalService.handleResize(payload)
   })
   ipcMain.handle(IPC_CHANNELS.pluginModel, () => pluginManager.getViewModel())
+  ipcMain.handle(IPC_CHANNELS.userPluginRenderers, () =>
+    userPlugins
+      .filter((p) => p.manifest.renderer != null)
+      .map((p) => ({
+        pluginId: p.manifest.id,
+        rendererUrl: `sessionry://plugin/${p.dirName}/${p.manifest.renderer}`
+      }))
+  )
   ipcMain.on(IPC_CHANNELS.workspaceRead, (event) => {
     event.returnValue = workspaceStore.read()
   })

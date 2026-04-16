@@ -48,6 +48,17 @@ export default defineConfig({
   renderer: {
     root: path.resolve(rootDir, 'src/renderer'),
     plugins: [react()],
+    // In production, React and plugin-api are served as host bundles via the
+    // sessionry:// protocol and resolved by the import map in index.html.
+    // This ensures all plugins share the same module instances as the host app.
+    // In dev, Vite handles React normally; external plugins loaded in dev will
+    // use the pre-built sessionry://host/react.js and get a separate instance
+    // (acceptable limitation — production uses the import map for full sharing).
+    build: {
+      rollupOptions: {
+        external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@sessionry/plugin-api']
+      }
+    },
     resolve: {
       alias: [
         {

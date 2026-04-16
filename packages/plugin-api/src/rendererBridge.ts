@@ -14,11 +14,17 @@ import type {
   TerminalStateEvent
 } from './terminal'
 
+export interface UserPluginRendererInfo {
+  pluginId: string
+  rendererUrl: string
+}
+
 export interface TerminalAppBridge {
   createTerminalSession: () => Promise<TerminalSessionInfo>
   sendTerminalInput: (payload: TerminalInputPayload) => void
   resizeTerminal: (payload: TerminalResizePayload) => void
   getPluginModel: () => Promise<PluginViewModel>
+  getUserPluginRenderers: () => Promise<UserPluginRendererInfo[]>
   workspace: {
     read: () => WorkspaceStateSnapshot
     executeCommand: (command: WorkspaceCommand) => Promise<WorkspaceCommandResult>

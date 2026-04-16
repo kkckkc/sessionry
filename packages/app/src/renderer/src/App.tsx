@@ -8,6 +8,7 @@ import { getActiveVisibleTerminalPaneId } from '@sessionry/default-workspace-pan
 import { AppShell } from './components/AppShell'
 import { WorkspaceSlotView } from './components/WorkspaceSlotView'
 import { readWorkspaceSnapshot, workspace } from './lib/workspace'
+import { loadUserPluginRenderers } from './plugins'
 
 const emptyPlugins: PluginViewModel = {
   toolbar: [],
@@ -30,7 +31,9 @@ export const App = () => {
     if (initializedRef.current) return
     initializedRef.current = true
 
-    void window.terminalApp.getPluginModel().then(setPlugins)
+    void Promise.all([window.terminalApp.getPluginModel(), loadUserPluginRenderers()]).then(
+      ([pluginModel]) => setPlugins(pluginModel)
+    )
     void window.terminalApp.createTerminalSession().then(setSession)
     setWorkspaceSnapshot(readWorkspaceSnapshot())
 

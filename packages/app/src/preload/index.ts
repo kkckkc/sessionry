@@ -7,7 +7,7 @@ import type {
   WorkspaceCommandResult,
   WorkspaceStateSnapshot
 } from '@sessionry/plugin-api'
-import type { PluginViewModel } from '@sessionry/plugin-api'
+import type { PluginViewModel, UserPluginRendererInfo } from '@sessionry/plugin-api'
 import type {
   TerminalDataEvent,
   TerminalExitEvent,
@@ -28,6 +28,8 @@ const api = {
     ipcRenderer.send(IPC_CHANNELS.terminalResize, payload)
   },
   getPluginModel: (): Promise<PluginViewModel> => ipcRenderer.invoke(IPC_CHANNELS.pluginModel),
+  getUserPluginRenderers: (): Promise<UserPluginRendererInfo[]> =>
+    ipcRenderer.invoke(IPC_CHANNELS.userPluginRenderers),
   workspace: {
     read: (): WorkspaceStateSnapshot =>
       ipcRenderer.sendSync(IPC_CHANNELS.workspaceRead) as WorkspaceStateSnapshot,

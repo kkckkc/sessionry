@@ -99,6 +99,7 @@ describe('App', () => {
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
       getPluginModel: vi.fn(async () => pluginModel),
+      getUserPluginRenderers: vi.fn(async () => []),
       workspace: {
         read: vi.fn(() => snapshot),
         executeCommand: vi.fn(async () => ({})),

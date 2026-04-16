@@ -6,8 +6,9 @@
   "main": "out/main/index.js",
   "type": "module",
   "scripts": {
-    "dev": "electron-vite dev",
-    "build": "electron-vite build",
+    "dev": "pnpm build:host && electron-vite dev",
+    "build": "pnpm build:host && electron-vite build",
+    "build:host": "vite build -c vite.host.config.ts",
     "preview": "electron-vite preview",
     "postinstall": "node scripts/fix-node-pty.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
