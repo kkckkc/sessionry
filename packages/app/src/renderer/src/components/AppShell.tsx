@@ -2,13 +2,13 @@ import type { ReactNode } from 'react'
 
 import { Toolbar } from '@base-ui-components/react/toolbar'
 
-import type { ActionDescriptor, PluginViewModel, SidebarPanelViewProps } from '@sessionry/plugin-api'
+import type { ActionDescriptor, PluginViewModel, SidebarViewProps } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
 import { getSidebarSlotId } from '@sessionry/plugin-api'
 import { resolveActiveView } from '@sessionry/plugin-api'
 import type { RendererViewRegistration, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
-import { panelDescriptions, resolveStatusValue, sidebarItemCount } from '../lib/pluginPanels'
+import { resolveStatusValue } from '../lib/pluginPanels'
 
 interface AppShellProps {
   plugins: PluginViewModel
@@ -24,50 +24,40 @@ interface AppShellProps {
   resolveRendererView: (viewId: string) => RendererViewRegistration | null
 }
 
-const SidebarPanel = ({
-  panel,
+const resolveSidebarRegistration = ({
+  side,
+  plugins,
+  resolveRendererView
+}: {
+  side: 'left' | 'right'
+  plugins: PluginViewModel
+  resolveRendererView: (viewId: string) => RendererViewRegistration | null
+}) => {
+  const slotId = getSidebarSlotId(side)
+  const activeView = resolveActiveView(plugins, slotId)
+  return activeView ? resolveRendererView(activeView.id) : null
+}
+
+const SidebarView = ({
+  registration,
   plugins,
   snapshot,
   activeSessionId,
-  onActivateSession,
-  resolveRendererView
-}: SidebarPanelViewProps & { resolveRendererView: (viewId: string) => RendererViewRegistration | null }) => {
-  const slotId = getSidebarSlotId(panel.side)
-  const activeView = resolveActiveView(plugins, slotId)
-  const registration = activeView ? resolveRendererView(activeView.id) : null
-  const entries = panelDescriptions[panel.id] ?? ['No content registered']
+  onActivateSession
+}: SidebarViewProps & {
+  registration: RendererViewRegistration | null
+}) => {
+  if (!registration) return null
 
-  if (registration) {
-    const Component = registration.component
-    return (
-      <section className="sidebar-panel" aria-label={panel.title}>
-        <header className="sidebar-panel__header">
-          <span>{panel.title}</span>
-          <span className="sidebar-panel__badge">{sidebarItemCount(panel)}</span>
-        </header>
-        <Component
-          panel={panel}
-          plugins={plugins}
-          snapshot={snapshot}
-          activeSessionId={activeSessionId}
-          onActivateSession={onActivateSession}
-        />
-      </section>
-    )
-  }
+  const Component = registration.component
 
   return (
-    <section className="sidebar-panel" aria-label={panel.title}>
-      <header className="sidebar-panel__header">
-        <span>{panel.title}</span>
-        <span className="sidebar-panel__badge">{sidebarItemCount(panel)}</span>
-      </header>
-      <ul className="sidebar-panel__list">
-        {entries.map((entry) => (
-          <li key={entry}>{entry}</li>
-        ))}
-      </ul>
-    </section>
+    <Component
+      plugins={plugins}
+      snapshot={snapshot}
+      activeSessionId={activeSessionId}
+      onActivateSession={onActivateSession}
+    />
   )
 }
 
@@ -84,18 +74,22 @@ export const AppShell = ({
   onActivateSession,
   resolveRendererView
 }: AppShellProps) => {
+  const leftRegistration = resolveSidebarRegistration({ side: 'left', plugins, resolveRendererView })
+  const rightRegistration = resolveSidebarRegistration({ side: 'right', plugins, resolveRendererView })
+  const showLeftSidebar = leftVisible
+  const showRightSidebar = rightVisible && rightRegistration !== null
+
   const workspaceClassName = [
     'workspace',
-    leftVisible ? 'workspace--left-visible' : 'workspace--left-hidden',
-    rightVisible ? 'workspace--right-visible' : 'workspace--right-hidden'
+    showLeftSidebar ? 'workspace--left-visible' : 'workspace--left-hidden',
+    showRightSidebar ? 'workspace--right-visible' : 'workspace--right-hidden'
   ].join(' ')
 
   return (
     <div className="app-frame">
       <header className="toolbar">
         <div className="toolbar__brand">
-          <span className="toolbar__eyebrow">AI Term</span>
-          <h1>Workspace</h1>
+          Sessionry
         </div>
         <Toolbar.Root className="toolbar__actions" aria-label="Terminal actions">
           {plugins.toolbarActionIds
@@ -110,37 +104,29 @@ export const AppShell = ({
       </header>
 
       <main className={workspaceClassName}>
-        {leftVisible ? (
+        {showLeftSidebar ? (
           <aside className="sidebar sidebar--left">
-            {plugins.leftPanels.map((panel) => (
-              <SidebarPanel
-                key={panel.id}
-                panel={panel}
-                plugins={plugins}
-                snapshot={snapshot}
-                activeSessionId={activeSessionId}
-                onActivateSession={onActivateSession}
-                resolveRendererView={resolveRendererView}
-              />
-            ))}
+            <SidebarView
+              registration={leftRegistration}
+              plugins={plugins}
+              snapshot={snapshot}
+              activeSessionId={activeSessionId}
+              onActivateSession={onActivateSession}
+            />
           </aside>
         ) : null}
 
         <section className="workspace-content">{mainContent}</section>
 
-        {rightVisible ? (
+        {showRightSidebar ? (
           <aside className="sidebar sidebar--right">
-            {plugins.rightPanels.map((panel) => (
-              <SidebarPanel
-                key={panel.id}
-                panel={panel}
-                plugins={plugins}
-                snapshot={snapshot}
-                activeSessionId={activeSessionId}
-                onActivateSession={onActivateSession}
-                resolveRendererView={resolveRendererView}
-              />
-            ))}
+            <SidebarView
+              registration={rightRegistration}
+              plugins={plugins}
+              snapshot={snapshot}
+              activeSessionId={activeSessionId}
+              onActivateSession={onActivateSession}
+            />
           </aside>
         ) : null}
       </main>
@@ -149,7 +135,7 @@ export const AppShell = ({
         {plugins.statusItems.map((item) => (
           <div key={item.id} className="status-bar__item">
             <span>{item.label}</span>
-            <strong>{resolveStatusValue(item, session)}</strong>
+            <span>{resolveStatusValue(item, session)}</span>
           </div>
         ))}
       </footer>

@@ -43,7 +43,6 @@ pnpm build
 Sessionry treats most UI contributions as plugins. A plugin can contribute:
 
 - views, attached to named slots such as `workspace`, `pane:terminal`, or `sidebar:left`
-- sidebar panels for the left or right shell
 - actions for the toolbar/palette
 - status items
 - main-process activation logic through `activateMain(context)`

@@ -62,8 +62,6 @@ vi.mock('@sessionry/plugin-default-view-left-sidebar/renderer', () => ({
 const pluginModel: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
-  leftPanels: [],
-  rightPanels: [],
   statusItems: [],
   viewsBySlot: {
     'pane:terminal': [
@@ -186,7 +184,6 @@ describe('App', () => {
       resizeTerminal: vi.fn(),
       getPluginModel: vi.fn(async (): Promise<PluginViewModel> => ({
         ...pluginModel,
-        leftPanels: [{ id: 'project-sessions.panel', title: 'Projects', side: 'left', pluginId: 'nav' }],
         viewsBySlot: {
           ...pluginModel.viewsBySlot,
           'sidebar:left': [

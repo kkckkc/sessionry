@@ -20,8 +20,6 @@ import { getRendererView, loadUserPluginRenderers } from './plugins'
 const emptyPlugins: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
-  leftPanels: [],
-  rightPanels: [],
   statusItems: [],
   viewsBySlot: {}
 }

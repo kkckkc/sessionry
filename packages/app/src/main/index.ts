@@ -33,6 +33,7 @@ const createWindow = (): void => {
     minHeight: 720,
     backgroundColor: '#0d1118',
     titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 20, y: 20 },
     webPreferences: {
       // electron-vite emits preload as ESM in production.
       preload: path.join(__dirname, '../preload/index.mjs'),

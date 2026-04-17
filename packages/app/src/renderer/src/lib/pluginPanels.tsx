@@ -1,10 +1,5 @@
-import type { SidebarPanelContribution, StatusItemContribution } from '@sessionry/plugin-api'
+import type { StatusItemContribution } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
-
-export const panelDescriptions: Record<string, string[]> = {
-  'navigation.panel': ['Project tree placeholder', 'Workspace actions', 'Pinned commands'],
-  'inspector.panel': ['Session details', 'Plugin diagnostics', 'Context-aware tools']
-}
 
 export const resolveStatusValue = (
   item: StatusItemContribution,
@@ -25,6 +20,3 @@ export const resolveStatusValue = (
       return 'n/a'
   }
 }
-
-export const sidebarItemCount = (panel: SidebarPanelContribution): number =>
-  panelDescriptions[panel.id]?.length ?? 0

@@ -8,8 +8,6 @@ import projectSessionsSidebarRendererPlugin from '../src/renderer'
 const plugins: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
-  leftPanels: [],
-  rightPanels: [],
   statusItems: [],
   viewsBySlot: {}
 }
@@ -45,12 +43,6 @@ describe('ProjectSessionsSidebarView', () => {
 
     render(
       <Component
-        panel={{
-          id: 'project-sessions.panel',
-          title: 'Projects',
-          side: 'left',
-          pluginId: 'plugin-default-view-left-sidebar'
-        }}
         plugins={plugins}
         snapshot={snapshot}
         activeSessionId="session-2"

@@ -41,7 +41,7 @@ export const TerminalPaneView = ({
       fontSize: 13,
       lineHeight: 1.25,
       theme: {
-        background: '#0b1020',
+        background: '#121212',
         foreground: '#d6e1ff',
         cursor: '#ffcb6b',
         black: '#2b3144',

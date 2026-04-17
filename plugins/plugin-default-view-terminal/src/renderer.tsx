@@ -1,7 +1,7 @@
 import type { RendererAppPlugin } from '@sessionry/plugin-api'
 
 import { TerminalPaneView } from './TerminalPaneView'
-import { terminalPanePlugin } from './index.js'
+import { terminalPanePlugin } from '.'
 
 const terminalView = terminalPanePlugin.views?.[0]
 

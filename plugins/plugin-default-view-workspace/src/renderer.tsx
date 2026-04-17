@@ -1,6 +1,6 @@
 import type { RendererAppPlugin } from '@sessionry/plugin-api'
 
-import { defaultWorkspacePanePlugin } from './index.js'
+import { defaultWorkspacePanePlugin } from '.'
 import { WorkspacePaneTree, getActiveVisibleTerminalPaneId } from './WorkspacePaneTree'
 
 const workspaceView = defaultWorkspacePanePlugin.views?.[0]

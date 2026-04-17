@@ -11,7 +11,7 @@ This package defines the contract between:
 
 ## What this package contains
 
-- plugin contribution types such as `AppPlugin`, `RendererAppPlugin`, `PluginViewDefinition`, and `SidebarPanelContribution`
+- plugin contribution types such as `AppPlugin`, `RendererAppPlugin`, `PluginViewDefinition`, and `SidebarViewProps`
 - action types and execution contracts
 - workspace data structures, commands, events, and handles
 - bridge types used by the renderer preload/host boundary
@@ -28,7 +28,6 @@ export interface AppPlugin {
   id: string
   name: string
   actions?: ActionContribution[]
-  panels?: SidebarPanelContribution[]
   statusItems?: StatusItemContribution[]
   views?: PluginViewDefinition[]
   activateMain?: (context: MainPluginContext) => void | Promise<void>
@@ -61,21 +60,7 @@ Useful slot helpers:
 - `getSidebarSlotId(side)` -> `sidebar:left` or `sidebar:right`
 
 The host groups views by slot and resolves the active view with `resolveActiveView(...)`.
-
-### Panels
-
-Sidebar panels are separate contributions:
-
-```ts
-interface SidebarPanelContribution {
-  id: string
-  title: string
-  side: 'left' | 'right'
-  pluginId: string
-}
-```
-
-Panels are sorted by title on each side during normalization.
+Sidebar surfaces are also just slot views, typically attached to `sidebar:left` or `sidebar:right`.
 
 ### Actions
 
@@ -118,7 +103,6 @@ The host does not hand raw plugin objects to the renderer. Instead it calls `nor
 
 - actions without executable handlers
 - toolbar action ids
-- left/right panel lists
 - status items
 - `viewsBySlot`
 

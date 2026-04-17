@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { getPaneSlotId, getSidebarSlotId, normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
 
 describe('normalizePlugins', () => {
-  it('collects action, sidebar, status, and slot view contributions into a renderer model', () => {
+  it('collects action, status, and slot view contributions into a renderer model', () => {
     const result = normalizePlugins([
       {
         id: 'one',
@@ -17,7 +17,6 @@ describe('normalizePlugins', () => {
             run: () => ({ status: 'completed' })
           }
         ],
-        panels: [{ id: 'b', title: 'Beta', side: 'right', pluginId: 'one' }],
         statusItems: [{ id: 'state', label: 'State', kind: 'session-state' }],
         views: [
           {
@@ -31,15 +30,12 @@ describe('normalizePlugins', () => {
       {
         id: 'two',
         name: 'Two',
-        panels: [{ id: 'a', title: 'Alpha', side: 'left', pluginId: 'two' }],
         views: [{ id: 'workspace.beta', title: 'Beta View', slot: 'workspace' }]
       }
     ])
 
     expect(result.actions).toHaveLength(1)
     expect(result.toolbarActionIds).toEqual(['terminal:clear'])
-    expect(result.leftPanels.map((panel) => panel.title)).toEqual(['Alpha'])
-    expect(result.rightPanels.map((panel) => panel.title)).toEqual(['Beta'])
     expect(result.statusItems).toHaveLength(1)
     expect(result.viewsBySlot.workspace.map((view) => view.title)).toEqual(['Alpha View', 'Beta View'])
   })

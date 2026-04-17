@@ -1,6 +1,6 @@
 import type { RendererAppPlugin } from '@sessionry/plugin-api'
 
-import samplePlugin from './index.js'
+import samplePlugin from '.'
 
 function SampleView() {
   return (

@@ -1,12 +1,11 @@
 import type { ComponentType } from 'react'
 
 import type { ActionContribution, ActionDescriptor } from './actions'
-import type { TerminalSessionInfo, TerminalSessionState } from './terminal'
+import type { TerminalSessionInfo } from './terminal'
 import type { Pane, PaneType, WorkspaceApi, WorkspaceStateSnapshot } from './workspace'
 
 export type SidebarSide = 'left' | 'right'
-/** Host-defined slot ids, for example `workspace` or `pane:terminal`. */
-export type PluginViewSlotId = 'workspace' | (string & {})
+export type PluginViewSlotId = string;
 
 export interface PluginViewDefinition {
   id: string
@@ -19,15 +18,7 @@ export interface PluginViewContribution extends PluginViewDefinition {
   pluginId: string
 }
 
-export interface SidebarPanelContribution {
-  id: string
-  title: string
-  side: SidebarSide
-  pluginId: string
-}
-
-export interface SidebarPanelViewProps {
-  panel: SidebarPanelContribution
+export interface SidebarViewProps {
   plugins: PluginViewModel
   snapshot: WorkspaceStateSnapshot
   activeSessionId?: string
@@ -43,8 +34,6 @@ export interface StatusItemContribution {
 export interface PluginViewModel {
   actions: ActionDescriptor[]
   toolbarActionIds: string[]
-  leftPanels: SidebarPanelContribution[]
-  rightPanels: SidebarPanelContribution[]
   statusItems: StatusItemContribution[]
   viewsBySlot: Record<string, PluginViewContribution[]>
 }
@@ -80,7 +69,6 @@ export interface AppPlugin {
   id: string
   name: string
   actions?: ActionContribution[]
-  panels?: SidebarPanelContribution[]
   statusItems?: StatusItemContribution[]
   views?: PluginViewDefinition[]
   activateMain?: (context: MainPluginContext) => void | Promise<void>
@@ -93,13 +81,9 @@ export interface RendererAppPlugin extends Omit<AppPlugin, 'views'> {
   views?: RendererPluginViewDefinition[]
 }
 
-export const getPaneSlotId = (paneType: PaneType): PluginViewSlotId => `pane:${paneType}`
 
-export interface StatusSnapshot {
-  state: TerminalSessionState
-  shell: string
-  cwd: string
-}
+// REVIEW: Remove this
+export const getPaneSlotId = (paneType: PaneType): PluginViewSlotId => `pane:${paneType}`
 
 export interface MainPluginContext {
   workspace: WorkspaceApi
@@ -109,4 +93,5 @@ export interface RendererPluginContext {
   workspace: WorkspaceApi
 }
 
+// REVIEW: Remove this
 export const getSidebarSlotId = (side: SidebarSide): PluginViewSlotId => `sidebar:${side}`

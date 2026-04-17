@@ -13,8 +13,6 @@ const paneRendererSpy = vi.fn()
 const plugins: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
-  leftPanels: [],
-  rightPanels: [],
   statusItems: [],
   viewsBySlot: {
     'pane:terminal': [

@@ -177,7 +177,7 @@ export const WorkspacePaneTree = ({
     return <section className="workspace-empty">No session available.</section>
   }
 
-  const renderPane = (pane: Pane, bare = false, isVisible = true) => {
+  const renderPane = (pane: Pane, _bare = false, isVisible = true) => {
     const title = getPaneTitle(pane)
     const description = getPaneDescription(pane)
     const isLiveTerminal = pane.type === 'terminal' && pane.id === activeTerminalPaneId
@@ -188,25 +188,12 @@ export const WorkspacePaneTree = ({
     return (
       <article
         key={pane.id}
-        className={bare ? 'pane-card pane-card--bare' : 'pane-card'}
+        className={'pane-card pane-card--bare'}
         style={getPreferredSizeStyle(pane.preferredSizePct)}
         aria-label={title}
         data-testid={`pane-${pane.id}`}
       >
-        {bare ? null : (
-          <header className="pane-card__header">
-            <div>
-              <span className="pane-card__eyebrow">{pane.type}</span>
-              <strong>{title}</strong>
-            </div>
-            {isLiveTerminal ? (
-              <div className="pane-card__meta">
-                <span>{terminalSession?.id ?? 'loading'}</span>
-                <span>{terminalSession?.pid ?? 'pending'}</span>
-              </div>
-            ) : null}
-          </header>
-        )}
+
         <div className="pane-card__body">
           {PaneRenderer ? (
             <PaneRenderer
@@ -263,7 +250,6 @@ export const WorkspacePaneTree = ({
         >
           <header className="workspace-node__header">
             <span>{title}</span>
-            <span>{paneGroup.direction}</span>
           </header>
           <div className="workspace-tabs" role="tablist" aria-label={`${title} tabs`}>
             {paneGroup.children.map((child) => {
@@ -309,7 +295,6 @@ export const WorkspacePaneTree = ({
       >
         <header className="workspace-node__header">
           <span>{title}</span>
-          <span>{paneGroup.direction}</span>
         </header>
         <div className={`workspace-split workspace-split--${paneGroup.direction}`}>
           {paneGroup.children.length > 0 ? (

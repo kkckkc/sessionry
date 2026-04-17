@@ -1,12 +1,12 @@
-import type { RendererAppPlugin, SidebarPanelViewProps } from '@sessionry/plugin-api'
+import type { RendererAppPlugin, SidebarViewProps } from '@sessionry/plugin-api'
 
-import { projectSessionsSidebarPlugin } from './index.js'
+import { projectSessionsSidebarPlugin } from '.'
 
 const ProjectSessionsSidebarView = ({
   snapshot,
   activeSessionId,
   onActivateSession
-}: SidebarPanelViewProps) => (
+}: SidebarViewProps) => (
   <ul className="sidebar-panel__list" aria-label="Project sessions">
     {snapshot.projects.map((project) => {
       const sessions = project.sessionIds
@@ -43,7 +43,7 @@ const ProjectSessionsSidebarView = ({
 const panelView = projectSessionsSidebarPlugin.views?.[0]
 
 if (!panelView) {
-  throw new Error('projectSessionsSidebarPlugin must register a sidebar panel view.')
+  throw new Error('projectSessionsSidebarPlugin must register a sidebar view.')
 }
 
 export const projectSessionsSidebarRendererPlugin: RendererAppPlugin = {

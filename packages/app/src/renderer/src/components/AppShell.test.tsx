@@ -17,8 +17,6 @@ const snapshot: WorkspaceStateSnapshot = {
 const plugins: PluginViewModel = {
   actions: [{ id: 'terminal:clear', name: 'Clear Terminal', description: 'Clear terminal', surfaces: ['toolbar'] }],
   toolbarActionIds: ['terminal:clear'],
-  leftPanels: [{ id: 'navigation.panel', title: 'Workspace', side: 'left', pluginId: 'nav' }],
-  rightPanels: [{ id: 'inspector.panel', title: 'Inspector', side: 'right', pluginId: 'inspector' }],
   statusItems: [{ id: 'state', label: 'State', kind: 'session-state' }],
   viewsBySlot: {}
 }
@@ -49,14 +47,12 @@ describe('AppShell', () => {
     )
 
     expect(screen.getByRole('heading', { name: 'Workspace' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Workspace')).toBeInTheDocument()
-    expect(screen.getByLabelText('Inspector')).toBeInTheDocument()
     expect(screen.getByText('State')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear Terminal' })).toBeInTheDocument()
     expect(screen.getByTestId('workspace-content')).toBeInTheDocument()
   })
 
-  it('renders a sidebar panel renderer when a matching slot view exists', () => {
+  it('renders a sidebar slot view when a matching slot view exists', () => {
     const sidebarPlugins: PluginViewModel = {
       ...plugins,
       viewsBySlot: {
@@ -84,11 +80,32 @@ describe('AppShell', () => {
         onToolbarAction={() => {}}
         onActivateSession={() => {}}
         resolveRendererView={() => ({
-          component: () => <div data-testid="sidebar-panel-renderer">custom sidebar</div>
+          component: () => <div data-testid="sidebar-view-renderer">custom sidebar</div>
         })}
       />
     )
 
-    expect(screen.getByTestId('sidebar-panel-renderer')).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-view-renderer')).toBeInTheDocument()
+  })
+
+  it('renders no sidebar content when a visible side has no registered view', () => {
+    const { container } = render(
+      <AppShell
+        plugins={plugins}
+        session={session}
+        snapshot={snapshot}
+        leftVisible={false}
+        rightVisible
+        mainContent={<div data-testid="workspace-content">workspace</div>}
+        dialog={null}
+        onToolbarAction={() => {}}
+        onActivateSession={() => {}}
+        resolveRendererView={() => null}
+      />
+    )
+
+    expect(container.querySelector('.sidebar--right')).toBeNull()
+    expect(container.querySelector('.workspace')).toHaveClass('workspace--right-hidden')
+    expect(screen.queryByText('No content registered')).not.toBeInTheDocument()
   })
 })
