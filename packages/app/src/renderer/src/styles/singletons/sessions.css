@@ -1,0 +1,37 @@
+.sessions {
+  > .list {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding-left: 1rem;
+    list-style: none;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+
+    .project {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 0.4rem 0.55rem;
+      text-align: left;
+      color: var(--text-secondary);
+      background: transparent;
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      &.is-active {
+        color: var(--text-primary);
+        background: rgba(92, 160, 255, 0.18);
+      }
+    }
+  }
+}

@@ -98,13 +98,13 @@ const ActionDialog = ({
   }
 
   return (
-    <div className="action-dialog-backdrop">
-      <div className="action-dialog" role="dialog" aria-modal="true" aria-labelledby="action-dialog-title">
-        <header className="action-dialog__header">
+    <div className="dialog-backdrop">
+      <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="action-dialog-title">
+        <header className="header">
           <h2 id="action-dialog-title">{action.name}</h2>
           {action.description ? <p>{action.description}</p> : null}
         </header>
-        <form className="action-dialog__form" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           {(action.args ?? [])
             .filter((spec) => !spec.hidden)
             .map((spec) => {
@@ -112,7 +112,7 @@ const ActionDialog = ({
               const options = spec.type === 'enum' || spec.type === 'entity-ref' ? getEntityOptions(snapshot, spec) : []
 
               return (
-                <label key={spec.name} className="action-dialog__field">
+                <label key={spec.name} className="field">
                   <span>{spec.label}</span>
                   {spec.type === 'boolean' ? (
                     <input
@@ -149,11 +149,11 @@ const ActionDialog = ({
                 </label>
               )
             })}
-          <div className="action-dialog__actions">
-            <button type="button" className="action-dialog__button action-dialog__button--ghost" onClick={onCancel}>
+          <div className="actions">
+            <button type="button" className="btn is-ghost" onClick={onCancel}>
               Cancel
             </button>
-            <button type="submit" className="action-dialog__button">
+            <button type="submit" className="btn">
               Run
             </button>
           </div>

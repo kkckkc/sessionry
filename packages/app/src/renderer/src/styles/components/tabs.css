@@ -1,0 +1,28 @@
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--ctx-border, var(--border-subtle));
+
+  > .tab {
+    border: none;
+    border-right: 1px solid var(--ctx-border, var(--border-subtle));
+    background: var(--ctx-tab-bg, var(--workspace-bg));
+    padding: 0.55rem 0.8rem 0.65rem;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition:
+      background-color 120ms ease,
+      color 120ms ease,
+      border-color 120ms ease;
+
+    &:hover {
+      background: var(--ctx-tab-hover-bg, var(--workspace-bg2));
+      color: var(--text-primary);
+    }
+
+    &.is-active {
+      background: var(--ctx-tab-hover-bg, var(--workspace-bg2));
+      color: var(--text-primary);
+    }
+  }
+}

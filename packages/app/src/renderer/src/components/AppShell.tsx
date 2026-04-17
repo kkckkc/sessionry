@@ -88,24 +88,24 @@ export const AppShell = ({
 
   const workspaceClassName = [
     'workspace',
-    showLeftSidebar ? 'workspace--left-visible' : 'workspace--left-hidden',
-    showRightSidebar ? 'workspace--right-visible' : 'workspace--right-hidden'
+    showLeftSidebar ? 'is-left-visible' : 'is-left-hidden',
+    showRightSidebar ? 'is-right-visible' : 'is-right-hidden'
   ].join(' ')
 
   return (
     <div className="app-frame">
       <header className="toolbar">
-        <div className="toolbar__brand">
+        <div className="brand">
           Sessionry
         </div>
-        <Toolbar.Root className="toolbar__actions" aria-label="Terminal actions">
+        <Toolbar.Root className="actions" aria-label="Terminal actions">
           {plugins.toolbarActionIds
             .map((actionId) => plugins.actions.find((candidate) => candidate.id === actionId))
             .filter((action): action is ActionDescriptor => action !== undefined)
             .map((action) => {
               const Icon = action.icon ? resolveTablerIcon(action.icon) : null
               return (
-                <Toolbar.Button key={action.id} className="toolbar__button" data-tooltip={action.name} onClick={() => onToolbarAction(action.id)}>
+                <Toolbar.Button key={action.id} className="btn" data-tooltip={action.name} onClick={() => onToolbarAction(action.id)}>
                   {Icon ? <Icon size={15} /> : action.name}
                 </Toolbar.Button>
               )
@@ -143,7 +143,7 @@ export const AppShell = ({
 
       <footer className="status-bar">
         {plugins.statusItems.map((item) => (
-          <div key={item.id} className="status-bar__item">
+          <div key={item.id} className="item">
             <span>{item.label}</span>
             <span>{resolveStatusValue(item, session)}</span>
           </div>

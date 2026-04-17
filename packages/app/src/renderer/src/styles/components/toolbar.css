@@ -1,0 +1,30 @@
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  min-height: 52px;
+  padding: 0.875rem 1rem 0.875rem 4.75rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--chrome-bg);
+  backdrop-filter: blur(24px) saturate(1.1);
+  -webkit-app-region: drag;
+  -webkit-user-select: none;
+
+  > .brand {
+    min-width: 0;
+    margin-left: 1.5rem;
+    -webkit-app-region: no-drag;
+  }
+
+  > .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    -webkit-app-region: no-drag;
+  }
+
+  @media (max-width: 860px) {
+    padding-left: 1rem;
+  }
+}

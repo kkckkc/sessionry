@@ -105,7 +105,7 @@ describe('AppShell', () => {
     )
 
     expect(container.querySelector('.sidebar--right')).toBeNull()
-    expect(container.querySelector('.workspace')).toHaveClass('workspace--right-hidden')
+    expect(container.querySelector('.workspace')).toHaveClass('is-right-hidden')
     expect(screen.queryByText('No content registered')).not.toBeInTheDocument()
   })
 })

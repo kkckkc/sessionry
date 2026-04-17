@@ -117,16 +117,16 @@ describe('WorkspacePaneTree', () => {
       />
     )
 
-    expect(screen.getByTestId('group-root')).toHaveClass('workspace-node--horizontal')
-    expect(screen.getByTestId('group-right-column')).toHaveClass('workspace-node--vertical')
+    expect(screen.getByTestId('group-root').querySelector('.workspace-split')).toHaveClass('is-horizontal')
+    expect(screen.getByTestId('group-right-column').querySelector('.workspace-split')).toHaveClass('is-vertical')
     expect(screen.getByRole('tablist', { name: 'Editors tabs' })).toBeInTheDocument()
     expect(screen.getByRole('tablist', { name: 'Inspectors tabs' })).toBeInTheDocument()
     expect(screen.getByTestId('group-left-tabs')).toHaveStyle({ flexBasis: '58%' })
     expect(screen.getByTestId('pane-pane-outline')).toHaveStyle({ flexBasis: '45%' })
     expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
-    expect(screen.getByTestId('pane-pane-terminal')).toHaveClass('pane-card--bare')
-    expect(screen.getByTestId('pane-pane-terminal').querySelector('.pane-card__header')).toBeNull()
-    expect(screen.getByTestId('pane-pane-outline').querySelector('.pane-card__header')).not.toBeNull()
+    expect(screen.getByTestId('pane-pane-terminal')).toHaveClass('is-bare')
+    expect(screen.getByTestId('pane-pane-terminal').querySelector('.header')).toBeNull()
+    expect(screen.getByTestId('pane-pane-outline').querySelector('.header')).toBeNull()
   })
 
   it('switches active tab content through the model callback and passes visibility to the pane renderer', () => {
@@ -159,14 +159,14 @@ describe('WorkspacePaneTree', () => {
 
     expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
     expect(screen.getByTestId('terminal-visible')).toHaveTextContent('true')
-    expect(screen.getByLabelText('Terminal').closest('.workspace-stacked-panel')).toHaveClass('workspace-stacked-panel--active')
+    expect(screen.getByLabelText('Terminal').closest('.workspace-stacked-panel')).toHaveClass('is-active')
 
     fireEvent.click(screen.getByRole('tab', { name: 'Activity' }))
 
     expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
     expect(screen.getByTestId('terminal-visible')).toHaveTextContent('false')
-    expect(screen.getByLabelText('Activity').closest('.workspace-stacked-panel')).toHaveClass('workspace-stacked-panel--active')
-    expect(screen.getByLabelText('Terminal').closest('.workspace-stacked-panel')).not.toHaveClass('workspace-stacked-panel--active')
+    expect(screen.getByLabelText('Activity').closest('.workspace-stacked-panel')).toHaveClass('is-active')
+    expect(screen.getByLabelText('Terminal').closest('.workspace-stacked-panel')).not.toHaveClass('is-active')
   })
 
   it('restores focus to the last focused element when returning to a tab', async () => {

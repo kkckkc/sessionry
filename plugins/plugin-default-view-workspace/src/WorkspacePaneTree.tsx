@@ -137,7 +137,7 @@ const StackedGroupPanels = ({
                   panelByChildRef.current.delete(childId)
                 }
               }}
-              className={isActive ? 'workspace-stacked-panel workspace-stacked-panel--active' : 'workspace-stacked-panel'}
+              className={isActive ? 'workspace-stacked-panel is-active' : 'workspace-stacked-panel'}
               aria-hidden={!isActive}
               onFocusCapture={(event) => {
                 if (event.target instanceof HTMLElement) {
@@ -188,13 +188,13 @@ export const WorkspacePaneTree = ({
     return (
       <article
         key={pane.id}
-        className={'pane-card pane-card--bare'}
+        className={'pane is-bare'}
         style={getPreferredSizeStyle(pane.preferredSizePct)}
         aria-label={title}
         data-testid={`pane-${pane.id}`}
       >
 
-        <div className="pane-card__body">
+        <div className="body">
           {PaneRenderer ? (
             <PaneRenderer
               pane={pane}
@@ -207,7 +207,7 @@ export const WorkspacePaneTree = ({
               visible={isVisible}
             />
           ) : (
-            <div className="pane-card__placeholder">
+            <div className="placeholder">
               <p>{description ?? 'Workspace content preview'}</p>
               <span>{isLiveTerminal ? 'Connecting terminal…' : 'Bootstrap pane content'}</span>
             </div>
@@ -243,15 +243,15 @@ export const WorkspacePaneTree = ({
       return (
         <section
           key={paneGroup.id}
-          className="workspace-node workspace-node--stacked"
+          className="workspace-node is-stacked"
           style={preferredSizeStyle}
           aria-label={title}
           data-testid={`group-${paneGroup.id}`}
         >
-          <header className="workspace-node__header">
+          <header className="header">
             <span>{title}</span>
           </header>
-          <div className="workspace-tabs" role="tablist" aria-label={`${title} tabs`}>
+          <div className="tab-bar" role="tablist" aria-label={`${title} tabs`}>
             {paneGroup.children.map((child) => {
               const childId = getNodeId(child)
               const isActive = activeChild ? childId === getNodeId(activeChild) : false
@@ -260,7 +260,7 @@ export const WorkspacePaneTree = ({
                   key={childId}
                   type="button"
                   role="tab"
-                  className={isActive ? 'workspace-tab workspace-tab--active' : 'workspace-tab'}
+                  className={isActive ? 'tab is-active' : 'tab'}
                   aria-selected={isActive}
                   onClick={() => onSelectStackedChild(paneGroup.id, childId)}
                 >
@@ -288,15 +288,15 @@ export const WorkspacePaneTree = ({
     return (
       <section
         key={paneGroup.id}
-        className={`workspace-node workspace-node--split workspace-node--${paneGroup.direction}`}
+        className="workspace-node is-split"
         style={preferredSizeStyle}
         aria-label={title}
         data-testid={`group-${paneGroup.id}`}
       >
-        <header className="workspace-node__header">
+        <header className="header">
           <span>{title}</span>
         </header>
-        <div className={`workspace-split workspace-split--${paneGroup.direction}`}>
+        <div className={`workspace-split is-${paneGroup.direction}`}>
           {paneGroup.children.length > 0 ? (
             paneGroup.children.map((child) => renderNode(child))
           ) : (

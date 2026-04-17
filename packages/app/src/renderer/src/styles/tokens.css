@@ -1,0 +1,38 @@
+:root {
+  /* Raw palette */
+  --window-bg: #232322;
+  --chrome-bg: var(--window-bg);
+  --workspace-bg: #121212;
+  --workspace-bg2: #181818;
+
+  --panel-bg: #1c1c1e;
+  --panel-bg-soft: #202124;
+  --panel-bg-strong: #111214;
+
+  /* Borders */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Text */
+  --text-primary: #e7e7e7;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #7d7d86;
+
+  /* Accent */
+  --accent: #8ab4f8;
+
+  /* Interactive */
+  --button-bg: var(--chrome-bg);
+  --button-bg-hover: #313135;
+
+  /* Elevation */
+  --shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+
+  /* Context tokens — defaults match chrome context */
+  --ctx-bg: var(--chrome-bg);
+  --ctx-btn-bg: var(--button-bg);
+  --ctx-btn-hover: var(--button-bg-hover);
+  --ctx-tab-bg: var(--workspace-bg);
+  --ctx-tab-hover-bg: var(--workspace-bg2);
+  --ctx-border: var(--border-color);
+}
