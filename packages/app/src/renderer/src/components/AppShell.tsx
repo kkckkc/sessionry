@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import type { IconType } from 'react-icons'
+import * as TbIcons from 'react-icons/tb'
 
 import { Toolbar } from '@base-ui-components/react/toolbar'
 
@@ -22,6 +24,11 @@ interface AppShellProps {
   onToolbarAction: (actionId: string) => void
   onActivateSession: (sessionId: string) => void
   resolveRendererView: (viewId: string) => RendererViewRegistration | null
+}
+
+const resolveTablerIcon = (name: string): IconType | null => {
+  const icon = TbIcons[name as keyof typeof TbIcons]
+  return icon ? (icon as IconType) : null
 }
 
 const resolveSidebarRegistration = ({
@@ -95,11 +102,14 @@ export const AppShell = ({
           {plugins.toolbarActionIds
             .map((actionId) => plugins.actions.find((candidate) => candidate.id === actionId))
             .filter((action): action is ActionDescriptor => action !== undefined)
-            .map((action) => (
-              <Toolbar.Button key={action.id} className="toolbar__button" onClick={() => onToolbarAction(action.id)}>
-                {action.name}
-              </Toolbar.Button>
-            ))}
+            .map((action) => {
+              const Icon = action.icon ? resolveTablerIcon(action.icon) : null
+              return (
+                <Toolbar.Button key={action.id} className="toolbar__button" data-tooltip={action.name} onClick={() => onToolbarAction(action.id)}>
+                  {Icon ? <Icon size={15} /> : action.name}
+                </Toolbar.Button>
+              )
+            })}
         </Toolbar.Root>
       </header>
 

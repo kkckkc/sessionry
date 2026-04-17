@@ -81,7 +81,8 @@ button {
 .toolbar__button {
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.5rem;
+  line-height: 0;
   background: var(--button-bg);
   color: var(--text-primary);
   cursor: pointer;
@@ -96,6 +97,32 @@ button {
 .toolbar__button:hover {
   background: var(--button-bg-hover);
   border-color: rgba(255, 255, 255, 0.14);
+}
+
+.toolbar__button[data-tooltip] {
+  position: relative;
+}
+
+.toolbar__button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  background: var(--panel-bg-strong);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+
+.toolbar__button[data-tooltip]:hover::after {
+  opacity: 1;
 }
 
 .workspace {

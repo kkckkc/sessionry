@@ -46,7 +46,7 @@ describe('AppShell', () => {
       />
     )
 
-    expect(screen.getByRole('heading', { name: 'Workspace' })).toBeInTheDocument()
+    expect(screen.getByText('Sessionry')).toBeInTheDocument()
     expect(screen.getByText('State')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear Terminal' })).toBeInTheDocument()
     expect(screen.getByTestId('workspace-content')).toBeInTheDocument()

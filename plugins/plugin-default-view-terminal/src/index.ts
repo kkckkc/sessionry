@@ -8,6 +8,7 @@ export const terminalPanePlugin: AppPlugin = {
     {
       id: 'terminal:new',
       name: 'Restart Terminal',
+      icon: 'TbRefresh',
       description: 'Restart the active terminal session.',
       category: 'Terminal',
       defaultKeybinding: 'C-Shift-r',
@@ -20,6 +21,7 @@ export const terminalPanePlugin: AppPlugin = {
     {
       id: 'terminal:clear',
       name: 'Clear Terminal',
+      icon: 'TbEraser',
       description: 'Clear the active terminal buffer.',
       category: 'Terminal',
       defaultKeybinding: 'C-l',
@@ -32,6 +34,7 @@ export const terminalPanePlugin: AppPlugin = {
     {
       id: 'layout:toggle-left',
       name: 'Toggle Left Sidebar',
+      icon: 'TbLayoutSidebar',
       description: 'Show or hide the left sidebar.',
       category: 'Layout',
       defaultKeybinding: 'C-b',
@@ -44,6 +47,7 @@ export const terminalPanePlugin: AppPlugin = {
     {
       id: 'layout:toggle-right',
       name: 'Toggle Right Sidebar',
+      icon: 'TbLayoutSidebarRight',
       description: 'Show or hide the right sidebar.',
       category: 'Layout',
       defaultKeybinding: 'C-Shift-b',
@@ -56,6 +60,7 @@ export const terminalPanePlugin: AppPlugin = {
     {
       id: 'session:create',
       name: 'Create Session',
+      icon: 'TbPlus',
       description: 'Create a new workspace session for the active project.',
       category: 'Session',
       defaultKeybinding: 'C-Shift-n',

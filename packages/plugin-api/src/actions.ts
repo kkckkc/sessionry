@@ -32,6 +32,7 @@ export interface ActionClientEffect {
 export interface ActionDescriptor {
   id: ActionId
   name: string
+  icon?: string
   description?: string
   category?: string
   defaultKeybinding?: string
