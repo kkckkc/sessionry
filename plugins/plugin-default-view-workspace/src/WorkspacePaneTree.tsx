@@ -1,5 +1,6 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import React, { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 
+import { Tabs } from '@base-ui-components/react/tabs'
 import {
   getPaneSlotId,
   resolveActiveView,
@@ -91,20 +92,29 @@ export const getActiveVisibleTerminalPaneId = (
   return visitGroup(activeSession.rootPaneGroupId)
 }
 
-interface StackedGroupPanelsProps {
-  activeChildId?: string
-  children: Array<{
-    child: PaneGroupChild
-    content: ReactNode
-  }>
+interface StackedPaneGroupProps {
+  paneGroup: PaneGroup
+  activeChild?: PaneGroupChild
+  paneById: Map<string, Pane>
+  groupById: Map<string, PaneGroup>
+  preferredSizeStyle?: CSSProperties
+  onSelectStackedChild: (paneGroupId: string, childId: string) => void
+  renderChild: (child: PaneGroupChild, isActive: boolean) => ReactNode
 }
 
-const StackedGroupPanels = ({
-  activeChildId,
-  children
-}: StackedGroupPanelsProps) => {
+const StackedPaneGroup = ({
+  paneGroup,
+  activeChild,
+  paneById,
+  groupById,
+  preferredSizeStyle,
+  onSelectStackedChild,
+  renderChild
+}: StackedPaneGroupProps) => {
   const lastFocusedByChildRef = useRef(new Map<string, HTMLElement>())
   const panelByChildRef = useRef(new Map<string, HTMLDivElement>())
+  const activeChildId = activeChild ? getNodeId(activeChild) : undefined
+  const title = getGroupTitle(paneGroup)
 
   useEffect(() => {
     if (!activeChildId) return
@@ -121,38 +131,61 @@ const StackedGroupPanels = ({
   }, [activeChildId])
 
   return (
-    <div className="workspace-stacked-content">
-      {children.length > 0 ? (
-        children.map(({ child, content }) => {
+    <Tabs.Root
+      render={
+        <section
+          className="workspace-node is-stacked"
+          style={preferredSizeStyle}
+          aria-label={title}
+          data-testid={`group-${paneGroup.id}`}
+        />
+      }
+      value={activeChildId ?? ''}
+      onValueChange={(val: string) => onSelectStackedChild(paneGroup.id, val)}
+    >
+      <header className="header">
+        <span>{title}</span>
+      </header>
+      <Tabs.List className="tab-bar" aria-label={`${title} tabs`}>
+        {paneGroup.children.length > 0 ? (
+          paneGroup.children.map((child) => {
+            const childId = getNodeId(child)
+            return (
+              <Tabs.Tab key={childId} value={childId} className="tab">
+                {getNodeTitle(child, paneById, groupById)}
+              </Tabs.Tab>
+            )
+          })
+        ) : (
+          <section className="workspace-empty">No tab selected.</section>
+        )}
+      </Tabs.List>
+      <div className="workspace-stacked-content">
+        {paneGroup.children.map((child) => {
           const childId = getNodeId(child)
-          const isActive = activeChildId ? childId === activeChildId : false
-
+          const isActive = childId === activeChildId
           return (
-            <div
+            <Tabs.Panel
               key={childId}
-              ref={(node) => {
-                if (node) {
-                  panelByChildRef.current.set(childId, node)
-                } else {
-                  panelByChildRef.current.delete(childId)
-                }
+              value={childId}
+              keepMounted
+              ref={(node: HTMLDivElement | null) => {
+                if (node) panelByChildRef.current.set(childId, node)
+                else panelByChildRef.current.delete(childId)
               }}
-              className={isActive ? 'workspace-stacked-panel is-active' : 'workspace-stacked-panel'}
-              aria-hidden={!isActive}
-              onFocusCapture={(event) => {
+              className="workspace-stacked-panel"
+              onFocusCapture={(event: React.FocusEvent) => {
                 if (event.target instanceof HTMLElement) {
                   lastFocusedByChildRef.current.set(childId, event.target)
                 }
               }}
             >
-              {content}
-            </div>
+              {renderChild(child, isActive)}
+            </Tabs.Panel>
           )
-        })
-      ) : (
-        <section className="workspace-empty">No tab selected.</section>
-      )}
-    </div>
+        })}
+      </div>
+    </Tabs.Root>
   )
 }
 
@@ -241,47 +274,16 @@ export const WorkspacePaneTree = ({
         paneGroup.children[0]
 
       return (
-        <section
+        <StackedPaneGroup
           key={paneGroup.id}
-          className="workspace-node is-stacked"
-          style={preferredSizeStyle}
-          aria-label={title}
-          data-testid={`group-${paneGroup.id}`}
-        >
-          <header className="header">
-            <span>{title}</span>
-          </header>
-          <div className="tab-bar" role="tablist" aria-label={`${title} tabs`}>
-            {paneGroup.children.map((child) => {
-              const childId = getNodeId(child)
-              const isActive = activeChild ? childId === getNodeId(activeChild) : false
-              return (
-                <button
-                  key={childId}
-                  type="button"
-                  role="tab"
-                  className={isActive ? 'tab is-active' : 'tab'}
-                  aria-selected={isActive}
-                  onClick={() => onSelectStackedChild(paneGroup.id, childId)}
-                >
-                  {getNodeTitle(child, paneById, groupById)}
-                </button>
-              )
-            })}
-          </div>
-          <StackedGroupPanels
-            activeChildId={activeChild ? getNodeId(activeChild) : undefined}
-            children={paneGroup.children.map((child) => {
-              const childId = getNodeId(child)
-              const isActive = activeChild ? childId === getNodeId(activeChild) : false
-
-              return {
-                child,
-                content: renderNode(child, child.kind === 'pane', isActive)
-              }
-            })}
-          />
-        </section>
+          paneGroup={paneGroup}
+          activeChild={activeChild}
+          paneById={paneById}
+          groupById={groupById}
+          preferredSizeStyle={preferredSizeStyle}
+          onSelectStackedChild={onSelectStackedChild}
+          renderChild={(child, isActive) => renderNode(child, child.kind === 'pane', isActive)}
+        />
       )
     }
 

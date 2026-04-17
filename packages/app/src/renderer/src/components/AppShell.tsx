@@ -3,6 +3,7 @@ import type { IconType } from 'react-icons'
 import * as TbIcons from 'react-icons/tb'
 
 import { Toolbar } from '@base-ui-components/react/toolbar'
+import { Tooltip } from '@base-ui-components/react/tooltip'
 
 import type { ActionDescriptor, PluginViewModel, SidebarViewProps } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
@@ -20,7 +21,6 @@ interface AppShellProps {
   leftVisible: boolean
   rightVisible: boolean
   mainContent: ReactNode
-  dialog?: ReactNode
   onToolbarAction: (actionId: string) => void
   onActivateSession: (sessionId: string) => void
   resolveRendererView: (viewId: string) => RendererViewRegistration | null
@@ -76,7 +76,6 @@ export const AppShell = ({
   leftVisible,
   rightVisible,
   mainContent,
-  dialog,
   onToolbarAction,
   onActivateSession,
   resolveRendererView
@@ -105,9 +104,16 @@ export const AppShell = ({
             .map((action) => {
               const Icon = action.icon ? resolveTablerIcon(action.icon) : null
               return (
-                <Toolbar.Button key={action.id} className="btn" data-tooltip={action.name} onClick={() => onToolbarAction(action.id)}>
-                  {Icon ? <Icon size={15} /> : action.name}
-                </Toolbar.Button>
+                <Tooltip.Root key={action.id} delay={600}>
+                  <Tooltip.Trigger render={<Toolbar.Button className="btn" onClick={() => onToolbarAction(action.id)} />}>
+                    {Icon ? <Icon size={15} /> : action.name}
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Positioner>
+                      <Tooltip.Popup className="tooltip">{action.name}</Tooltip.Popup>
+                    </Tooltip.Positioner>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
               )
             })}
         </Toolbar.Root>
@@ -149,7 +155,6 @@ export const AppShell = ({
           </div>
         ))}
       </footer>
-      {dialog}
     </div>
   )
 }

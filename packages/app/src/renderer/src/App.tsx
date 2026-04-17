@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 
+import { Dialog } from '@base-ui-components/react/dialog'
 import type {
   ActionExecutionResult,
   ActionInputSpec,
@@ -67,29 +68,33 @@ const fromFormValue = (spec: ActionInputSpec, value: unknown): unknown => {
 }
 
 const ActionDialog = ({
+  open,
   pending,
   snapshot,
-  onCancel,
+  onClose,
   onSubmit
 }: {
-  pending: PendingActionState
+  open: boolean
+  pending: PendingActionState | null
   snapshot: WorkspaceStateSnapshot
-  onCancel: () => void
+  onClose: () => void
   onSubmit: (args: Record<string, unknown>) => void
 }) => {
-  const { action, resolvedArgs } = pending.result
+  const action = pending?.result.action
+  const resolvedArgs = pending?.result.resolvedArgs ?? {}
   const [formValues, setFormValues] = useState<Record<string, unknown>>({})
 
   useEffect(() => {
     setFormValues(
       Object.fromEntries(
-        (action.args ?? []).map((spec) => [spec.name, toFormValue(spec, resolvedArgs[spec.name])])
+        (action?.args ?? []).map((spec) => [spec.name, toFormValue(spec, resolvedArgs[spec.name])])
       )
     )
-  }, [action.args, resolvedArgs])
+  }, [action?.args, resolvedArgs])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!action) return
     onSubmit(
       Object.fromEntries(
         (action.args ?? []).map((spec) => [spec.name, fromFormValue(spec, formValues[spec.name] ?? resolvedArgs[spec.name])])
@@ -98,68 +103,71 @@ const ActionDialog = ({
   }
 
   return (
-    <div className="dialog-backdrop">
-      <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="action-dialog-title">
-        <header className="header">
-          <h2 id="action-dialog-title">{action.name}</h2>
-          {action.description ? <p>{action.description}</p> : null}
-        </header>
-        <form onSubmit={handleSubmit}>
-          {(action.args ?? [])
-            .filter((spec) => !spec.hidden)
-            .map((spec) => {
-              const value = formValues[spec.name] ?? ''
-              const options = spec.type === 'enum' || spec.type === 'entity-ref' ? getEntityOptions(snapshot, spec) : []
+    <Dialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="dialog-backdrop" />
+        <Dialog.Popup className="dialog">
+          <header className="header">
+            <Dialog.Title>{action?.name}</Dialog.Title>
+            {action?.description ? <Dialog.Description>{action.description}</Dialog.Description> : null}
+          </header>
+          <form onSubmit={handleSubmit}>
+            {(action?.args ?? [])
+              .filter((spec) => !spec.hidden)
+              .map((spec) => {
+                const value = formValues[spec.name] ?? ''
+                const options = spec.type === 'enum' || spec.type === 'entity-ref' ? getEntityOptions(snapshot, spec) : []
 
-              return (
-                <label key={spec.name} className="field">
-                  <span>{spec.label}</span>
-                  {spec.type === 'boolean' ? (
-                    <input
-                      type="checkbox"
-                      checked={value === true}
-                      onChange={(inputEvent) =>
-                        setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.checked }))
-                      }
-                    />
-                  ) : spec.type === 'enum' || spec.type === 'entity-ref' ? (
-                    <select
-                      value={typeof value === 'string' ? value : ''}
-                      onChange={(inputEvent) =>
-                        setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.value }))
-                      }
-                    >
-                      <option value="">Select…</option>
-                      {options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type={spec.type === 'number' ? 'number' : 'text'}
-                      value={typeof value === 'string' ? value : ''}
-                      onChange={(inputEvent) =>
-                        setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.value }))
-                      }
-                    />
-                  )}
-                  {spec.description ? <small>{spec.description}</small> : null}
-                </label>
-              )
-            })}
-          <div className="actions">
-            <button type="button" className="btn is-ghost" onClick={onCancel}>
-              Cancel
-            </button>
-            <button type="submit" className="btn">
-              Run
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+                return (
+                  <label key={spec.name} className="field">
+                    <span>{spec.label}</span>
+                    {spec.type === 'boolean' ? (
+                      <input
+                        type="checkbox"
+                        checked={value === true}
+                        onChange={(inputEvent) =>
+                          setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.checked }))
+                        }
+                      />
+                    ) : spec.type === 'enum' || spec.type === 'entity-ref' ? (
+                      <select
+                        value={typeof value === 'string' ? value : ''}
+                        onChange={(inputEvent) =>
+                          setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.value }))
+                        }
+                      >
+                        <option value="">Select…</option>
+                        {options.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type={spec.type === 'number' ? 'number' : 'text'}
+                        value={typeof value === 'string' ? value : ''}
+                        onChange={(inputEvent) =>
+                          setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.value }))
+                        }
+                      />
+                    )}
+                    {spec.description ? <small>{spec.description}</small> : null}
+                  </label>
+                )
+              })}
+            <div className="actions">
+              <button type="button" className="btn is-ghost" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" className="btn">
+                Run
+              </button>
+            </div>
+          </form>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 
@@ -280,40 +288,41 @@ export const App = () => {
   }
 
   return (
-    <AppShell
-      plugins={plugins}
-      session={activeTerminalSession}
-      snapshot={workspaceSnapshot}
-      activeSessionId={activeWorkspaceSessionId}
-      leftVisible={leftVisible}
-      rightVisible={rightVisible}
-      mainContent={
-        <WorkspaceSlotView
-          plugins={plugins}
-          selectedViewId={activeProject?.activeViews.workspace}
-          resolveRendererView={getRendererView}
-          snapshot={workspaceSnapshot}
-          projectId={activeProjectId}
-          sessionId={activeWorkspaceSessionId}
-          terminalSession={activeTerminalSession}
-          clearSignal={clearSignal}
-          activeTerminalPaneId={activeTerminalPaneId}
-          onSelectStackedChild={handleSelectStackedChild}
-        />
-      }
-      dialog={
-        pendingAction ? (
-          <ActionDialog
-            pending={pendingAction}
+    <>
+      <AppShell
+        plugins={plugins}
+        session={activeTerminalSession}
+        snapshot={workspaceSnapshot}
+        activeSessionId={activeWorkspaceSessionId}
+        leftVisible={leftVisible}
+        rightVisible={rightVisible}
+        mainContent={
+          <WorkspaceSlotView
+            plugins={plugins}
+            selectedViewId={activeProject?.activeViews.workspace}
+            resolveRendererView={getRendererView}
             snapshot={workspaceSnapshot}
-            onCancel={() => setPendingAction(null)}
-            onSubmit={(args) => executeAction(pendingAction.result.action.id, pendingAction.source, args)}
+            projectId={activeProjectId}
+            sessionId={activeWorkspaceSessionId}
+            terminalSession={activeTerminalSession}
+            clearSignal={clearSignal}
+            activeTerminalPaneId={activeTerminalPaneId}
+            onSelectStackedChild={handleSelectStackedChild}
           />
-        ) : null
-      }
-      onToolbarAction={(actionId) => executeAction(actionId, 'toolbar')}
-      onActivateSession={handleActivateSession}
-      resolveRendererView={getRendererView}
-    />
+        }
+        onToolbarAction={(actionId) => executeAction(actionId, 'toolbar')}
+        onActivateSession={handleActivateSession}
+        resolveRendererView={getRendererView}
+      />
+      <ActionDialog
+        open={pendingAction !== null}
+        pending={pendingAction}
+        snapshot={workspaceSnapshot}
+        onClose={() => setPendingAction(null)}
+        onSubmit={(args) => {
+          if (pendingAction) executeAction(pendingAction.result.action.id, pendingAction.source, args)
+        }}
+      />
+    </>
   )
 }

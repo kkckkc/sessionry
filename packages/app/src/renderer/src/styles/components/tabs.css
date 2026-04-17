@@ -20,7 +20,7 @@
       color: var(--text-primary);
     }
 
-    &.is-active {
+    &[data-selected] {
       background: var(--ctx-tab-hover-bg, var(--workspace-bg2));
       color: var(--text-primary);
     }

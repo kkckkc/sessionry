@@ -159,14 +159,20 @@ describe('WorkspacePaneTree', () => {
 
     expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
     expect(screen.getByTestId('terminal-visible')).toHaveTextContent('true')
-    expect(screen.getByLabelText('Terminal').closest('.workspace-stacked-panel')).toHaveClass('is-active')
+    expect(
+      screen.getByRole('article', { name: 'Terminal', hidden: true }).closest('.workspace-stacked-panel')
+    ).not.toHaveAttribute('hidden')
 
     fireEvent.click(screen.getByRole('tab', { name: 'Activity' }))
 
     expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
     expect(screen.getByTestId('terminal-visible')).toHaveTextContent('false')
-    expect(screen.getByLabelText('Activity').closest('.workspace-stacked-panel')).toHaveClass('is-active')
-    expect(screen.getByLabelText('Terminal').closest('.workspace-stacked-panel')).not.toHaveClass('is-active')
+    expect(
+      screen.getByRole('article', { name: 'Activity', hidden: true }).closest('.workspace-stacked-panel')
+    ).not.toHaveAttribute('hidden')
+    expect(
+      screen.getByRole('article', { name: 'Terminal', hidden: true }).closest('.workspace-stacked-panel')
+    ).toHaveAttribute('hidden')
   })
 
   it('restores focus to the last focused element when returning to a tab', async () => {

@@ -28,3 +28,14 @@
     padding-left: 1rem;
   }
 }
+
+.tooltip {
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+}

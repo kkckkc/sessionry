@@ -96,7 +96,12 @@
   opacity: 0;
   pointer-events: none;
 
-  &.is-active {
+  /* Keep panels in layout when hidden (needed for terminal rendering) */
+  &[hidden] {
+    display: flex;
+  }
+
+  &:not([hidden]) {
     opacity: 1;
     pointer-events: auto;
   }

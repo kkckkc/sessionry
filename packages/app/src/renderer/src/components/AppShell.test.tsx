@@ -39,7 +39,6 @@ describe('AppShell', () => {
         leftVisible
         rightVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
-        dialog={null}
         onToolbarAction={() => {}}
         onActivateSession={() => {}}
         resolveRendererView={() => null}
@@ -76,7 +75,6 @@ describe('AppShell', () => {
         leftVisible
         rightVisible={false}
         mainContent={<div data-testid="workspace-content">workspace</div>}
-        dialog={null}
         onToolbarAction={() => {}}
         onActivateSession={() => {}}
         resolveRendererView={() => ({
@@ -97,7 +95,6 @@ describe('AppShell', () => {
         leftVisible={false}
         rightVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
-        dialog={null}
         onToolbarAction={() => {}}
         onActivateSession={() => {}}
         resolveRendererView={() => null}
