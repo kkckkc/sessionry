@@ -9,7 +9,7 @@ import type {
   TerminalStateEvent,
   WorkspaceStateSnapshot
 } from '@sessionry/plugin-api'
-import { getActiveVisibleTerminalPaneId } from '@sessionry/default-workspace-pane-plugin/renderer'
+import { getActiveVisibleTerminalPaneId } from '@sessionry/plugin-default-view-workspace/renderer'
 
 import { AppShell } from './components/AppShell'
 import { createActionKeydownHandler } from './lib/keybindings'

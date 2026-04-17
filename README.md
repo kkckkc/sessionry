@@ -10,9 +10,9 @@ Sessionry is an Electron app for project and terminal sessions with a plugin-dri
 │   ├── app/         # Electron app host, renderer, plugin loading, workspace state
 │   └── plugin-api/  # Shared types and helpers used by the host and plugins
 └── plugins/
-    ├── default-workspace-pane-plugin/
-    ├── project-sessions-sidebar-plugin/
-    ├── terminal-pane-plugin/
+    ├── plugin-default-view-workspace/
+    ├── plugin-default-view-left-sidebar/
+    ├── plugin-default-view-terminal/
     └── sample-plugin/
 ```
 
@@ -132,7 +132,7 @@ This is the main integration surface for plugins that need to create, update, or
 
 ## Writing a plugin
 
-The quickest starting point is [`plugins/sample-plugin`](./plugins/sample-plugin/README.md). It shows the minimum shape:
+The quickest starting point is [`plugins/sample-plugin`](plugins/plugin-default-view-workspace/README.md). It shows the minimum shape:
 
 - `src/index.ts`: main-process plugin definition
 - `src/renderer.tsx`: renderer plugin definition with React components

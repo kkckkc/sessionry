@@ -17,18 +17,18 @@ importers:
       '@base-ui-components/react':
         specifier: 1.0.0-beta.3
         version: 1.0.0-beta.3(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@sessionry/default-workspace-pane-plugin':
-        specifier: workspace:*
-        version: link:../../plugins/default-workspace-pane-plugin
       '@sessionry/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
-      '@sessionry/project-sessions-sidebar-plugin':
+      '@sessionry/plugin-default-view-left-sidebar':
         specifier: workspace:*
-        version: link:../../plugins/project-sessions-sidebar-plugin
-      '@sessionry/terminal-pane-plugin':
+        version: link:../../plugins/plugin-default-view-left-sidebar
+      '@sessionry/plugin-default-view-terminal':
         specifier: workspace:*
-        version: link:../../plugins/terminal-pane-plugin
+        version: link:../../plugins/plugin-default-view-terminal
+      '@sessionry/plugin-default-view-workspace':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-default-view-workspace
       '@xterm/addon-fit':
         specifier: ^0.10.0
         version: 0.10.0(@xterm/xterm@5.5.0)
@@ -98,7 +98,7 @@ importers:
         specifier: latest
         version: 6.0.2
 
-  plugins/default-workspace-pane-plugin:
+  plugins/plugin-default-view-left-sidebar:
     dependencies:
       '@sessionry/plugin-api':
         specifier: workspace:*
@@ -135,65 +135,7 @@ importers:
         specifier: latest
         version: 4.1.4(@types/node@25.6.0)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7))
 
-  plugins/project-sessions-sidebar-plugin:
-    dependencies:
-      '@sessionry/plugin-api':
-        specifier: workspace:*
-        version: link:../../packages/plugin-api
-      react:
-        specifier: latest
-        version: 19.2.5
-    devDependencies:
-      '@testing-library/jest-dom':
-        specifier: latest
-        version: 6.9.1
-      '@testing-library/react':
-        specifier: latest
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@types/node':
-        specifier: latest
-        version: 25.6.0
-      '@types/react':
-        specifier: latest
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: latest
-        version: 19.2.3(@types/react@19.2.14)
-      jsdom:
-        specifier: latest
-        version: 29.0.2
-      react-dom:
-        specifier: latest
-        version: 19.2.5(react@19.2.5)
-      typescript:
-        specifier: latest
-        version: 6.0.2
-      vitest:
-        specifier: latest
-        version: 4.1.4(@types/node@25.6.0)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7))
-
-  plugins/sample-plugin:
-    devDependencies:
-      '@sessionry/plugin-api':
-        specifier: workspace:*
-        version: link:../../packages/plugin-api
-      '@types/node':
-        specifier: latest
-        version: 25.6.0
-      '@types/react':
-        specifier: latest
-        version: 19.2.14
-      react:
-        specifier: latest
-        version: 19.2.5
-      typescript:
-        specifier: latest
-        version: 6.0.2
-      vite:
-        specifier: latest
-        version: 8.0.8(@types/node@25.6.0)(esbuild@0.27.7)
-
-  plugins/terminal-pane-plugin:
+  plugins/plugin-default-view-terminal:
     dependencies:
       '@sessionry/plugin-api':
         specifier: workspace:*
@@ -235,6 +177,64 @@ importers:
       vitest:
         specifier: latest
         version: 4.1.4(@types/node@25.6.0)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7))
+
+  plugins/plugin-default-view-workspace:
+    dependencies:
+      '@sessionry/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+      react:
+        specifier: latest
+        version: 19.2.5
+    devDependencies:
+      '@testing-library/jest-dom':
+        specifier: latest
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: latest
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@types/node':
+        specifier: latest
+        version: 25.6.0
+      '@types/react':
+        specifier: latest
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: latest
+        version: 19.2.3(@types/react@19.2.14)
+      jsdom:
+        specifier: latest
+        version: 29.0.2
+      react-dom:
+        specifier: latest
+        version: 19.2.5(react@19.2.5)
+      typescript:
+        specifier: latest
+        version: 6.0.2
+      vitest:
+        specifier: latest
+        version: 4.1.4(@types/node@25.6.0)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7))
+
+  plugins/plugin-sample:
+    devDependencies:
+      '@sessionry/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+      '@types/node':
+        specifier: latest
+        version: 25.6.0
+      '@types/react':
+        specifier: latest
+        version: 19.2.14
+      react:
+        specifier: latest
+        version: 19.2.5
+      typescript:
+        specifier: latest
+        version: 6.0.3
+      vite:
+        specifier: latest
+        version: 8.0.8(@types/node@25.6.0)(esbuild@0.27.7)
 
 packages:
 
@@ -1782,6 +1782,11 @@ packages:
 
   typescript@6.0.2:
     resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -3361,6 +3366,8 @@ snapshots:
     optional: true
 
   typescript@6.0.2: {}
+
+  typescript@6.0.3: {}
 
   undici-types@7.16.0: {}
 

@@ -22,7 +22,7 @@ const plugins: PluginViewModel = {
         id: 'pane.terminal.default',
         title: 'Terminal',
         slot: 'pane:terminal',
-        pluginId: 'terminal-pane-plugin',
+        pluginId: 'plugin-default-view-terminal',
         isDefault: true
       }
     ]

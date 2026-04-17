@@ -2,7 +2,7 @@ import type { AppPlugin } from '@sessionry/plugin-api'
 import { getPaneSlotId } from '@sessionry/plugin-api'
 
 export const terminalPanePlugin: AppPlugin = {
-  id: 'terminal-pane-plugin',
+  id: 'plugin-default-view-terminal',
   name: 'Terminal Pane',
   actions: [
     {

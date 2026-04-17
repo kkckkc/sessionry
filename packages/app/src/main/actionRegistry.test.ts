@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { createWorkspaceApi, type AppPlugin } from '@sessionry/plugin-api'
-import { terminalPanePlugin } from '@sessionry/terminal-pane-plugin'
+import { terminalPanePlugin } from '../../../../plugins/plugin-default-view-terminal'
 
 import { ActionRegistry } from './actionRegistry'
 import { WorkspaceStore } from './workspaceStore'

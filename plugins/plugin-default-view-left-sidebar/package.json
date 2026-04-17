@@ -1,5 +1,5 @@
 {
-  "name": "@sessionry/project-sessions-sidebar-plugin",
+  "name": "@sessionry/plugin-default-view-left-sidebar",
   "version": "0.1.0",
   "private": true,
   "type": "module",

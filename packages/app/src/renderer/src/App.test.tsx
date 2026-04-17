@@ -5,10 +5,10 @@ import type { ActionExecutionResult, PluginViewModel } from '@sessionry/plugin-a
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
 import type { WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
-vi.mock('@sessionry/default-workspace-pane-plugin/renderer', () => ({
+vi.mock('@sessionry/plugin-default-view-workspace/renderer', () => ({
   WorkspacePaneTree: () => <div data-testid="workspace-tree-view">workspace tree</div>,
   defaultWorkspacePaneRendererPlugin: {
-    id: 'default-workspace-pane-plugin',
+    id: 'plugin-default-view-workspace',
     name: 'Default Workspace Pane',
     views: [
       {
@@ -23,9 +23,9 @@ vi.mock('@sessionry/default-workspace-pane-plugin/renderer', () => ({
   getActiveVisibleTerminalPaneId: () => 'pane-terminal'
 }))
 
-vi.mock('@sessionry/terminal-pane-plugin/renderer', () => ({
+vi.mock('@sessionry/plugin-default-view-terminal/renderer', () => ({
   terminalPaneRendererPlugin: {
-    id: 'terminal-pane-plugin',
+    id: 'plugin-default-view-terminal',
     name: 'Terminal Pane',
     views: [
       {
@@ -39,9 +39,9 @@ vi.mock('@sessionry/terminal-pane-plugin/renderer', () => ({
   }
 }))
 
-vi.mock('@sessionry/project-sessions-sidebar-plugin/renderer', () => ({
+vi.mock('@sessionry/plugin-default-view-left-sidebar/renderer', () => ({
   projectSessionsSidebarRendererPlugin: {
-    id: 'project-sessions-sidebar-plugin',
+    id: 'plugin-default-view-left-sidebar',
     name: 'Project Sessions Sidebar',
     views: [
       {
@@ -71,7 +71,7 @@ const pluginModel: PluginViewModel = {
         id: 'pane.terminal.default',
         title: 'Terminal',
         slot: 'pane:terminal',
-        pluginId: 'terminal-pane-plugin',
+        pluginId: 'plugin-default-view-terminal',
         isDefault: true
       }
     ],
@@ -80,7 +80,7 @@ const pluginModel: PluginViewModel = {
         id: 'workspace.default',
         title: 'Workspace',
         slot: 'workspace',
-        pluginId: 'default-workspace-pane-plugin',
+        pluginId: 'plugin-default-view-workspace',
         isDefault: true
       },
       {

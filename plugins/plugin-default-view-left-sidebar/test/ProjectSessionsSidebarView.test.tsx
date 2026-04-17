@@ -49,7 +49,7 @@ describe('ProjectSessionsSidebarView', () => {
           id: 'project-sessions.panel',
           title: 'Projects',
           side: 'left',
-          pluginId: 'project-sessions-sidebar-plugin'
+          pluginId: 'plugin-default-view-left-sidebar'
         }}
         plugins={plugins}
         snapshot={snapshot}

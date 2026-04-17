@@ -3,10 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@sessionry/terminal-pane-plugin/renderer": ["../../plugins/terminal-pane-plugin/src/renderer.tsx"],
-      "@sessionry/terminal-pane-plugin": ["../../plugins/terminal-pane-plugin/src/index.ts"],
-      "@sessionry/default-workspace-pane-plugin/renderer": ["../../plugins/default-workspace-pane-plugin/src/renderer.tsx"],
-      "@sessionry/default-workspace-pane-plugin": ["../../plugins/default-workspace-pane-plugin/src/index.ts"],
+      "@sessionry/plugin-default-view-terminal/renderer": ["../../plugins/plugin-default-view-terminal/src/renderer.tsx"],
+      "@sessionry/plugin-default-view-terminal": ["../../plugins/plugin-default-view-terminal/src/index.ts"],
+      "@sessionry/plugin-default-view-workspace/renderer": ["../../plugins/plugin-default-view-workspace/src/renderer.tsx"],
+      "@sessionry/plugin-default-view-workspace": ["../../plugins/plugin-default-view-workspace/src/index.ts"],
       "@app-shared/*": ["src/shared/*"],
       "@app-renderer/*": ["src/renderer/src/*"],
       "@sessionry/plugin-api": ["../plugin-api/src/index.ts"]

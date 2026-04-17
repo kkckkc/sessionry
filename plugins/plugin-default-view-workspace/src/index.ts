@@ -1,7 +1,7 @@
 import type { AppPlugin } from '@sessionry/plugin-api'
 
 export const defaultWorkspacePanePlugin: AppPlugin = {
-  id: 'default-workspace-pane-plugin',
+  id: 'plugin-default-view-workspace',
   name: 'Default Workspace Pane',
   views: [
     {

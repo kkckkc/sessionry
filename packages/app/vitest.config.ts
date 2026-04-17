@@ -9,28 +9,28 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: '@sessionry/terminal-pane-plugin/renderer',
-        replacement: path.resolve(rootDir, '../../plugins/terminal-pane-plugin/src/renderer.tsx')
+        find: '@sessionry/plugin-default-view-terminal/renderer',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-terminal/src/renderer.tsx')
       },
       {
-        find: '@sessionry/terminal-pane-plugin',
-        replacement: path.resolve(rootDir, '../../plugins/terminal-pane-plugin/src/index.ts')
+        find: '@sessionry/plugin-default-view-terminal',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-terminal/src/index.ts')
       },
       {
-        find: '@sessionry/default-workspace-pane-plugin/renderer',
-        replacement: path.resolve(rootDir, '../../plugins/default-workspace-pane-plugin/src/renderer.tsx')
+        find: '@sessionry/plugin-default-view-workspace/renderer',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-workspace/src/renderer.tsx')
       },
       {
-        find: '@sessionry/default-workspace-pane-plugin',
-        replacement: path.resolve(rootDir, '../../plugins/default-workspace-pane-plugin/src/index.ts')
+        find: '@sessionry/plugin-default-view-workspace',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-workspace/src/index.ts')
       },
       {
-        find: '@sessionry/project-sessions-sidebar-plugin/renderer',
-        replacement: path.resolve(rootDir, '../../plugins/project-sessions-sidebar-plugin/src/renderer.tsx')
+        find: '@sessionry/plugin-default-view-left-sidebar/renderer',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-left-sidebar/src/renderer.tsx')
       },
       {
-        find: '@sessionry/project-sessions-sidebar-plugin',
-        replacement: path.resolve(rootDir, '../../plugins/project-sessions-sidebar-plugin/src/index.ts')
+        find: '@sessionry/plugin-default-view-left-sidebar',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-left-sidebar/src/index.ts')
       },
       {
         find: '@sessionry/plugin-api',

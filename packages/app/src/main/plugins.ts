@@ -1,7 +1,7 @@
 import type { AppPlugin } from '@sessionry/plugin-api'
-import { defaultWorkspacePanePlugin } from '@sessionry/default-workspace-pane-plugin'
-import { projectSessionsSidebarPlugin } from '@sessionry/project-sessions-sidebar-plugin'
-import { terminalPanePlugin } from '@sessionry/terminal-pane-plugin'
+import { defaultWorkspacePanePlugin } from '../../../../plugins/plugin-default-view-workspace'
+import { projectSessionsSidebarPlugin } from '../../../../plugins/plugin-default-view-left-sidebar'
+import { terminalPanePlugin } from '../../../../plugins/plugin-default-view-terminal'
 
 export const builtInPlugins: AppPlugin[] = [
   terminalPanePlugin,

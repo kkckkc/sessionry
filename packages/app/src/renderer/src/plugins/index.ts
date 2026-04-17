@@ -1,7 +1,7 @@
 import type { RendererAppPlugin, RendererPluginViewDefinition } from '@sessionry/plugin-api'
-import { defaultWorkspacePaneRendererPlugin } from '@sessionry/default-workspace-pane-plugin/renderer'
-import { projectSessionsSidebarRendererPlugin } from '@sessionry/project-sessions-sidebar-plugin/renderer'
-import { terminalPaneRendererPlugin } from '@sessionry/terminal-pane-plugin/renderer'
+import { defaultWorkspacePaneRendererPlugin } from '@sessionry/plugin-default-view-workspace/renderer'
+import { projectSessionsSidebarRendererPlugin } from '@sessionry/plugin-default-view-left-sidebar/renderer'
+import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-terminal/renderer'
 
 const builtInRendererPlugins = [
   terminalPaneRendererPlugin,

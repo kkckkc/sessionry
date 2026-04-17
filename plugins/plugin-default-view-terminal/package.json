@@ -1,5 +1,5 @@
 {
-  "name": "@sessionry/default-workspace-pane-plugin",
+  "name": "@sessionry/plugin-default-view-terminal",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@sessionry/plugin-api": "workspace:*",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
     "react": "latest"
   },
   "devDependencies": {
