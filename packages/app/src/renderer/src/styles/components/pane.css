@@ -52,26 +52,54 @@
 
   &.is-horizontal {
     flex-direction: row;
-
-    > .workspace-node {
-      border-left: 1px solid var(--border-color);
-
-      &:first-child {
-        border-left: none;
-      }
-    }
   }
 
   &.is-vertical {
     flex-direction: column;
+  }
+}
 
-    > .workspace-node {
-      border-top: 1px solid var(--border-color);
+.workspace-resize-handle {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 
-      &:first-child {
-        border-top: none;
-      }
+  &.is-horizontal {
+    width: 9px;
+    margin: 0 -4px;
+    cursor: ew-resize;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 4px;
+      width: 1px;
+      background: var(--border-color);
+      transition: background 0.15s;
     }
+  }
+
+  &.is-vertical {
+    height: 9px;
+    margin: -4px 0;
+    cursor: ns-resize;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 4px;
+      height: 1px;
+      background: var(--border-color);
+      transition: background 0.15s;
+    }
+  }
+
+  &:hover::after {
+    background: var(--text-tertiary);
   }
 }
 

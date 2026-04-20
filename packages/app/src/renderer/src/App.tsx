@@ -283,6 +283,18 @@ export const App = () => {
     void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: childId })
   }
 
+  const handleResizePaneNodes = (
+    updates: Array<{ kind: 'pane' | 'group'; id: string; preferredSizePct: number }>
+  ) => {
+    for (const update of updates) {
+      if (update.kind === 'pane') {
+        void workspace.getPane(update.id)?.update({ preferredSizePct: update.preferredSizePct })
+      } else {
+        void workspace.getPaneGroup(update.id)?.update({ preferredSizePct: update.preferredSizePct })
+      }
+    }
+  }
+
   const handleActivateSession = (sessionId: string) => {
     void window.terminalApp.workspace.executeCommand({ type: 'session.activate', sessionId })
   }
@@ -308,6 +320,7 @@ export const App = () => {
             clearSignal={clearSignal}
             activeTerminalPaneId={activeTerminalPaneId}
             onSelectStackedChild={handleSelectStackedChild}
+            onResizePaneNodes={handleResizePaneNodes}
           />
         }
         onToolbarAction={(actionId) => executeAction(actionId, 'toolbar')}

@@ -48,6 +48,7 @@ export interface WorkspaceViewProps {
   clearSignal: number
   activeTerminalPaneId: string | null
   onSelectStackedChild: (paneGroupId: string, childId: string) => void
+  onResizePaneNodes: (updates: Array<{ kind: 'pane' | 'group'; id: string; preferredSizePct: number }>) => void
 }
 
 export interface PaneViewProps {

@@ -114,6 +114,7 @@ describe('WorkspacePaneTree', () => {
         clearSignal={0}
         activeTerminalPaneId="pane-terminal"
         onSelectStackedChild={() => {}}
+        onResizePaneNodes={() => {}}
       />
     )
 
@@ -151,6 +152,7 @@ describe('WorkspacePaneTree', () => {
               )
             }))
           }}
+          onResizePaneNodes={() => {}}
         />
       )
     }
@@ -197,6 +199,7 @@ describe('WorkspacePaneTree', () => {
               )
             }))
           }}
+          onResizePaneNodes={() => {}}
         />
       )
     }
@@ -227,6 +230,7 @@ describe('WorkspacePaneTree', () => {
         clearSignal={0}
         activeTerminalPaneId="pane-terminal"
         onSelectStackedChild={() => {}}
+        onResizePaneNodes={() => {}}
       />
     )
 

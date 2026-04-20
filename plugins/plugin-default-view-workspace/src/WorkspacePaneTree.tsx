@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import React, { useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 
 import { Tabs } from '@base-ui-components/react/tabs'
 import {
@@ -43,6 +43,99 @@ const getNodeTitle = (
 
   const paneGroup = groupById.get(child.paneGroupId)
   return paneGroup ? getGroupTitle(paneGroup) : child.paneGroupId
+}
+
+interface PaneResizeHandleProps {
+  direction: 'horizontal' | 'vertical'
+  prevChild: PaneGroupChild
+  nextChild: PaneGroupChild
+  onResizeDone: (updates: Array<{ kind: 'pane' | 'group'; id: string; preferredSizePct: number }>) => void
+}
+
+const PaneResizeHandle = ({ direction, prevChild, nextChild, onResizeDone }: PaneResizeHandleProps) => {
+  const handleRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault()
+
+      const handle = handleRef.current
+      if (!handle) return
+
+      const prevEl = handle.previousElementSibling as HTMLElement | null
+      const nextEl = handle.nextElementSibling as HTMLElement | null
+      const container = handle.parentElement
+      if (!prevEl || !nextEl || !container) return
+
+      const isHorizontal = direction === 'horizontal'
+      const startPos = isHorizontal ? e.clientX : e.clientY
+      const prevRect = prevEl.getBoundingClientRect()
+      const nextRect = nextEl.getBoundingClientRect()
+      const prevStartSize = isHorizontal ? prevRect.width : prevRect.height
+      const nextStartSize = isHorizontal ? nextRect.width : nextRect.height
+      const totalSize = prevStartSize + nextStartSize
+      const minSize = 50
+
+      document.body.style.cursor = isHorizontal ? 'ew-resize' : 'ns-resize'
+      document.body.style.userSelect = 'none'
+
+      const onMouseMove = (moveEvent: MouseEvent) => {
+        const delta = (isHorizontal ? moveEvent.clientX : moveEvent.clientY) - startPos
+        let newPrevSize = prevStartSize + delta
+        let newNextSize = nextStartSize - delta
+
+        if (newPrevSize < minSize) {
+          newPrevSize = minSize
+          newNextSize = totalSize - minSize
+        } else if (newNextSize < minSize) {
+          newNextSize = minSize
+          newPrevSize = totalSize - minSize
+        }
+
+        prevEl.style.flexBasis = `${newPrevSize}px`
+        prevEl.style.flexGrow = '0'
+        nextEl.style.flexBasis = `${newNextSize}px`
+        nextEl.style.flexGrow = '0'
+      }
+
+      const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+
+        const containerRect = container.getBoundingClientRect()
+        const availableSize = isHorizontal ? containerRect.width : containerRect.height
+
+        const prevFinalRect = prevEl.getBoundingClientRect()
+        const nextFinalRect = nextEl.getBoundingClientRect()
+        const prevFinalSize = isHorizontal ? prevFinalRect.width : prevFinalRect.height
+        const nextFinalSize = isHorizontal ? nextFinalRect.width : nextFinalRect.height
+
+        const toId = (child: PaneGroupChild) =>
+          child.kind === 'pane' ? child.paneId : child.paneGroupId
+        const toKind = (child: PaneGroupChild): 'pane' | 'group' =>
+          child.kind === 'pane' ? 'pane' : 'group'
+
+        onResizeDone([
+          { kind: toKind(prevChild), id: toId(prevChild), preferredSizePct: (prevFinalSize / availableSize) * 100 },
+          { kind: toKind(nextChild), id: toId(nextChild), preferredSizePct: (nextFinalSize / availableSize) * 100 }
+        ])
+      }
+
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    },
+    [direction, prevChild, nextChild, onResizeDone]
+  )
+
+  return (
+    <div
+      ref={handleRef}
+      className={`workspace-resize-handle is-${direction}`}
+      onMouseDown={handleMouseDown}
+    />
+  )
 }
 
 const getPreferredSizeStyle = (preferredSizePct?: number): CSSProperties | undefined =>
@@ -198,7 +291,8 @@ export const WorkspacePaneTree = ({
   terminalSession,
   clearSignal,
   activeTerminalPaneId,
-  onSelectStackedChild
+  onSelectStackedChild,
+  onResizePaneNodes
 }: WorkspaceViewProps) => {
   const activeSession = sessionId
     ? snapshot.sessions.find((session) => session.id === sessionId)
@@ -300,7 +394,21 @@ export const WorkspacePaneTree = ({
         </header>
         <div className={`workspace-split is-${paneGroup.direction}`}>
           {paneGroup.children.length > 0 ? (
-            paneGroup.children.map((child) => renderNode(child))
+            paneGroup.children.flatMap((child, index) => {
+              const node = renderNode(child)
+              if (index === 0) return [node]
+              const prevChild = paneGroup.children[index - 1]
+              return [
+                <PaneResizeHandle
+                  key={`resize-${getNodeId(prevChild)}-${getNodeId(child)}`}
+                  direction={paneGroup.direction as 'horizontal' | 'vertical'}
+                  prevChild={prevChild}
+                  nextChild={child}
+                  onResizeDone={onResizePaneNodes}
+                />,
+                node
+              ]
+            })
           ) : (
             <section className="workspace-empty">No panes in this group.</section>
           )}
