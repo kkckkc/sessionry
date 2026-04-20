@@ -1,8 +1,8 @@
 .terminal-surface {
   min-height: 0;
   height: 100%;
-  padding: 0;
-  background: #0b1020;
+  padding: 0.5rem;
+  background: transparent;
   overflow: auto;
 
   .xterm {

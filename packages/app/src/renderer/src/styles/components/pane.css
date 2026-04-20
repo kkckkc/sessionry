@@ -22,6 +22,12 @@
   }
 }
 
+.workspace-stacked-panel > .workspace-node > .header {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.7rem;
+}
+
 .workspace-node {
   display: flex;
   min-width: 0;
@@ -34,6 +40,7 @@
 
   > .header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
     padding: 0.7rem 0.9rem;
@@ -41,6 +48,43 @@
     color: var(--text-primary);
     background: var(--workspace-bg2);
     font-size: 0.85rem;
+
+    > .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .group-add,
+    .group-close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      border: none;
+      border-radius: 4px;
+      padding: 0;
+      background: transparent;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      opacity: 0;
+      transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        opacity: 1;
+      }
+    }
+
+    &:hover .group-add,
+    &:hover .group-close {
+      opacity: 0.6;
+    }
   }
 }
 
@@ -116,7 +160,7 @@
 
 .workspace-stacked-panel {
   position: absolute;
-  inset: 0.8rem;
+  inset: 0;
   display: flex;
   flex: 1;
   min-width: 0;
@@ -143,9 +187,47 @@
 .pane {
   display: flex;
   flex-direction: column;
+  position: relative;
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--border-subtle);
+
+  > .pane-actions {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.35rem;
+    z-index: 10;
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 120ms ease;
+
+    > .pane-action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 5px;
+      padding: 0;
+      background: var(--workspace-bg2);
+      color: var(--text-tertiary);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: background-color 120ms ease, color 120ms ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--text-primary);
+      }
+    }
+  }
+
+  &:hover > .pane-actions {
+    opacity: 1;
+  }
 
   &.is-bare {
     border: 0;

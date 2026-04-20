@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 
 import type { ActionContribution, ActionDescriptor } from './actions'
 import type { TerminalSessionInfo } from './terminal'
-import type { Pane, PaneType, WorkspaceApi, WorkspaceStateSnapshot } from './workspace'
+import type { Pane, PaneGroupChild, PaneGroupLayout, PaneType, WorkspaceApi, WorkspaceStateSnapshot } from './workspace'
 
 export type SidebarSide = 'left' | 'right'
 export type PluginViewSlotId = string;
@@ -49,6 +49,11 @@ export interface WorkspaceViewProps {
   activeTerminalPaneId: string | null
   onSelectStackedChild: (paneGroupId: string, childId: string) => void
   onResizePaneNodes: (updates: Array<{ kind: 'pane' | 'group'; id: string; preferredSizePct: number }>) => void
+  onRemovePaneNode: (node: PaneGroupChild) => void
+  onAddTerminalPane: (paneGroupId: string) => void
+  onSplitPane: (paneId: string, direction: 'horizontal' | 'vertical') => void
+  onRenameGroup: (paneGroupId: string, name: string) => void
+  onChangeGroupType: (paneGroupId: string, direction: PaneGroupLayout) => void
 }
 
 export interface PaneViewProps {

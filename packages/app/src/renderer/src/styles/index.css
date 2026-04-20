@@ -9,6 +9,7 @@
 @import './components/sidebar.css';
 @import './components/pane.css';
 @import './components/dialog.css';
+@import './components/menu.css';
 @import './components/status-bar.css';
 @import './singletons/terminal.css';
 @import './singletons/sessions.css';
