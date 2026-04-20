@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import type { PluginViewModel, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type { PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
 import { getSidebarSlotId } from '@sessionry/plugin-api'
 
@@ -12,6 +12,22 @@ const snapshot: WorkspaceStateSnapshot = {
   sessions: [],
   paneGroups: [],
   panes: []
+}
+
+const workspace: WorkspaceApi = {
+  get snapshot() {
+    return snapshot
+  },
+  projects: [],
+  getProject: () => null,
+  getSession: () => null,
+  getPaneGroup: () => null,
+  getPane: () => null,
+  subscribe: () => () => {},
+  subscribeAll: () => () => {},
+  createProject: async () => {
+    throw new Error('Not implemented in test')
+  }
 }
 
 const plugins: PluginViewModel = {
@@ -34,13 +50,12 @@ describe('AppShell', () => {
     render(
       <AppShell
         plugins={plugins}
+        workspace={workspace}
         session={session}
-        snapshot={snapshot}
         leftVisible
         rightVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
-        onActivateSession={() => {}}
         resolveRendererView={() => null}
       />
     )
@@ -70,13 +85,12 @@ describe('AppShell', () => {
     render(
       <AppShell
         plugins={sidebarPlugins}
+        workspace={workspace}
         session={session}
-        snapshot={snapshot}
         leftVisible
         rightVisible={false}
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
-        onActivateSession={() => {}}
         resolveRendererView={() => ({
           component: () => <div data-testid="sidebar-view-renderer">custom sidebar</div>
         })}
@@ -90,13 +104,12 @@ describe('AppShell', () => {
     const { container } = render(
       <AppShell
         plugins={plugins}
+        workspace={workspace}
         session={session}
-        snapshot={snapshot}
         leftVisible={false}
         rightVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
-        onActivateSession={() => {}}
         resolveRendererView={() => null}
       />
     )

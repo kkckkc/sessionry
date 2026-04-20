@@ -241,6 +241,9 @@ export const createWorkspaceApi = (bridge: WorkspaceBridge): WorkspaceApi => {
     read().panes.some((pane) => pane.id === id) ? new PaneHandleImpl(id) : null
 
   return {
+    get snapshot(): WorkspaceStateSnapshot {
+      return read()
+    },
     get projects(): ProjectHandle[] {
       return read().projects.map((project) => new ProjectHandleImpl(project.id))
     },

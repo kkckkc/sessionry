@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { PluginViewModel, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type { PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
 import projectSessionsSidebarRendererPlugin from '../src/renderer'
 
@@ -34,7 +34,42 @@ const snapshot: WorkspaceStateSnapshot = {
 
 describe('ProjectSessionsSidebarView', () => {
   it('renders project sessions and activates the clicked session', () => {
-    const onActivateSession = vi.fn()
+    const activate = vi.fn(async () => {})
+    const getSession = vi.fn((id: string) =>
+      id === 'session-1' || id === 'session-2'
+        ? ({
+            id,
+            data: snapshot.sessions.find((session) => session.id === id)!,
+            project: null,
+            rootPaneGroup: null,
+            activate,
+            update: async () => {},
+            remove: async () => {},
+            setRootPaneGroup: async () => {},
+            createPaneGroup: async () => {
+              throw new Error('Not implemented in test')
+            },
+            createPane: async () => {
+              throw new Error('Not implemented in test')
+            }
+          } as any)
+        : null
+    )
+    const workspace: WorkspaceApi = {
+      get snapshot() {
+        return snapshot
+      },
+      projects: [],
+      getProject: () => null,
+      getSession,
+      getPaneGroup: () => null,
+      getPane: () => null,
+      subscribe: () => () => {},
+      subscribeAll: () => () => {},
+      createProject: async () => {
+        throw new Error('Not implemented in test')
+      }
+    }
     const Component = projectSessionsSidebarRendererPlugin.views?.[0]?.component
 
     if (!Component) {
@@ -44,9 +79,8 @@ describe('ProjectSessionsSidebarView', () => {
     render(
       <Component
         plugins={plugins}
-        snapshot={snapshot}
-        activeSessionId="session-2"
-        onActivateSession={onActivateSession}
+        workspace={workspace}
+        resolveRendererView={() => null}
       />
     )
 
@@ -54,6 +88,7 @@ describe('ProjectSessionsSidebarView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'First' }))
 
-    expect(onActivateSession).toHaveBeenCalledWith('session-1')
+    expect(getSession).toHaveBeenCalledWith('session-1')
+    expect(activate).toHaveBeenCalled()
   })
 })

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { PaneViewProps, PluginViewModel, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type { PaneGroupHandle, PaneViewProps, PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
 import { WorkspacePaneTree } from '../src/WorkspacePaneTree'
 
@@ -40,6 +40,25 @@ const paneRendererRegistration = {
     )
   }
 }
+
+const createWorkspaceStub = (
+  overrides: Partial<WorkspaceApi> = {}
+): WorkspaceApi => ({
+  get snapshot() {
+    return snapshot
+  },
+  projects: [],
+  getProject: () => null,
+  getSession: () => null,
+  getPaneGroup: () => null,
+  getPane: () => null,
+  subscribe: () => () => {},
+  subscribeAll: () => () => {},
+  createProject: async () => {
+    throw new Error('Not implemented in test')
+  },
+  ...overrides
+})
 
 const snapshot: WorkspaceStateSnapshot = {
   projects: [{ id: 'project-1', name: 'Project', folder: '/tmp/project', metadata: {}, activeViews: {}, sessionIds: ['session-1'] }],
@@ -98,7 +117,8 @@ const snapshot: WorkspaceStateSnapshot = {
     { id: 'pane-outline', sessionId: 'session-1', type: 'outline', preferredSizePct: 45, state: { title: 'Outline' } },
     { id: 'pane-inspector', sessionId: 'session-1', type: 'inspector', preferredSizePct: 60, state: { title: 'Inspector' } },
     { id: 'pane-problems', sessionId: 'session-1', type: 'problems', preferredSizePct: 40, state: { title: 'Problems' } }
-  ]
+  ],
+  activeSessionId: 'session-1'
 }
 
 describe('WorkspacePaneTree', () => {
@@ -106,15 +126,9 @@ describe('WorkspacePaneTree', () => {
     render(
       <WorkspacePaneTree
         plugins={plugins}
-        snapshot={snapshot}
-        projectId="project-1"
-        sessionId="session-1"
+        workspace={createWorkspaceStub()}
         resolveRendererView={() => paneRendererRegistration}
-        terminalSession={null}
         clearSignal={0}
-        activeTerminalPaneId="pane-terminal"
-        onSelectStackedChild={() => {}}
-        onResizePaneNodes={() => {}}
       />
     )
 
@@ -133,26 +147,43 @@ describe('WorkspacePaneTree', () => {
   it('switches active tab content through the model callback and passes visibility to the pane renderer', () => {
     const Harness = () => {
       const [currentSnapshot, setCurrentSnapshot] = React.useState(snapshot)
+      const workspace = React.useMemo(
+        () =>
+          createWorkspaceStub({
+            get snapshot() {
+              return currentSnapshot
+            },
+            getPaneGroup: (paneGroupId) =>
+              ({
+                id: paneGroupId,
+                data: currentSnapshot.paneGroups.find((paneGroup) => paneGroup.id === paneGroupId)!,
+                session: null,
+                children: [],
+                update: async (input) => {
+                  setCurrentSnapshot((value) => ({
+                    ...value,
+                    paneGroups: value.paneGroups.map((paneGroup) =>
+                      paneGroup.id === paneGroupId ? { ...paneGroup, ...input } : paneGroup
+                    )
+                  }))
+                },
+                setChildren: async () => {},
+                insertPane: async () => {},
+                insertPaneGroup: async () => {},
+                moveNode: async () => {},
+                removeNode: async () => {},
+                remove: async () => {}
+              }) as unknown as PaneGroupHandle
+          }),
+        [currentSnapshot.paneGroups]
+      )
 
       return (
         <WorkspacePaneTree
           plugins={plugins}
-          snapshot={currentSnapshot}
-          projectId="project-1"
-          sessionId="session-1"
+          workspace={workspace}
           resolveRendererView={() => paneRendererRegistration}
-          terminalSession={null}
           clearSignal={0}
-          activeTerminalPaneId="pane-terminal"
-          onSelectStackedChild={(paneGroupId, childId) => {
-            setCurrentSnapshot((value) => ({
-              ...value,
-              paneGroups: value.paneGroups.map((paneGroup) =>
-                paneGroup.id === paneGroupId ? { ...paneGroup, activeChildId: childId } : paneGroup
-              )
-            }))
-          }}
-          onResizePaneNodes={() => {}}
         />
       )
     }
@@ -165,7 +196,7 @@ describe('WorkspacePaneTree', () => {
       screen.getByRole('article', { name: 'Terminal', hidden: true }).closest('.workspace-stacked-panel')
     ).not.toHaveAttribute('hidden')
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Activity' }))
+    fireEvent.click(screen.getByRole('tab', { name: /Activity/ }))
 
     expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
     expect(screen.getByTestId('terminal-visible')).toHaveTextContent('false')
@@ -180,26 +211,43 @@ describe('WorkspacePaneTree', () => {
   it('restores focus to the last focused element when returning to a tab', async () => {
     const Harness = () => {
       const [currentSnapshot, setCurrentSnapshot] = React.useState(snapshot)
+      const workspace = React.useMemo(
+        () =>
+          createWorkspaceStub({
+            get snapshot() {
+              return currentSnapshot
+            },
+            getPaneGroup: (paneGroupId) =>
+              ({
+                id: paneGroupId,
+                data: currentSnapshot.paneGroups.find((paneGroup) => paneGroup.id === paneGroupId)!,
+                session: null,
+                children: [],
+                update: async (input) => {
+                  setCurrentSnapshot((value) => ({
+                    ...value,
+                    paneGroups: value.paneGroups.map((paneGroup) =>
+                      paneGroup.id === paneGroupId ? { ...paneGroup, ...input } : paneGroup
+                    )
+                  }))
+                },
+                setChildren: async () => {},
+                insertPane: async () => {},
+                insertPaneGroup: async () => {},
+                moveNode: async () => {},
+                removeNode: async () => {},
+                remove: async () => {}
+              }) as unknown as PaneGroupHandle
+          }),
+        [currentSnapshot.paneGroups]
+      )
 
       return (
         <WorkspacePaneTree
           plugins={plugins}
-          snapshot={currentSnapshot}
-          projectId="project-1"
-          sessionId="session-1"
+          workspace={workspace}
           resolveRendererView={() => paneRendererRegistration}
-          terminalSession={null}
           clearSignal={0}
-          activeTerminalPaneId="pane-terminal"
-          onSelectStackedChild={(paneGroupId, childId) => {
-            setCurrentSnapshot((value) => ({
-              ...value,
-              paneGroups: value.paneGroups.map((paneGroup) =>
-                paneGroup.id === paneGroupId ? { ...paneGroup, activeChildId: childId } : paneGroup
-              )
-            }))
-          }}
-          onResizePaneNodes={() => {}}
         />
       )
     }
@@ -210,8 +258,8 @@ describe('WorkspacePaneTree', () => {
     terminalFocusTarget.focus()
     expect(document.activeElement).toBe(terminalFocusTarget)
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Activity' }))
-    fireEvent.click(screen.getByRole('tab', { name: 'Terminal' }))
+    fireEvent.click(screen.getByRole('tab', { name: /Activity/ }))
+    fireEvent.click(screen.getByRole('tab', { name: /Terminal/ }))
 
     await waitFor(() => {
       expect(document.activeElement).toBe(terminalFocusTarget)
@@ -222,15 +270,9 @@ describe('WorkspacePaneTree', () => {
     render(
       <WorkspacePaneTree
         plugins={{ ...plugins, viewsBySlot: {} }}
-        snapshot={snapshot}
-        projectId="project-1"
-        sessionId="session-1"
+        workspace={createWorkspaceStub()}
         resolveRendererView={() => null}
-        terminalSession={null}
         clearSignal={0}
-        activeTerminalPaneId="pane-terminal"
-        onSelectStackedChild={() => {}}
-        onResizePaneNodes={() => {}}
       />
     )
 

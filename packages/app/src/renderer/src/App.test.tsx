@@ -49,8 +49,8 @@ vi.mock('@sessionry/plugin-default-view-left-sidebar/renderer', () => ({
         title: 'Projects',
         slot: 'sidebar:left',
         isDefault: true,
-        component: ({ onActivateSession }: { onActivateSession: (sessionId: string) => void }) => (
-          <button type="button" onClick={() => onActivateSession('session-1')}>
+        component: ({ workspace }: { workspace: { getSession: (sessionId: string) => { activate(): Promise<void> } | null } }) => (
+          <button type="button" onClick={() => void workspace.getSession('session-1')?.activate()}>
             Session nav
           </button>
         )

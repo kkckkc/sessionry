@@ -17,8 +17,8 @@ declare global {
 }
 
 export const TerminalPaneView = ({
+  workspace,
   pane,
-  snapshot,
   clearSignal,
   visible = true
 }: PaneViewProps) => {
@@ -26,7 +26,7 @@ export const TerminalPaneView = ({
   const terminalRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
   const sizeRef = useRef({ cols: 80, rows: 24 })
-  const sessionFolder = snapshot.sessions.find((session) => session.id === pane.sessionId)?.folder
+  const sessionFolder = workspace.getSession(pane.sessionId)?.data.folder
   const sessionFolderRef = useRef(sessionFolder)
   sessionFolderRef.current = sessionFolder
 

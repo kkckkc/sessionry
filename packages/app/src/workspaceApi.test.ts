@@ -34,6 +34,7 @@ describe('createWorkspaceApi', () => {
     const project = workspace.projects[0]
 
     expect(project.data.name).toBe('Project')
+    expect(workspace.snapshot.activeSessionId).toBe('session-1')
     expect(project.sessions[0].data.name).toBe('Session')
     expect(project.sessions[0].rootPaneGroup.children[0].data.id).toBe('pane-1')
     expect(project.sessions[0].rootPaneGroup.data.activeChildId).toBe('pane-1')

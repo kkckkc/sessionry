@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import React, { useCallback, useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
 
 import { TbLayoutColumns, TbLayoutRows } from 'react-icons/tb'
+import { Dialog } from '@base-ui-components/react/dialog'
 import { Tabs } from '@base-ui-components/react/tabs'
 import { Menu } from '@base-ui-components/react/menu'
 import {
@@ -197,7 +198,7 @@ const GROUP_TYPES: Array<{ value: PaneGroupLayout; label: string }> = [
 interface PaneGroupHeaderProps {
   paneGroup: PaneGroup
   groupChild: PaneGroupChild | null
-  onRenameGroup: (paneGroupId: string, name: string) => void
+  onRenameGroup: (paneGroupId: string, currentName: string) => void
   onChangeGroupType: (paneGroupId: string, direction: PaneGroupLayout) => void
   onAddTerminalPane: (paneGroupId: string) => void
   onRemovePaneNode: (node: PaneGroupChild) => void
@@ -428,31 +429,155 @@ const StackedPaneGroup = ({
   )
 }
 
+const RenameGroupDialog = ({
+  paneGroupName,
+  onClose,
+  onRename
+}: {
+  paneGroupName: string
+  onClose: () => void
+  onRename: (name: string) => void
+}) => {
+  const [value, setValue] = useState(paneGroupName)
+
+  useEffect(() => {
+    setValue(paneGroupName)
+  }, [paneGroupName])
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    onRename(value.trim() || paneGroupName)
+  }
+
+  return (
+    <Dialog.Root open onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="dialog-backdrop" />
+        <Dialog.Popup className="dialog">
+          <header className="header">
+            <Dialog.Title>Rename Pane Group</Dialog.Title>
+          </header>
+          <form onSubmit={handleSubmit}>
+            <label className="field">
+              <span>Name</span>
+              <input
+                type="text"
+                value={value}
+                onChange={(event) => setValue(event.target.value)}
+                autoFocus
+              />
+            </label>
+            <div className="actions">
+              <button type="button" className="btn is-ghost" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" className="btn">
+                Rename
+              </button>
+            </div>
+          </form>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
 export const WorkspacePaneTree = ({
   plugins,
-  snapshot,
-  projectId,
-  sessionId,
+  workspace,
   resolveRendererView,
-  terminalSession,
-  clearSignal,
-  activeTerminalPaneId,
-  onSelectStackedChild,
-  onResizePaneNodes,
-  onRemovePaneNode,
-  onAddTerminalPane,
-  onSplitPane,
-  onRenameGroup,
-  onChangeGroupType
+  clearSignal
 }: WorkspaceViewProps) => {
-  const activeSession = sessionId
-    ? snapshot.sessions.find((session) => session.id === sessionId)
+  const snapshot = workspace.snapshot
+  const [renameGroup, setRenameGroup] = useState<{ paneGroupId: string; name: string } | null>(null)
+  const activeSession = snapshot.activeSessionId
+    ? snapshot.sessions.find((session) => session.id === snapshot.activeSessionId)
     : snapshot.sessions[0]
   const paneById = new Map(snapshot.panes.map((pane) => [pane.id, pane]))
   const groupById = new Map(snapshot.paneGroups.map((paneGroup) => [paneGroup.id, paneGroup]))
+  const activeTerminalPaneId = getActiveVisibleTerminalPaneId(snapshot, activeSession?.id)
 
   if (!activeSession) {
     return <section className="workspace-empty">No session available.</section>
+  }
+
+  const handleSelectStackedChild = (paneGroupId: string, childId: string) => {
+    void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: childId })
+  }
+
+  const handleResizePaneNodes = (
+    updates: Array<{ kind: 'pane' | 'group'; id: string; preferredSizePct: number }>
+  ) => {
+    for (const update of updates) {
+      if (update.kind === 'pane') {
+        void workspace.getPane(update.id)?.update({ preferredSizePct: update.preferredSizePct })
+      } else {
+        void workspace.getPaneGroup(update.id)?.update({ preferredSizePct: update.preferredSizePct })
+      }
+    }
+  }
+
+  const handleRemovePaneNode = (node: PaneGroupChild) => {
+    void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node)
+  }
+
+  const handleRenameGroup = (paneGroupId: string, currentName: string) => {
+    setRenameGroup({ paneGroupId, name: currentName })
+  }
+
+  const commitRenameGroup = (name: string) => {
+    if (!renameGroup) return
+
+    void workspace.getPaneGroup(renameGroup.paneGroupId)?.update({ name })
+    setRenameGroup(null)
+  }
+
+  const handleChangeGroupType = (paneGroupId: string, direction: PaneGroupLayout) => {
+    void workspace.getPaneGroup(paneGroupId)?.update({ direction })
+  }
+
+  const handleSplitPane = (paneId: string, direction: 'horizontal' | 'vertical') => {
+    const parentGroup = snapshot.paneGroups.find((group) =>
+      group.children.some((child) => child.kind === 'pane' && child.paneId === paneId)
+    )
+    if (!parentGroup) return
+
+    const paneIndex = parentGroup.children.findIndex(
+      (child) => child.kind === 'pane' && child.paneId === paneId
+    )
+    if (paneIndex === -1) return
+
+    const session = workspace.getSession(activeSession.id)
+    const parentHandle = workspace.getPaneGroup(parentGroup.id)
+    if (!session || !parentHandle) return
+
+    void (async () => {
+      const newGroup = await session.createPaneGroup({ name: '', direction })
+      await parentHandle.insertPaneGroup(newGroup.id, paneIndex)
+
+      // For stacked parents: pre-set activeChildId to newGroup before moving the pane,
+      // so reconcileActiveChildAfterRemoval doesn't fall back to the wrong sibling.
+      if (parentGroup.direction === 'stacked' && parentGroup.activeChildId === paneId) {
+        await parentHandle.update({ activeChildId: newGroup.id })
+      }
+
+      await newGroup.moveNode({ kind: 'pane', paneId })
+      await session.createPane({
+        type: 'terminal',
+        state: { title: 'Terminal' },
+        parentPaneGroupId: newGroup.id
+      })
+    })()
+  }
+
+  const handleAddTerminalPane = (paneGroupId: string) => {
+    void workspace.getSession(activeSession.id)?.createPane({
+      type: 'terminal',
+      state: { title: 'Terminal' },
+      parentPaneGroupId: paneGroupId
+    }).then((pane) => {
+      void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: pane.id })
+    })
   }
 
   const renderPane = (pane: Pane, child: PaneGroupChild | null = null, isVisible = true) => {
@@ -477,7 +602,7 @@ export const WorkspacePaneTree = ({
               type="button"
               className="pane-action"
               aria-label="Split horizontal"
-              onClick={() => onSplitPane(pane.id, 'horizontal')}
+              onClick={() => handleSplitPane(pane.id, 'horizontal')}
             >
               <TbLayoutColumns size={13} />
             </button>
@@ -485,7 +610,7 @@ export const WorkspacePaneTree = ({
               type="button"
               className="pane-action"
               aria-label="Split vertical"
-              onClick={() => onSplitPane(pane.id, 'vertical')}
+              onClick={() => handleSplitPane(pane.id, 'vertical')}
             >
               <TbLayoutRows size={13} />
             </button>
@@ -493,7 +618,7 @@ export const WorkspacePaneTree = ({
               type="button"
               className="pane-action"
               aria-label="Close pane"
-              onClick={() => onRemovePaneNode(child)}
+              onClick={() => handleRemovePaneNode(child)}
             >
               ×
             </button>
@@ -502,13 +627,11 @@ export const WorkspacePaneTree = ({
         <div className="body">
           {PaneRenderer ? (
             <PaneRenderer
+              plugins={plugins}
+              workspace={workspace}
+              resolveRendererView={resolveRendererView}
               pane={pane}
-              snapshot={snapshot}
-              projectId={projectId}
-              sessionId={sessionId}
-              terminalSession={terminalSession}
               clearSignal={clearSignal}
-              activeTerminalPaneId={activeTerminalPaneId}
               visible={isVisible}
             />
           ) : (
@@ -554,12 +677,12 @@ export const WorkspacePaneTree = ({
           paneById={paneById}
           groupById={groupById}
           preferredSizeStyle={preferredSizeStyle}
-          onSelectStackedChild={onSelectStackedChild}
-          onRemovePaneNode={onRemovePaneNode}
-          onAddTerminalPane={onAddTerminalPane}
-          onSplitPane={onSplitPane}
-          onRenameGroup={onRenameGroup}
-          onChangeGroupType={onChangeGroupType}
+          onSelectStackedChild={handleSelectStackedChild}
+          onRemovePaneNode={handleRemovePaneNode}
+          onAddTerminalPane={handleAddTerminalPane}
+          onSplitPane={handleSplitPane}
+          onRenameGroup={handleRenameGroup}
+          onChangeGroupType={handleChangeGroupType}
           renderChild={(child, isActive) => renderNode(child, true, isActive)}
         />
       )
@@ -576,10 +699,10 @@ export const WorkspacePaneTree = ({
         <PaneGroupHeader
           paneGroup={paneGroup}
           groupChild={groupChild}
-          onRenameGroup={onRenameGroup}
-          onChangeGroupType={onChangeGroupType}
-          onAddTerminalPane={onAddTerminalPane}
-          onRemovePaneNode={onRemovePaneNode}
+          onRenameGroup={handleRenameGroup}
+          onChangeGroupType={handleChangeGroupType}
+          onAddTerminalPane={handleAddTerminalPane}
+          onRemovePaneNode={handleRemovePaneNode}
         />
         <div className={`workspace-split is-${paneGroup.direction}`}>
           {paneGroup.children.length > 0 ? (
@@ -593,7 +716,7 @@ export const WorkspacePaneTree = ({
                   direction={paneGroup.direction as 'horizontal' | 'vertical'}
                   prevChild={prevChild}
                   nextChild={child}
-                  onResizeDone={onResizePaneNodes}
+                  onResizeDone={handleResizePaneNodes}
                 />,
                 node
               ]
@@ -606,5 +729,16 @@ export const WorkspacePaneTree = ({
     )
   }
 
-  return <div className="workspace-tree">{renderGroup(groupById.get(activeSession.rootPaneGroupId))}</div>
+  return (
+    <>
+      <div className="workspace-tree">{renderGroup(groupById.get(activeSession.rootPaneGroupId))}</div>
+      {renameGroup && (
+        <RenameGroupDialog
+          paneGroupName={renameGroup.name}
+          onClose={() => setRenameGroup(null)}
+          onRename={commitRenameGroup}
+        />
+      )}
+    </>
+  )
 }

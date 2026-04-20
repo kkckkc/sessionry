@@ -1,8 +1,7 @@
 import type { ComponentType } from 'react'
 
 import type { ActionContribution, ActionDescriptor } from './actions'
-import type { TerminalSessionInfo } from './terminal'
-import type { Pane, PaneGroupChild, PaneGroupLayout, PaneType, WorkspaceApi, WorkspaceStateSnapshot } from './workspace'
+import type { Pane, PaneType, WorkspaceApi } from './workspace'
 
 export type SidebarSide = 'left' | 'right'
 export type PluginViewSlotId = string;
@@ -18,11 +17,16 @@ export interface PluginViewContribution extends PluginViewDefinition {
   pluginId: string
 }
 
-export interface SidebarViewProps {
+export interface ViewProps {
   plugins: PluginViewModel
-  snapshot: WorkspaceStateSnapshot
-  activeSessionId?: string
-  onActivateSession: (sessionId: string) => void
+  workspace: WorkspaceApi
+  resolveRendererView: (viewId: string) => RendererViewRegistration | null
+}
+
+export interface SidebarViewProps extends ViewProps {}
+
+export interface WorkspaceViewProps extends ViewProps {
+  clearSignal: number
 }
 
 export interface StatusItemContribution {
@@ -38,32 +42,9 @@ export interface PluginViewModel {
   viewsBySlot: Record<string, PluginViewContribution[]>
 }
 
-export interface WorkspaceViewProps {
-  plugins: PluginViewModel
-  snapshot: WorkspaceStateSnapshot
-  projectId?: string
-  sessionId?: string
-  resolveRendererView: (viewId: string) => RendererViewRegistration | null
-  terminalSession: TerminalSessionInfo | null
-  clearSignal: number
-  activeTerminalPaneId: string | null
-  onSelectStackedChild: (paneGroupId: string, childId: string) => void
-  onResizePaneNodes: (updates: Array<{ kind: 'pane' | 'group'; id: string; preferredSizePct: number }>) => void
-  onRemovePaneNode: (node: PaneGroupChild) => void
-  onAddTerminalPane: (paneGroupId: string) => void
-  onSplitPane: (paneId: string, direction: 'horizontal' | 'vertical') => void
-  onRenameGroup: (paneGroupId: string, name: string) => void
-  onChangeGroupType: (paneGroupId: string, direction: PaneGroupLayout) => void
-}
-
-export interface PaneViewProps {
+export interface PaneViewProps extends ViewProps {
   pane: Pane
-  snapshot: WorkspaceStateSnapshot
-  projectId?: string
-  sessionId?: string
-  terminalSession: TerminalSessionInfo | null
   clearSignal: number
-  activeTerminalPaneId: string | null
   visible: boolean
 }
 

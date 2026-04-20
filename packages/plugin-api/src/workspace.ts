@@ -312,6 +312,7 @@ export interface PaneHandle {
 }
 
 export interface WorkspaceApi {
+  readonly snapshot: WorkspaceStateSnapshot
   readonly projects: ProjectHandle[]
   getProject(id: string): ProjectHandle | null
   getSession(id: string): SessionHandle | null

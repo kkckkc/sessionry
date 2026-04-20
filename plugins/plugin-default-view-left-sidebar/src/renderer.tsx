@@ -19,15 +19,13 @@ const ProjectAvatar = ({ name }: { name: string }) => (
 )
 
 const ProjectSessionsSidebarView = ({
-  snapshot,
-  activeSessionId,
-  onActivateSession
+  workspace
 }: SidebarViewProps) => (
   <div className="sessions">
     <ul className="projects-list" aria-label="Project sessions">
-      {snapshot.projects.map((project) => {
+      {workspace.snapshot.projects.map((project) => {
         const sessions = project.sessionIds
-          .map((sessionId) => snapshot.sessions.find((session) => session.id === sessionId))
+          .map((sessionId) => workspace.snapshot.sessions.find((session) => session.id === sessionId))
           .filter((session): session is NonNullable<typeof session> => session !== undefined)
 
         return (
@@ -39,14 +37,16 @@ const ProjectSessionsSidebarView = ({
             </div>
             <ul className="sessions-list">
               {sessions.map((session) => {
-                const isActive = session.id === activeSessionId
+                const isActive = session.id === workspace.snapshot.activeSessionId
                 return (
                   <li key={session.id}>
                     <button
                       type="button"
                       className={isActive ? 'session-btn is-active' : 'session-btn'}
                       aria-pressed={isActive}
-                      onClick={() => onActivateSession(session.id)}
+                      onClick={() => {
+                        void workspace.getSession(session.id)?.activate()
+                      }}
                     >
                       {session.name}
                     </button>

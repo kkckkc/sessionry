@@ -9,20 +9,19 @@ import type { ActionDescriptor, PluginViewModel, SidebarViewProps } from '@sessi
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
 import { getSidebarSlotId } from '@sessionry/plugin-api'
 import { resolveActiveView } from '@sessionry/plugin-api'
-import type { RendererViewRegistration, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type { RendererViewRegistration } from '@sessionry/plugin-api'
+import type { WorkspaceApi } from '@sessionry/plugin-api'
 
 import { resolveStatusValue } from '../lib/pluginPanels'
 
 interface AppShellProps {
   plugins: PluginViewModel
+  workspace: WorkspaceApi
   session: TerminalSessionInfo | null
-  snapshot: WorkspaceStateSnapshot
-  activeSessionId?: string
   leftVisible: boolean
   rightVisible: boolean
   mainContent: ReactNode
   onToolbarAction: (actionId: string) => void
-  onActivateSession: (sessionId: string) => void
   resolveRendererView: (viewId: string) => RendererViewRegistration | null
 }
 
@@ -48,9 +47,8 @@ const resolveSidebarRegistration = ({
 const SidebarView = ({
   registration,
   plugins,
-  snapshot,
-  activeSessionId,
-  onActivateSession
+  workspace,
+  resolveRendererView
 }: SidebarViewProps & {
   registration: RendererViewRegistration | null
 }) => {
@@ -61,23 +59,20 @@ const SidebarView = ({
   return (
     <Component
       plugins={plugins}
-      snapshot={snapshot}
-      activeSessionId={activeSessionId}
-      onActivateSession={onActivateSession}
+      workspace={workspace}
+      resolveRendererView={resolveRendererView}
     />
   )
 }
 
 export const AppShell = ({
   plugins,
+  workspace,
   session,
-  snapshot,
-  activeSessionId,
   leftVisible,
   rightVisible,
   mainContent,
   onToolbarAction,
-  onActivateSession,
   resolveRendererView
 }: AppShellProps) => {
   const leftRegistration = resolveSidebarRegistration({ side: 'left', plugins, resolveRendererView })
@@ -125,9 +120,8 @@ export const AppShell = ({
             <SidebarView
               registration={leftRegistration}
               plugins={plugins}
-              snapshot={snapshot}
-              activeSessionId={activeSessionId}
-              onActivateSession={onActivateSession}
+              workspace={workspace}
+              resolveRendererView={resolveRendererView}
             />
           </aside>
         ) : null}
@@ -139,9 +133,8 @@ export const AppShell = ({
             <SidebarView
               registration={rightRegistration}
               plugins={plugins}
-              snapshot={snapshot}
-              activeSessionId={activeSessionId}
-              onActivateSession={onActivateSession}
+              workspace={workspace}
+              resolveRendererView={resolveRendererView}
             />
           </aside>
         ) : null}

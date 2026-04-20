@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { PaneViewProps, TerminalSessionInfo } from '@sessionry/plugin-api'
+import type { PaneViewProps, TerminalSessionInfo, WorkspaceApi } from '@sessionry/plugin-api'
 
 const fitMock = vi.fn()
 const clearMock = vi.fn()
@@ -55,19 +55,56 @@ const makeSession = (buffer = ''): TerminalSessionInfo => ({
   buffer
 })
 
-const baseProps: PaneViewProps = {
-  pane: { id: 'pane-terminal', sessionId: 'session-1', type: 'terminal', state: {} },
-  snapshot: {
-    projects: [],
-    sessions: [{ id: 'session-1', projectId: 'project-1', name: 'Session', folder: '/tmp/project', rootPaneGroupId: 'group-1' }],
-    paneGroups: [],
-    panes: []
+const workspace: WorkspaceApi = {
+  get snapshot() {
+    return {
+      projects: [],
+      sessions: [{ id: 'session-1', projectId: 'project-1', name: 'Session', folder: '/tmp/project', rootPaneGroupId: 'group-1' }],
+      paneGroups: [],
+      panes: []
+    }
   },
-  projectId: 'project-1',
-  sessionId: 'session-1',
-  terminalSession: makeSession('hello'),
+  projects: [],
+  getProject: () => null,
+  getSession: (id) =>
+    id === 'session-1'
+      ? ({
+          id,
+          data: { id: 'session-1', projectId: 'project-1', name: 'Session', folder: '/tmp/project', rootPaneGroupId: 'group-1' },
+          project: null,
+          rootPaneGroup: null,
+          activate: async () => {},
+          update: async () => {},
+          remove: async () => {},
+          setRootPaneGroup: async () => {},
+          createPaneGroup: async () => {
+            throw new Error('Not implemented in test')
+          },
+          createPane: async () => {
+            throw new Error('Not implemented in test')
+          }
+        } as any)
+      : null,
+  getPaneGroup: () => null,
+  getPane: () => null,
+  subscribe: () => () => {},
+  subscribeAll: () => () => {},
+  createProject: async () => {
+    throw new Error('Not implemented in test')
+  }
+}
+
+const baseProps: PaneViewProps = {
+  plugins: {
+    actions: [],
+    toolbarActionIds: [],
+    statusItems: [],
+    viewsBySlot: {}
+  },
+  workspace,
+  resolveRendererView: () => null,
+  pane: { id: 'pane-terminal', sessionId: 'session-1', type: 'terminal', state: {} },
   clearSignal: 0,
-  activeTerminalPaneId: 'pane-terminal',
   visible: true
 }
 

@@ -5,7 +5,6 @@ import type {
   ActionExecutionResult,
   ActionInputSpec,
   ActionInvocationSource,
-  PaneGroupChild,
   PluginViewModel,
   TerminalSessionInfo,
   TerminalStateEvent,
@@ -172,61 +171,6 @@ const ActionDialog = ({
   )
 }
 
-const RenameGroupDialog = ({
-  open,
-  paneGroupName,
-  onClose,
-  onRename
-}: {
-  open: boolean
-  paneGroupName: string
-  onClose: () => void
-  onRename: (name: string) => void
-}) => {
-  const [value, setValue] = useState(paneGroupName)
-
-  useEffect(() => {
-    if (open) setValue(paneGroupName)
-  }, [open, paneGroupName])
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    onRename(value.trim() || paneGroupName)
-  }
-
-  return (
-    <Dialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="dialog-backdrop" />
-        <Dialog.Popup className="dialog">
-          <header className="header">
-            <Dialog.Title>Rename Pane Group</Dialog.Title>
-          </header>
-          <form onSubmit={handleSubmit}>
-            <label className="field">
-              <span>Name</span>
-              <input
-                type="text"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                autoFocus
-              />
-            </label>
-            <div className="actions">
-              <button type="button" className="btn is-ghost" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="btn">
-                Rename
-              </button>
-            </div>
-          </form>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
-  )
-}
-
 export const App = () => {
   const [plugins, setPlugins] = useState<PluginViewModel>(emptyPlugins)
   const [terminalSessions, setTerminalSessions] = useState<Record<string, TerminalSessionInfo>>({})
@@ -235,7 +179,6 @@ export const App = () => {
   const [rightVisible, setRightVisible] = useState(true)
   const [clearSignal, setClearSignal] = useState(0)
   const [pendingAction, setPendingAction] = useState<PendingActionState | null>(null)
-  const [renameGroup, setRenameGroup] = useState<{ paneGroupId: string; name: string } | null>(null)
   const initializedRef = useRef(false)
 
   const activeWorkspaceSessionId = workspaceSnapshot.activeSessionId ?? workspaceSnapshot.sessions[0]?.id
@@ -336,118 +279,24 @@ export const App = () => {
     return () => window.removeEventListener('keydown', handleKeydown)
   }, [activeTerminalPaneId, activeWorkspaceSessionId, plugins.actions, workspaceSnapshot.sessions])
 
-  const handleSelectStackedChild = (paneGroupId: string, childId: string) => {
-    void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: childId })
-  }
-
-  const handleResizePaneNodes = (
-    updates: Array<{ kind: 'pane' | 'group'; id: string; preferredSizePct: number }>
-  ) => {
-    for (const update of updates) {
-      if (update.kind === 'pane') {
-        void workspace.getPane(update.id)?.update({ preferredSizePct: update.preferredSizePct })
-      } else {
-        void workspace.getPaneGroup(update.id)?.update({ preferredSizePct: update.preferredSizePct })
-      }
-    }
-  }
-
-  const handleRemovePaneNode = (node: PaneGroupChild) => {
-    void window.terminalApp.workspace.executeCommand({ type: 'paneNode.remove', node })
-  }
-
-  const handleRenameGroup = (paneGroupId: string, currentName: string) => {
-    setRenameGroup({ paneGroupId, name: currentName })
-  }
-
-  const commitRenameGroup = (name: string) => {
-    if (renameGroup) {
-      void workspace.getPaneGroup(renameGroup.paneGroupId)?.update({ name })
-      setRenameGroup(null)
-    }
-  }
-
-  const handleChangeGroupType = (paneGroupId: string, direction: 'stacked' | 'horizontal' | 'vertical') => {
-    void workspace.getPaneGroup(paneGroupId)?.update({ direction })
-  }
-
-  const handleSplitPane = (paneId: string, direction: 'horizontal' | 'vertical') => {
-    if (!activeWorkspaceSessionId) return
-    const snapshot = workspaceSnapshot
-    const parentGroup = snapshot.paneGroups.find((g) =>
-      g.children.some((c) => c.kind === 'pane' && c.paneId === paneId)
-    )
-    if (!parentGroup) return
-    const paneIndex = parentGroup.children.findIndex((c) => c.kind === 'pane' && c.paneId === paneId)
-    if (paneIndex === -1) return
-
-    const session = workspace.getSession(activeWorkspaceSessionId)
-    const parentHandle = workspace.getPaneGroup(parentGroup.id)
-    if (!session || !parentHandle) return
-
-    void (async () => {
-      const newGroup = await session.createPaneGroup({ name: '', direction })
-      await parentHandle.insertPaneGroup(newGroup.id, paneIndex)
-      // For stacked parents: pre-set activeChildId to newGroup before moving the pane,
-      // so reconcileActiveChildAfterRemoval doesn't fall back to the wrong sibling.
-      if (parentGroup.direction === 'stacked' && parentGroup.activeChildId === paneId) {
-        await parentHandle.update({ activeChildId: newGroup.id })
-      }
-      await newGroup.moveNode({ kind: 'pane', paneId })
-      await session.createPane({
-        type: 'terminal',
-        state: { title: 'Terminal' },
-        parentPaneGroupId: newGroup.id
-      })
-    })()
-  }
-
-  const handleAddTerminalPane = (paneGroupId: string) => {
-    if (!activeWorkspaceSessionId) return
-    void workspace.getSession(activeWorkspaceSessionId)?.createPane({
-      type: 'terminal',
-      state: { title: 'Terminal' },
-      parentPaneGroupId: paneGroupId
-    }).then((pane) => {
-      void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: pane.id })
-    })
-  }
-
-  const handleActivateSession = (sessionId: string) => {
-    void window.terminalApp.workspace.executeCommand({ type: 'session.activate', sessionId })
-  }
-
   return (
     <>
       <AppShell
         plugins={plugins}
+        workspace={workspace}
         session={activeTerminalSession}
-        snapshot={workspaceSnapshot}
-        activeSessionId={activeWorkspaceSessionId}
         leftVisible={leftVisible}
         rightVisible={rightVisible}
         mainContent={
           <WorkspaceSlotView
             plugins={plugins}
+            workspace={workspace}
             selectedViewId={activeProject?.activeViews.workspace}
             resolveRendererView={getRendererView}
-            snapshot={workspaceSnapshot}
-            projectId={activeProjectId}
-            sessionId={activeWorkspaceSessionId}
-            terminalSession={activeTerminalSession}
             clearSignal={clearSignal}
-            activeTerminalPaneId={activeTerminalPaneId}
-            onSelectStackedChild={handleSelectStackedChild}
-            onResizePaneNodes={handleResizePaneNodes}
-            onRemovePaneNode={handleRemovePaneNode}
-            onAddTerminalPane={handleAddTerminalPane}
-            onSplitPane={handleSplitPane}
-            onRenameGroup={handleRenameGroup}
-            onChangeGroupType={handleChangeGroupType}
           />
         }
         onToolbarAction={(actionId) => executeAction(actionId, 'toolbar')}
-        onActivateSession={handleActivateSession}
         resolveRendererView={getRendererView}
       />
       <ActionDialog
@@ -458,12 +307,6 @@ export const App = () => {
         onSubmit={(args) => {
           if (pendingAction) executeAction(pendingAction.result.action.id, pendingAction.source, args)
         }}
-      />
-      <RenameGroupDialog
-        open={renameGroup !== null}
-        paneGroupName={renameGroup?.name ?? ''}
-        onClose={() => setRenameGroup(null)}
-        onRename={commitRenameGroup}
       />
     </>
   )
