@@ -54,10 +54,10 @@ Views are declared with:
 - `title`: UI label
 - `isDefault`: optional default selection within a slot
 
-Useful slot helpers:
+Useful slot IDs:
 
-- `getPaneSlotId(paneType)` -> `pane:<type>`
-- `getSidebarSlotId(side)` -> `sidebar:left` or `sidebar:right`
+- `pane:<type>` e.g. `pane:terminal`
+- `sidebar:left` or `sidebar:right`
 
 The host groups views by slot and resolves the active view with `resolveActiveView(...)`.
 Sidebar surfaces are also just slot views, typically attached to `sidebar:left` or `sidebar:right`.

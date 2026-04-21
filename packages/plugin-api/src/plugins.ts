@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 
 import type { ActionContribution, ActionDescriptor } from './actions'
-import type { Pane, PaneType, WorkspaceApi } from './workspace'
+import type { Pane, WorkspaceApi } from './workspace'
 
 export type SidebarSide = 'left' | 'right'
 export type PluginViewSlotId = string;
@@ -69,9 +69,6 @@ export interface RendererAppPlugin extends Omit<AppPlugin, 'views'> {
 }
 
 
-// REVIEW: Remove this
-export const getPaneSlotId = (paneType: PaneType): PluginViewSlotId => `pane:${paneType}`
-
 export interface MainPluginContext {
   workspace: WorkspaceApi
 }
@@ -80,5 +77,4 @@ export interface RendererPluginContext {
   workspace: WorkspaceApi
 }
 
-// REVIEW: Remove this
-export const getSidebarSlotId = (side: SidebarSide): PluginViewSlotId => `sidebar:${side}`
+

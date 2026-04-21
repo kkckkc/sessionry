@@ -5,7 +5,6 @@ import { Dialog } from '@base-ui-components/react/dialog'
 import { Tabs } from '@base-ui-components/react/tabs'
 import { Menu } from '@base-ui-components/react/menu'
 import {
-  getPaneSlotId,
   resolveActiveView,
   type Pane,
   type PaneGroup,
@@ -611,7 +610,7 @@ export const WorkspacePaneTree = ({
     const title = getPaneTitle(pane)
     const description = getPaneDescription(pane)
     const isLiveTerminal = pane.type === 'terminal' && pane.id === activeTerminalPaneId
-    const paneView = resolveActiveView(plugins, getPaneSlotId(pane.type))
+    const paneView = resolveActiveView(plugins, `pane:${pane.type}`)
     const paneRenderer = paneView ? resolveRendererView(paneView.id) : null
     const PaneRenderer = paneRenderer?.component
 

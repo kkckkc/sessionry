@@ -93,11 +93,11 @@ The custom protocol is implemented in [`packages/app/src/main/index.ts`](/Users/
 
 ### View slots
 
-Plugins register views into slot IDs. Current helpers in the API include:
+Plugins register views into slot IDs. Common slot IDs include:
 
 - `workspace`
-- `getPaneSlotId(paneType)` which produces values like `pane:terminal`
-- `getSidebarSlotId(side)` which produces values like `sidebar:left`
+- `pane:terminal`
+- `sidebar:left` or `sidebar:right`
 
 Multiple plugins can contribute to the same slot. The host picks the active view by:
 

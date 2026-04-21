@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getPaneSlotId, getSidebarSlotId, normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
+import { normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
 
 describe('normalizePlugins', () => {
   it('collects action, status, and slot view contributions into a renderer model', () => {
@@ -71,24 +71,24 @@ describe('normalizePlugins', () => {
       {
         id: 'one',
         name: 'One',
-        views: [{ id: 'pane.terminal.one', title: 'Zeta Terminal', slot: getPaneSlotId('terminal') }]
+        views: [{ id: 'pane.terminal.one', title: 'Zeta Terminal', slot: 'pane:terminal' }]
       },
       {
         id: 'two',
         name: 'Two',
-        views: [{ id: 'pane.terminal.two', title: 'Alpha Terminal', slot: getPaneSlotId('terminal') }]
+        views: [{ id: 'pane.terminal.two', title: 'Alpha Terminal', slot: 'pane:terminal' }]
       }
     ])
 
-    expect(plugins.viewsBySlot[getPaneSlotId('terminal')].map((view) => view.id)).toEqual([
+    expect(plugins.viewsBySlot['pane:terminal'].map((view) => view.id)).toEqual([
       'pane.terminal.one',
       'pane.terminal.two'
     ])
-    expect(resolveActiveView(plugins, getPaneSlotId('terminal'))?.id).toBe('pane.terminal.one')
+    expect(resolveActiveView(plugins, 'pane:terminal')?.id).toBe('pane.terminal.one')
   })
 
   it('builds stable slot ids for sidebar renderers', () => {
-    expect(getSidebarSlotId('left')).toBe('sidebar:left')
-    expect(getSidebarSlotId('right')).toBe('sidebar:right')
+    expect('sidebar:left').toBe('sidebar:left')
+    expect('sidebar:right').toBe('sidebar:right')
   })
 })

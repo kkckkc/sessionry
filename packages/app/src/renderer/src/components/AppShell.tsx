@@ -7,7 +7,6 @@ import { Tooltip } from '@base-ui-components/react/tooltip'
 
 import type { ActionDescriptor, PluginViewModel, SidebarViewProps } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
-import { getSidebarSlotId } from '@sessionry/plugin-api'
 import { resolveActiveView } from '@sessionry/plugin-api'
 import type { RendererViewRegistration } from '@sessionry/plugin-api'
 import type { WorkspaceApi } from '@sessionry/plugin-api'
@@ -39,7 +38,7 @@ const resolveSidebarRegistration = ({
   plugins: PluginViewModel
   resolveRendererView: (viewId: string) => RendererViewRegistration | null
 }) => {
-  const slotId = getSidebarSlotId(side)
+  const slotId = `sidebar:${side}`
   const activeView = resolveActiveView(plugins, slotId)
   return activeView ? resolveRendererView(activeView.id) : null
 }
