@@ -225,6 +225,42 @@ describe('WorkspaceStore', () => {
     expect(service.getPane(firstPane.id)).toMatchObject({ preferredSizePct: 55 })
   })
 
+  it('splits a pane into a 50/50 group without losing stacked focus', () => {
+    const service = new WorkspaceStore()
+
+    service.splitPane('pane-terminal-primary', 'horizontal')
+
+    const leftTabs = service.getPaneGroup('pane-group-left-tabs')
+    expect(leftTabs?.activeChildId).toBeDefined()
+
+    const splitGroupId = leftTabs?.activeChildId
+    expect(splitGroupId).not.toBe('pane-terminal-primary')
+
+    const splitGroup = service.getPaneGroup(splitGroupId!)
+    expect(splitGroup).toMatchObject({
+      direction: 'horizontal',
+      children: [
+        { kind: 'pane', paneId: 'pane-terminal-primary' },
+        { kind: 'pane', paneId: expect.any(String) }
+      ]
+    })
+
+    expect(service.getPane('pane-terminal-primary')).toMatchObject({ preferredSizePct: 50 })
+
+    const createdPaneChild = splitGroup?.children.find(
+      (child): child is Extract<(typeof splitGroup.children)[number], { kind: 'pane' }> =>
+        child.kind === 'pane' && child.paneId !== 'pane-terminal-primary'
+    )
+    const createdPaneId = createdPaneChild?.paneId
+
+    expect(createdPaneId).toBeDefined()
+    expect(service.getPane(createdPaneId!)).toMatchObject({
+      type: 'terminal',
+      preferredSizePct: 50,
+      state: { title: 'Terminal' }
+    })
+  })
+
   it('moves nodes within a session and reconciles stacked active tabs on removal', () => {
     const service = new WorkspaceStore()
     const nested = service.createPaneGroup({

@@ -153,6 +153,8 @@ export class WorkspaceStore {
         return { entityId: paneNodeId(command.node) }
       case 'pane.create':
         return { entityId: this.createPane(command.input).id }
+      case 'pane.split':
+        return { entityId: this.splitPane(command.paneId, command.direction).id }
       case 'pane.update':
         return { entityId: this.updatePane(command.paneId, command.input).id }
       case 'pane.remove':
@@ -592,6 +594,39 @@ export class WorkspaceStore {
     }
 
     return cloneValue(pane)
+  }
+
+  splitPane(paneId: string, direction: 'horizontal' | 'vertical'): PaneGroup {
+    const pane = this.getPaneRequired(paneId)
+    const parentGroup = this.findParentOfNode({ kind: 'pane', paneId })
+    if (!parentGroup) throw new Error('Pane is not attached to a pane group.')
+
+    const paneIndex = parentGroup.children.findIndex((child) => isPaneChild(child) && child.paneId === paneId)
+    if (paneIndex === -1) throw new Error('Pane is not attached to its parent pane group.')
+
+    const newGroup = this.createPaneGroup({
+      sessionId: pane.sessionId,
+      name: '',
+      direction,
+      parentPaneGroupId: parentGroup.id,
+      index: paneIndex
+    })
+
+    if (parentGroup.direction === 'stacked' && parentGroup.activeChildId === paneId) {
+      this.updatePaneGroup(parentGroup.id, { activeChildId: newGroup.id })
+    }
+
+    this.moveNode({ kind: 'pane', paneId }, newGroup.id)
+    this.updatePane(paneId, { preferredSizePct: 50 })
+    this.createPane({
+      sessionId: pane.sessionId,
+      type: 'terminal',
+      preferredSizePct: 50,
+      state: { title: 'Terminal' },
+      parentPaneGroupId: newGroup.id
+    })
+
+    return this.getPaneGroupRequired(newGroup.id)
   }
 
   updatePane(paneId: string, input: UpdatePaneInput): Pane {

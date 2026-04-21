@@ -255,6 +255,7 @@ export type WorkspaceCommand =
   | { type: 'paneNode.move'; node: PaneGroupChild; targetPaneGroupId: string; index?: number }
   | { type: 'paneNode.remove'; node: PaneGroupChild }
   | { type: 'pane.create'; input: CreatePaneInput }
+  | { type: 'pane.split'; paneId: string; direction: Exclude<PaneGroupLayout, 'stacked'> }
   | { type: 'pane.update'; paneId: string; input: UpdatePaneInput }
   | { type: 'pane.remove'; paneId: string }
 
@@ -307,6 +308,7 @@ export interface PaneHandle {
   readonly id: string
   readonly data: PaneData
   readonly session: SessionHandle
+  split(direction: Exclude<PaneGroupLayout, 'stacked'>): Promise<PaneGroupHandle>
   update(input: UpdatePaneInput): Promise<void>
   remove(): Promise<void>
 }

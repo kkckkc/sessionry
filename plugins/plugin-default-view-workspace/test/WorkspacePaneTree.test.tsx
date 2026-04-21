@@ -4,7 +4,7 @@ import * as React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { PaneGroupHandle, PaneViewProps, PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type { PaneViewProps, PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
 
 import { WorkspacePaneTree } from '../src/WorkspacePaneTree'
 
@@ -263,6 +263,35 @@ describe('WorkspacePaneTree', () => {
 
     await waitFor(() => {
       expect(document.activeElement).toBe(terminalFocusTarget)
+    })
+  })
+
+  it('initializes a new split at 50/50 when splitting the active pane', async () => {
+    const split = vi.fn(async () => ({ id: 'group-created' }))
+
+    const workspace = createWorkspaceStub({
+      getPane: (paneId) =>
+        paneId === 'pane-terminal'
+          ? ({
+              id: paneId,
+              split
+            }) as any
+          : null
+    })
+
+    render(
+      <WorkspacePaneTree
+        plugins={plugins}
+        workspace={workspace}
+        resolveRendererView={() => paneRendererRegistration}
+        clearSignal={0}
+      />
+    )
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Split horizontal' })[0]!)
+
+    await waitFor(() => {
+      expect(split).toHaveBeenCalledWith('horizontal')
     })
   })
 

@@ -214,13 +214,20 @@ export const App = () => {
         }
       }))
     })
-    const unsubscribeWorkspace = workspace.subscribeAll(() => {
+    let workspaceRefreshFrame: number | null = null
+    const refreshWorkspaceSnapshot = () => {
+      workspaceRefreshFrame = null
       setWorkspaceSnapshot(readWorkspaceSnapshot())
+    }
+    const unsubscribeWorkspace = workspace.subscribeAll(() => {
+      if (workspaceRefreshFrame !== null) return
+      workspaceRefreshFrame = window.requestAnimationFrame(refreshWorkspaceSnapshot)
     })
 
     return () => {
       unsubscribeState()
       unsubscribeWorkspace()
+      if (workspaceRefreshFrame !== null) window.cancelAnimationFrame(workspaceRefreshFrame)
     }
   }, [])
 

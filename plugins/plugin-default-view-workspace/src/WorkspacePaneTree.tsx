@@ -537,37 +537,7 @@ export const WorkspacePaneTree = ({
   }
 
   const handleSplitPane = (paneId: string, direction: 'horizontal' | 'vertical') => {
-    const parentGroup = snapshot.paneGroups.find((group) =>
-      group.children.some((child) => child.kind === 'pane' && child.paneId === paneId)
-    )
-    if (!parentGroup) return
-
-    const paneIndex = parentGroup.children.findIndex(
-      (child) => child.kind === 'pane' && child.paneId === paneId
-    )
-    if (paneIndex === -1) return
-
-    const session = workspace.getSession(activeSession.id)
-    const parentHandle = workspace.getPaneGroup(parentGroup.id)
-    if (!session || !parentHandle) return
-
-    void (async () => {
-      const newGroup = await session.createPaneGroup({ name: '', direction })
-      await parentHandle.insertPaneGroup(newGroup.id, paneIndex)
-
-      // For stacked parents: pre-set activeChildId to newGroup before moving the pane,
-      // so reconcileActiveChildAfterRemoval doesn't fall back to the wrong sibling.
-      if (parentGroup.direction === 'stacked' && parentGroup.activeChildId === paneId) {
-        await parentHandle.update({ activeChildId: newGroup.id })
-      }
-
-      await newGroup.moveNode({ kind: 'pane', paneId })
-      await session.createPane({
-        type: 'terminal',
-        state: { title: 'Terminal' },
-        parentPaneGroupId: newGroup.id
-      })
-    })()
+    void workspace.getPane(paneId)?.split(direction)
   }
 
   const handleAddTerminalPane = (paneGroupId: string) => {
