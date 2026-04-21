@@ -202,6 +202,87 @@ interface PaneGroupHeaderProps {
   onChangeGroupType: (paneGroupId: string, direction: PaneGroupLayout) => void
   onAddTerminalPane: (paneGroupId: string) => void
   onRemovePaneNode: (node: PaneGroupChild) => void
+  title?: ReactNode
+  wrapInHeader?: boolean
+  className?: string
+}
+
+const PaneGroupActions = ({
+  paneGroup,
+  groupChild,
+  onRenameGroup,
+  onChangeGroupType,
+  onAddTerminalPane,
+  onRemovePaneNode,
+  className
+}: Omit<PaneGroupHeaderProps, 'title' | 'wrapInHeader'>) => {
+  const isTabBar = className?.includes('tab-bar-actions') ?? false
+  const menuTriggerClassName = isTabBar ? 'group-menu-trigger tab-bar-action' : 'group-menu-trigger'
+  const iconButtonClassName = isTabBar
+    ? 'tab-bar-action tab-bar-action--glyph'
+    : undefined
+
+  return (
+    <div className={className ?? 'header-actions pane-group-actions'}>
+      <Menu.Root>
+        <Menu.Trigger
+          render={<button type="button" className={menuTriggerClassName} aria-label="Group options" />}
+        >
+          ···
+        </Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner className="menu-positioner" align="end">
+            <Menu.Popup className="menu-popup">
+              <Menu.Item
+                className="menu-item"
+                onClick={() => onRenameGroup(paneGroup.id, paneGroup.name)}
+              >
+                Rename
+              </Menu.Item>
+              <Menu.SubmenuRoot>
+                <Menu.SubmenuTrigger className="menu-item menu-item--has-submenu">
+                  Change Type
+                </Menu.SubmenuTrigger>
+                <Menu.Portal>
+                  <Menu.Positioner className="menu-positioner">
+                    <Menu.Popup className="menu-popup">
+                      {GROUP_TYPES.filter((t) => t.value !== paneGroup.direction).map((t) => (
+                        <Menu.Item
+                          key={t.value}
+                          className="menu-item"
+                          onClick={() => onChangeGroupType(paneGroup.id, t.value)}
+                        >
+                          {t.label}
+                        </Menu.Item>
+                      ))}
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.SubmenuRoot>
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
+      <button
+        type="button"
+        className={isTabBar ? `group-add ${iconButtonClassName}` : 'group-add'}
+        aria-label="New terminal pane"
+        onClick={() => onAddTerminalPane(paneGroup.id)}
+      >
+        +
+      </button>
+      {groupChild && (
+        <button
+          type="button"
+          className={isTabBar ? `group-close ${iconButtonClassName}` : 'group-close'}
+          aria-label="Close pane group"
+          onClick={() => onRemovePaneNode(groupChild)}
+        >
+          ×
+        </button>
+      )}
+    </div>
+  )
 }
 
 const PaneGroupHeader = ({
@@ -210,70 +291,29 @@ const PaneGroupHeader = ({
   onRenameGroup,
   onChangeGroupType,
   onAddTerminalPane,
-  onRemovePaneNode
+  onRemovePaneNode,
+  title = <span>{getGroupTitle(paneGroup)}</span>,
+  wrapInHeader = true,
+  className
 }: PaneGroupHeaderProps) => {
+  const actions = (
+    <PaneGroupActions
+      paneGroup={paneGroup}
+      groupChild={groupChild}
+      onRenameGroup={onRenameGroup}
+      onChangeGroupType={onChangeGroupType}
+      onAddTerminalPane={onAddTerminalPane}
+      onRemovePaneNode={onRemovePaneNode}
+      className={wrapInHeader ? 'header-actions pane-group-actions' : className}
+    />
+  )
+
+  if (!wrapInHeader) return actions
+
   return (
     <header className="header">
-      <span>{getGroupTitle(paneGroup)}</span>
-      <div className="header-actions">
-        <Menu.Root>
-          <Menu.Trigger
-            render={<button type="button" className="group-menu-trigger" aria-label="Group options" />}
-          >
-            ···
-          </Menu.Trigger>
-          <Menu.Portal>
-            <Menu.Positioner className="menu-positioner" align="end">
-              <Menu.Popup className="menu-popup">
-                <Menu.Item
-                  className="menu-item"
-                  onClick={() => onRenameGroup(paneGroup.id, paneGroup.name)}
-                >
-                  Rename
-                </Menu.Item>
-                <Menu.SubmenuRoot>
-                  <Menu.SubmenuTrigger className="menu-item menu-item--has-submenu">
-                    Change Type
-                  </Menu.SubmenuTrigger>
-                  <Menu.Portal>
-                    <Menu.Positioner className="menu-positioner">
-                      <Menu.Popup className="menu-popup">
-                        {GROUP_TYPES.filter((t) => t.value !== paneGroup.direction).map((t) => (
-                          <Menu.Item
-                            key={t.value}
-                            className="menu-item"
-                            onClick={() => onChangeGroupType(paneGroup.id, t.value)}
-                          >
-                            {t.label}
-                          </Menu.Item>
-                        ))}
-                      </Menu.Popup>
-                    </Menu.Positioner>
-                  </Menu.Portal>
-                </Menu.SubmenuRoot>
-              </Menu.Popup>
-            </Menu.Positioner>
-          </Menu.Portal>
-        </Menu.Root>
-        <button
-          type="button"
-          className="group-add"
-          aria-label="New terminal pane"
-          onClick={() => onAddTerminalPane(paneGroup.id)}
-        >
-          +
-        </button>
-        {groupChild && (
-          <button
-            type="button"
-            className="group-close"
-            aria-label="Close pane group"
-            onClick={() => onRemovePaneNode(groupChild)}
-          >
-            ×
-          </button>
-        )}
-      </div>
+      {title}
+      {actions}
     </header>
   )
 }
@@ -313,6 +353,11 @@ const StackedPaneGroup = ({
   const panelByChildRef = useRef(new Map<string, HTMLDivElement>())
   const activeChildId = activeChild ? getNodeId(activeChild) : undefined
   const activePaneId = activeChild?.kind === 'pane' ? activeChild.paneId : null
+  const activeGroup = activeChild?.kind === 'group' ? groupById.get(activeChild.paneGroupId) : null
+  const activeSplitGroup =
+    activeChild?.kind === 'group' && activeGroup && activeGroup.direction !== 'stacked'
+      ? activeGroup
+      : null
   const title = getGroupTitle(paneGroup)
 
   useEffect(() => {
@@ -398,6 +443,18 @@ const StackedPaneGroup = ({
               <TbLayoutRows size={14} />
             </button>
           </div>
+        )}
+        {activeSplitGroup && (
+          <PaneGroupHeader
+            paneGroup={activeSplitGroup}
+            groupChild={activeChild}
+            onRenameGroup={onRenameGroup}
+            onChangeGroupType={onChangeGroupType}
+            onAddTerminalPane={onAddTerminalPane}
+            onRemovePaneNode={onRemovePaneNode}
+            wrapInHeader={false}
+            className="tab-bar-actions pane-group-actions"
+          />
         )}
       </div>
       <div className="workspace-stacked-content">
@@ -623,9 +680,13 @@ export const WorkspacePaneTree = ({
           type: 'unknown',
           state: {}
         }, inStack ? null : child, isVisible)
-      : renderGroup(groupById.get(child.paneGroupId), child)
+      : renderGroup(groupById.get(child.paneGroupId), child, inStack)
 
-  const renderGroup = (paneGroup?: PaneGroup, groupChild: PaneGroupChild | null = null) => {
+  const renderGroup = (
+    paneGroup?: PaneGroup,
+    groupChild: PaneGroupChild | null = null,
+    inStack = false
+  ) => {
     if (!paneGroup) {
       return <section className="workspace-empty">Pane group not found.</section>
     }
@@ -666,14 +727,16 @@ export const WorkspacePaneTree = ({
         aria-label={title}
         data-testid={`group-${paneGroup.id}`}
       >
-        <PaneGroupHeader
-          paneGroup={paneGroup}
-          groupChild={groupChild}
-          onRenameGroup={handleRenameGroup}
-          onChangeGroupType={handleChangeGroupType}
-          onAddTerminalPane={handleAddTerminalPane}
-          onRemovePaneNode={handleRemovePaneNode}
-        />
+        {!inStack && (
+          <PaneGroupHeader
+            paneGroup={paneGroup}
+            groupChild={groupChild}
+            onRenameGroup={handleRenameGroup}
+            onChangeGroupType={handleChangeGroupType}
+            onAddTerminalPane={handleAddTerminalPane}
+            onRemovePaneNode={handleRemovePaneNode}
+          />
+        )}
         <div className={`workspace-split is-${paneGroup.direction}`}>
           {paneGroup.children.length > 0 ? (
             paneGroup.children.flatMap((child, index) => {

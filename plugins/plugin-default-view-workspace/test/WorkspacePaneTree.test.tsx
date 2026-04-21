@@ -121,6 +121,55 @@ const snapshot: WorkspaceStateSnapshot = {
   activeSessionId: 'session-1'
 }
 
+const nestedSplitInTabsSnapshot: WorkspaceStateSnapshot = {
+  ...snapshot,
+  paneGroups: [
+    {
+      id: 'root',
+      sessionId: 'session-1',
+      name: 'Workspace',
+      direction: 'horizontal',
+      preferredSizePct: 100,
+      children: [{ kind: 'group', paneGroupId: 'left-tabs' }]
+    },
+    {
+      id: 'left-tabs',
+      sessionId: 'session-1',
+      name: 'Editors',
+      direction: 'stacked',
+      preferredSizePct: 100,
+      activeChildId: 'side-column',
+      children: [
+        { kind: 'pane', paneId: 'pane-terminal' },
+        { kind: 'group', paneGroupId: 'side-column' }
+      ]
+    },
+    {
+      id: 'side-column',
+      sessionId: 'session-1',
+      name: 'Side Column',
+      direction: 'vertical',
+      preferredSizePct: 50,
+      children: [
+        { kind: 'pane', paneId: 'pane-outline' },
+        { kind: 'group', paneGroupId: 'bottom-tabs' }
+      ]
+    },
+    {
+      id: 'bottom-tabs',
+      sessionId: 'session-1',
+      name: 'Inspectors',
+      direction: 'stacked',
+      preferredSizePct: 50,
+      activeChildId: 'pane-inspector',
+      children: [
+        { kind: 'pane', paneId: 'pane-inspector' },
+        { kind: 'pane', paneId: 'pane-problems' }
+      ]
+    }
+  ]
+}
+
 describe('WorkspacePaneTree', () => {
   it('renders horizontal, vertical, and stacked groups with preferred sizes', () => {
     render(
@@ -142,6 +191,78 @@ describe('WorkspacePaneTree', () => {
     expect(screen.getByTestId('pane-pane-terminal')).toHaveClass('is-bare')
     expect(screen.getByTestId('pane-pane-terminal').querySelector('.header')).toBeNull()
     expect(screen.getByTestId('pane-pane-outline').querySelector('.header')).toBeNull()
+  })
+
+  it('moves nested split-group actions into the parent tab row and hides the nested header', async () => {
+    const Harness = () => {
+      const [currentSnapshot, setCurrentSnapshot] = React.useState(nestedSplitInTabsSnapshot)
+      const workspace = React.useMemo(
+        () =>
+          createWorkspaceStub({
+            get snapshot() {
+              return currentSnapshot
+            },
+            getPaneGroup: (paneGroupId) =>
+              ({
+                id: paneGroupId,
+                data: currentSnapshot.paneGroups.find((paneGroup) => paneGroup.id === paneGroupId)!,
+                session: null,
+                children: [],
+                update: async (input) => {
+                  setCurrentSnapshot((value) => ({
+                    ...value,
+                    paneGroups: value.paneGroups.map((paneGroup) =>
+                      paneGroup.id === paneGroupId ? { ...paneGroup, ...input } : paneGroup
+                    )
+                  }))
+                },
+                setChildren: async () => {},
+                insertPane: async () => {},
+                insertPaneGroup: async () => {},
+                moveNode: async () => {},
+                removeNode: async () => {},
+                remove: async () => {}
+              }) as any
+          }),
+        [currentSnapshot]
+      )
+
+      return (
+        <WorkspacePaneTree
+          plugins={plugins}
+          workspace={workspace}
+          resolveRendererView={() => paneRendererRegistration}
+          clearSignal={0}
+        />
+      )
+    }
+
+    render(<Harness />)
+
+    const leftTabsGroup = screen.getByTestId('group-left-tabs')
+    const tabBarActions = leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions')
+    const sideColumnGroup = screen.getByTestId('group-side-column')
+
+    expect(tabBarActions).not.toBeNull()
+    expect(sideColumnGroup.querySelector(':scope > .header')).toBeNull()
+    expect(screen.getByRole('tablist', { name: 'Editors tabs' })).toBeInTheDocument()
+    expect(tabBarActions?.querySelector('.group-menu-trigger')).not.toBeNull()
+    expect(tabBarActions?.querySelector('.group-add')).not.toBeNull()
+    expect(tabBarActions?.querySelector('.group-close')).not.toBeNull()
+    expect(
+      leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions [aria-label="Split horizontal"]')
+    ).toBeNull()
+
+    fireEvent.click(screen.getByRole('tab', { name: /Terminal/ }))
+
+    await waitFor(() => {
+      expect(
+        leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions [aria-label="Split horizontal"]')
+      ).not.toBeNull()
+    })
+
+    expect(leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions .group-add')).toBeNull()
+    expect(leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions .group-close')).toBeNull()
   })
 
   it('switches active tab content through the model callback and passes visibility to the pane renderer', () => {

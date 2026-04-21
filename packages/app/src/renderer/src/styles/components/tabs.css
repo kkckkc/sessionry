@@ -12,6 +12,7 @@
     display: flex;
     align-items: stretch;
     border-left: 1px solid var(--ctx-border, var(--border-subtle));
+    gap: 0;
 
     > .tab-bar-action {
       display: flex;
@@ -35,6 +36,11 @@
       }
     }
   }
+}
+
+.tab-bar-action--glyph {
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .tab-bar {
