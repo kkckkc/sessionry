@@ -108,6 +108,19 @@ const RenameDialog = ({
 const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
   const [renameState, setRenameState] = useState<RenameState | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
+  const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set())
+
+  const toggleCollapsed = (projectId: string) => {
+    setCollapsedProjects((prev) => {
+      const next = new Set(prev)
+      if (next.has(projectId)) {
+        next.delete(projectId)
+      } else {
+        next.add(projectId)
+      }
+      return next
+    })
+  }
 
   const openContextMenu = (
     event: React.MouseEvent,
@@ -153,13 +166,21 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
               .map((sessionId) => workspace.snapshot.sessions.find((session) => session.id === sessionId))
               .filter((session): session is NonNullable<typeof session> => session !== undefined)
 
+            const isCollapsed = collapsedProjects.has(project.id)
             return (
               <li key={project.id} className="project-item">
                 <div
                   className="project-header"
                   onContextMenu={(e) => openContextMenu(e, 'project', project.id, project.name)}
                 >
-                  <ProjectAvatar name={project.name} />
+                  <button
+                    type="button"
+                    className="project-avatar-btn"
+                    title={isCollapsed ? 'Expand project' : 'Collapse project'}
+                    onClick={() => toggleCollapsed(project.id)}
+                  >
+                    <ProjectAvatar name={project.name} />
+                  </button>
                   <span className="project-name">{project.name}</span>
                   <span className="session-count" aria-label={`${sessions.length} sessions`}>{sessions.length}</span>
                   <button
@@ -174,26 +195,28 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                     +
                   </button>
                 </div>
-                <ul className="sessions-list">
-                  {sessions.map((session) => {
-                    const isActive = session.id === workspace.snapshot.activeSessionId
-                    return (
-                      <li key={session.id}>
-                        <button
-                          type="button"
-                          className={isActive ? 'session-btn is-active' : 'session-btn'}
-                          aria-pressed={isActive}
-                          onClick={() => {
-                            void workspace.getSession(session.id)?.activate()
-                          }}
-                          onContextMenu={(e) => openContextMenu(e, 'session', session.id, session.name)}
-                        >
-                          {session.name}
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
+                <div className={isCollapsed ? 'sessions-list-wrapper is-collapsed' : 'sessions-list-wrapper'}>
+                  <ul className="sessions-list">
+                    {sessions.map((session) => {
+                      const isActive = session.id === workspace.snapshot.activeSessionId
+                      return (
+                        <li key={session.id}>
+                          <button
+                            type="button"
+                            className={isActive ? 'session-btn is-active' : 'session-btn'}
+                            aria-pressed={isActive}
+                            onClick={() => {
+                              void workspace.getSession(session.id)?.activate()
+                            }}
+                            onContextMenu={(e) => openContextMenu(e, 'session', session.id, session.name)}
+                          >
+                            {session.name}
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
               </li>
             )
           })}
