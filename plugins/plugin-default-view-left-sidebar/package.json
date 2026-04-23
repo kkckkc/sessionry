@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@base-ui-components/react": "1.0.0-beta.3",
     "@sessionry/plugin-api": "workspace:*",
     "react": "latest"
   },

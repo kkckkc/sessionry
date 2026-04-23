@@ -103,6 +103,9 @@ importers:
 
   plugins/plugin-default-view-left-sidebar:
     dependencies:
+      '@base-ui-components/react':
+        specifier: 1.0.0-beta.3
+        version: 1.0.0-beta.3(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@sessionry/plugin-api':
         specifier: workspace:*
         version: link:../../packages/plugin-api
