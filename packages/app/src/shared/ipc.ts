@@ -11,5 +11,6 @@ export const IPC_CHANNELS = {
   actionsExecute: 'actions:execute',
   workspaceRead: 'workspace:read',
   workspaceCommand: 'workspace:command',
-  workspaceEvent: 'workspace:event'
+  workspaceEvent: 'workspace:event',
+  showFolderDialog: 'dialog:show-folder'
 } as const

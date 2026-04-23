@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, net, protocol } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, net, protocol } from 'electron'
 import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
@@ -136,6 +136,9 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle(IPC_CHANNELS.workspaceCommand, (_event, command: WorkspaceCommand) =>
     workspaceStore.executeCommand(command)
+  )
+  ipcMain.handle(IPC_CHANNELS.showFolderDialog, () =>
+    dialog.showOpenDialog(mainWindow!, { properties: ['openDirectory', 'createDirectory'] })
   )
 
   app.on('before-quit', () => {

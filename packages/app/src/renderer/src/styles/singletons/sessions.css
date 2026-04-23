@@ -1,4 +1,40 @@
 .sessions {
+  .projects-section-header {
+    display: flex;
+    align-items: center;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .projects-section-title {
+    flex: 1;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    user-select: none;
+  }
+
+  .projects-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+    }
+  }
+
   > .projects-list {
     display: flex;
     flex-direction: column;
@@ -20,6 +56,27 @@
     padding: 0.35rem 0.5rem;
     border-radius: 8px;
     user-select: none;
+
+    .session-add-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-tertiary);
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-primary);
+      }
+    }
   }
 
   .project-avatar {
@@ -39,7 +96,6 @@
     color: var(--text-primary);
     font-size: 0.875rem;
     font-weight: 500;
-    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -47,8 +103,10 @@
   }
 
   .session-count {
-    color: var(--text-secondary);
-    font-size: 0.78rem;
+    flex: 1;
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+    padding-left: 0.25rem;
   }
 
   .sessions-list {

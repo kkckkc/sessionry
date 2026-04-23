@@ -18,10 +18,44 @@ const ProjectAvatar = ({ name }: { name: string }) => (
   </span>
 )
 
+const createSession = async (workspace: SidebarViewProps['workspace'], projectId: string, sessionCount: number) => {
+  const project = workspace.getProject(projectId)
+  if (!project) return
+
+  const name = `Session ${sessionCount + 1}`
+  const session = await project.createSession({ name, folder: project.data.folder })
+  await session.createPane({
+    type: 'terminal',
+    state: { title: 'Terminal' },
+    parentPaneGroupId: session.data.rootPaneGroupId
+  })
+  await session.activate()
+}
+
+const openProject = async (workspace: SidebarViewProps['workspace']) => {
+  const result = await window.terminalApp.showFolderDialog()
+  if (result.canceled || result.filePaths.length === 0) return
+
+  const folder = result.filePaths[0]!
+  const name = folder.split(/[\\/]/).filter(Boolean).pop() ?? folder
+  await workspace.createProject({ name, folder })
+}
+
 const ProjectSessionsSidebarView = ({
   workspace
 }: SidebarViewProps) => (
   <div className="sessions">
+    <div className="projects-section-header">
+      <span className="projects-section-title">Projects</span>
+      <button
+        type="button"
+        className="projects-add-btn"
+        title="Open project"
+        onClick={() => { void openProject(workspace) }}
+      >
+        +
+      </button>
+    </div>
     <ul className="projects-list" aria-label="Project sessions">
       {workspace.snapshot.projects.map((project) => {
         const sessions = project.sessionIds
@@ -33,7 +67,18 @@ const ProjectSessionsSidebarView = ({
             <div className="project-header">
               <ProjectAvatar name={project.name} />
               <span className="project-name">{project.name}</span>
-              <span className="session-count">({sessions.length})</span>
+              <span className="session-count" aria-label={`${sessions.length} sessions`}>{sessions.length}</span>
+              <button
+                type="button"
+                className="session-add-btn"
+                title="New session"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  void createSession(workspace, project.id, sessions.length)
+                }}
+              >
+                +
+              </button>
             </div>
             <ul className="sessions-list">
               {sessions.map((session) => {

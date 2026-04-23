@@ -51,6 +51,8 @@ const api = {
       return () => ipcRenderer.removeListener(IPC_CHANNELS.workspaceEvent, wrapped)
     }
   },
+  showFolderDialog: (): Promise<{ canceled: boolean; filePaths: string[] }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.showFolderDialog),
   onTerminalData: (listener: (event: TerminalDataEvent) => void): Unsubscribe => {
     const wrapped = (_event: Electron.IpcRendererEvent, payload: TerminalDataEvent) => listener(payload)
     ipcRenderer.on(IPC_CHANNELS.terminalData, wrapped)
