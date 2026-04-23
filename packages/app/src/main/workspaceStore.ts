@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
 import type {
   WorkspaceEvent,
@@ -23,11 +24,17 @@ import type {
   UpdateSessionInput
 } from '@sessionry/plugin-api'
 
-type PersistedState = {
+// workspace.json — lightweight index of which projects exist and their folders
+type PersistedWorkspace = {
   version: 1
-  projectOrder: string[]
   activeSessionId?: string
-  projects: Project[]
+  projects: Array<{ id: string; folder: string }>
+}
+
+// <project-folder>/.sessionry/state.json — full project state
+type PersistedProjectState = {
+  version: 1
+  project: Project
   sessions: Session[]
   paneGroups: PaneGroup[]
   panes: Pane[]
@@ -62,12 +69,14 @@ export class WorkspaceStore {
   private readonly listeners = new Set<WorkspaceEventListener>()
   private readonly listenersByType = new Map<WorkspaceEvent['type'], Set<WorkspaceEventListener>>()
   private nextId = 1
-  private readonly storagePath: string | undefined
+  private readonly workspaceFilePath: string | undefined
+  private workspaceDirty = false
+  private readonly dirtyProjectIds = new Set<string>()
   private saveTimer: ReturnType<typeof setTimeout> | undefined
 
-  constructor(storagePath?: string) {
-    this.storagePath = storagePath
-    if (!storagePath || !this.loadState(storagePath)) {
+  constructor(workspaceFilePath?: string) {
+    this.workspaceFilePath = workspaceFilePath
+    if (!workspaceFilePath || !this.loadState(workspaceFilePath)) {
       this.seedInitialState()
     }
   }
@@ -115,6 +124,10 @@ export class WorkspaceStore {
   }
 
   executeCommand(command: WorkspaceCommand): WorkspaceCommandResult {
+    // Capture which files need saving BEFORE execution so that entities
+    // that are removed during the command are still accessible for lookup.
+    const saveOpts = this.determineSaveOpts(command)
+
     let result: WorkspaceCommandResult
     switch (command.type) {
       case 'project.create':
@@ -200,7 +213,10 @@ export class WorkspaceStore {
       default:
         return this.assertNever(command)
     }
-    this.scheduleSave()
+
+    // For project.create the new project ID isn't known until after execution.
+    if (command.type === 'project.create') saveOpts.projectId = result.entityId ?? null
+    this.scheduleSave(saveOpts)
     return result
   }
 
@@ -898,35 +914,44 @@ export class WorkspaceStore {
     }
   }
 
-  private loadState(filePath: string): boolean {
+  private loadState(workspaceFilePath: string): boolean {
     try {
-      const raw = fs.readFileSync(filePath, 'utf-8')
-      const data = JSON.parse(raw) as PersistedState
-      if (data.version !== 1) return false
+      const raw = fs.readFileSync(workspaceFilePath, 'utf-8')
+      const workspace = JSON.parse(raw) as PersistedWorkspace
+      if (workspace.version !== 1) return false
 
-      for (const project of data.projects) {
-        this.state.projects.set(project.id, cloneValue(project))
+      for (const { id, folder } of workspace.projects) {
+        const stateFilePath = path.join(folder, '.sessionry', 'state.json')
+        try {
+          const stateRaw = fs.readFileSync(stateFilePath, 'utf-8')
+          const projectState = JSON.parse(stateRaw) as PersistedProjectState
+          if (projectState.version !== 1 || projectState.project.id !== id) continue
+
+          this.state.projects.set(projectState.project.id, cloneValue(projectState.project))
+          this.state.projectOrder.push(projectState.project.id)
+          for (const session of projectState.sessions) {
+            this.state.sessions.set(session.id, cloneValue(session))
+          }
+          for (const paneGroup of projectState.paneGroups) {
+            this.state.paneGroups.set(paneGroup.id, cloneValue(paneGroup))
+          }
+          for (const pane of projectState.panes) {
+            this.state.panes.set(pane.id, cloneValue(pane))
+          }
+        } catch {
+          // Skip projects whose state file is missing or unreadable.
+        }
       }
-      for (const session of data.sessions) {
-        this.state.sessions.set(session.id, cloneValue(session))
-      }
-      for (const paneGroup of data.paneGroups) {
-        this.state.paneGroups.set(paneGroup.id, cloneValue(paneGroup))
-      }
-      for (const pane of data.panes) {
-        this.state.panes.set(pane.id, cloneValue(pane))
-      }
-      this.state.projectOrder = [...data.projectOrder]
-      this.state.activeSessionId = data.activeSessionId
+
+      this.state.activeSessionId = workspace.activeSessionId
 
       // Advance nextId past any existing numeric IDs to avoid conflicts.
-      const allIds = [
-        ...data.projects.map((e) => e.id),
-        ...data.sessions.map((e) => e.id),
-        ...data.paneGroups.map((e) => e.id),
-        ...data.panes.map((e) => e.id)
-      ]
-      for (const id of allIds) {
+      for (const id of [
+        ...Array.from(this.state.projects.keys()),
+        ...Array.from(this.state.sessions.keys()),
+        ...Array.from(this.state.paneGroups.keys()),
+        ...Array.from(this.state.panes.keys())
+      ]) {
         const match = id.match(/(\d+)$/)
         if (match) {
           const n = parseInt(match[1], 10)
@@ -940,31 +965,157 @@ export class WorkspaceStore {
     }
   }
 
-  private saveState(): void {
-    if (!this.storagePath) return
-    const data: PersistedState = {
+  private saveWorkspace(): void {
+    if (!this.workspaceFilePath) return
+    const data: PersistedWorkspace = {
       version: 1,
-      projectOrder: [...this.state.projectOrder],
       activeSessionId: this.state.activeSessionId,
-      projects: Array.from(this.state.projects.values()).map(cloneValue),
-      sessions: Array.from(this.state.sessions.values()).map(cloneValue),
-      paneGroups: Array.from(this.state.paneGroups.values()).map(cloneValue),
-      panes: Array.from(this.state.panes.values()).map(cloneValue)
+      projects: this.state.projectOrder.map((id) => {
+        const project = this.state.projects.get(id)!
+        return { id, folder: project.folder }
+      })
     }
+    this.writeJsonFile(this.workspaceFilePath, data)
+  }
+
+  private saveProjectState(projectId: string): void {
+    const project = this.state.projects.get(projectId)
+    if (!project?.folder) return
+
+    const stateDir = path.join(project.folder, '.sessionry')
+    const stateFilePath = path.join(stateDir, 'state.json')
+    const settingsFilePath = path.join(stateDir, 'settings.json')
+
+    const projectSessionIds = new Set(project.sessionIds)
+    const sessions = Array.from(this.state.sessions.values())
+      .filter((s) => projectSessionIds.has(s.id))
+      .map(cloneValue)
+    const paneGroups = Array.from(this.state.paneGroups.values())
+      .filter((pg) => projectSessionIds.has(pg.sessionId))
+      .map(cloneValue)
+    const panes = Array.from(this.state.panes.values())
+      .filter((p) => projectSessionIds.has(p.sessionId))
+      .map(cloneValue)
+
+    const data: PersistedProjectState = {
+      version: 1,
+      project: cloneValue(project),
+      sessions,
+      paneGroups,
+      panes
+    }
+
     try {
-      fs.writeFileSync(this.storagePath, JSON.stringify(data, null, 2), 'utf-8')
+      fs.mkdirSync(stateDir, { recursive: true })
+      this.writeJsonFile(stateFilePath, data)
+      if (!fs.existsSync(settingsFilePath)) {
+        this.writeJsonFile(settingsFilePath, { version: 1 })
+      }
     } catch (err) {
-      console.error('[WorkspaceStore] Failed to save state:', err)
+      console.error(`[WorkspaceStore] Failed to save project state for "${projectId}":`, err)
     }
   }
 
-  private scheduleSave(): void {
-    if (!this.storagePath) return
+  private writeJsonFile(filePath: string, data: unknown): void {
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+    } catch (err) {
+      console.error(`[WorkspaceStore] Failed to write "${filePath}":`, err)
+    }
+  }
+
+  private scheduleSave(opts: { workspace: boolean; projectId: string | null }): void {
+    if (!this.workspaceFilePath) return
+    if (opts.workspace) this.workspaceDirty = true
+    if (opts.projectId) this.dirtyProjectIds.add(opts.projectId)
+
     if (this.saveTimer !== undefined) clearTimeout(this.saveTimer)
     this.saveTimer = setTimeout(() => {
       this.saveTimer = undefined
-      this.saveState()
+      if (this.workspaceDirty) {
+        this.saveWorkspace()
+        this.workspaceDirty = false
+      }
+      for (const id of this.dirtyProjectIds) {
+        this.saveProjectState(id)
+      }
+      this.dirtyProjectIds.clear()
     }, 500)
+  }
+
+  private determineSaveOpts(command: WorkspaceCommand): { workspace: boolean; projectId: string | null } {
+    switch (command.type) {
+      case 'project.create':
+        // projectId filled in by executeCommand after execution
+        return { workspace: true, projectId: null }
+      case 'project.update':
+        return { workspace: false, projectId: command.projectId }
+      case 'project.remove':
+        return { workspace: true, projectId: null }
+      case 'session.create':
+        return { workspace: false, projectId: command.input.projectId }
+      case 'session.activate':
+        return { workspace: true, projectId: null }
+      case 'session.update':
+      case 'session.setRootPaneGroup': {
+        const session = this.state.sessions.get(command.sessionId)
+        return { workspace: false, projectId: session?.projectId ?? null }
+      }
+      case 'session.remove': {
+        const session = this.state.sessions.get(command.sessionId)
+        return { workspace: false, projectId: session?.projectId ?? null }
+      }
+      case 'paneGroup.create':
+        return { workspace: false, projectId: this.sessionProjectId(command.input.sessionId) }
+      case 'paneGroup.update': {
+        const pg = this.state.paneGroups.get(command.paneGroupId)
+        return { workspace: false, projectId: pg ? this.sessionProjectId(pg.sessionId) : null }
+      }
+      case 'paneGroup.setChildren': {
+        const pg = this.state.paneGroups.get(command.paneGroupId)
+        return { workspace: false, projectId: pg ? this.sessionProjectId(pg.sessionId) : null }
+      }
+      case 'paneGroup.insertPane': {
+        const pg = this.state.paneGroups.get(command.paneGroupId)
+        return { workspace: false, projectId: pg ? this.sessionProjectId(pg.sessionId) : null }
+      }
+      case 'paneGroup.insertPaneGroup': {
+        const pg = this.state.paneGroups.get(command.paneGroupId)
+        return { workspace: false, projectId: pg ? this.sessionProjectId(pg.sessionId) : null }
+      }
+      case 'paneNode.move': {
+        const pg = this.state.paneGroups.get(command.targetPaneGroupId)
+        return { workspace: false, projectId: pg ? this.sessionProjectId(pg.sessionId) : null }
+      }
+      case 'paneNode.remove': {
+        if (command.node.kind === 'pane') {
+          const pane = this.state.panes.get(command.node.paneId)
+          return { workspace: false, projectId: pane ? this.sessionProjectId(pane.sessionId) : null }
+        }
+        const pg = this.state.paneGroups.get(command.node.paneGroupId)
+        return { workspace: false, projectId: pg ? this.sessionProjectId(pg.sessionId) : null }
+      }
+      case 'pane.create':
+        return { workspace: false, projectId: this.sessionProjectId(command.input.sessionId) }
+      case 'pane.split': {
+        const pane = this.state.panes.get(command.paneId)
+        return { workspace: false, projectId: pane ? this.sessionProjectId(pane.sessionId) : null }
+      }
+      case 'pane.update': {
+        const pane = this.state.panes.get(command.paneId)
+        return { workspace: false, projectId: pane ? this.sessionProjectId(pane.sessionId) : null }
+      }
+      case 'pane.remove': {
+        const pane = this.state.panes.get(command.paneId)
+        return { workspace: false, projectId: pane ? this.sessionProjectId(pane.sessionId) : null }
+      }
+      default:
+        return { workspace: false, projectId: null }
+    }
+  }
+
+  private sessionProjectId(sessionId: string): string | null {
+    return this.state.sessions.get(sessionId)?.projectId ?? null
   }
 
   private seedInitialState(): void {

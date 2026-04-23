@@ -23,4 +23,5 @@ yarn-error.log*
 .env.local
 .env.*.local
 
+.sessionry
 .claude
