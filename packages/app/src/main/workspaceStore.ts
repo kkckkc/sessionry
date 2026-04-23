@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+
 import type {
   WorkspaceEvent,
   WorkspaceEventListener,
@@ -20,6 +22,16 @@ import type {
   UpdateProjectInput,
   UpdateSessionInput
 } from '@sessionry/plugin-api'
+
+type PersistedState = {
+  version: 1
+  projectOrder: string[]
+  activeSessionId?: string
+  projects: Project[]
+  sessions: Session[]
+  paneGroups: PaneGroup[]
+  panes: Pane[]
+}
 
 type EntityMaps = {
   projects: Map<string, Project>
@@ -50,9 +62,14 @@ export class WorkspaceStore {
   private readonly listeners = new Set<WorkspaceEventListener>()
   private readonly listenersByType = new Map<WorkspaceEvent['type'], Set<WorkspaceEventListener>>()
   private nextId = 1
+  private readonly storagePath: string | undefined
+  private saveTimer: ReturnType<typeof setTimeout> | undefined
 
-  constructor() {
-    this.seedInitialState()
+  constructor(storagePath?: string) {
+    this.storagePath = storagePath
+    if (!storagePath || !this.loadState(storagePath)) {
+      this.seedInitialState()
+    }
   }
 
   read(): WorkspaceStateSnapshot {
@@ -98,71 +115,93 @@ export class WorkspaceStore {
   }
 
   executeCommand(command: WorkspaceCommand): WorkspaceCommandResult {
+    let result: WorkspaceCommandResult
     switch (command.type) {
       case 'project.create':
-        return { entityId: this.createProject(command.input).id }
+        result = { entityId: this.createProject(command.input).id }
+        break
       case 'project.update':
-        return { entityId: this.updateProject(command.projectId, command.input).id }
+        result = { entityId: this.updateProject(command.projectId, command.input).id }
+        break
       case 'project.remove':
         this.removeProject(command.projectId)
-        return { entityId: command.projectId }
+        result = { entityId: command.projectId }
+        break
       case 'session.create':
-        return { entityId: this.createSession(command.input).id }
+        result = { entityId: this.createSession(command.input).id }
+        break
       case 'session.activate':
-        return { entityId: this.activateSession(command.sessionId).id }
+        result = { entityId: this.activateSession(command.sessionId).id }
+        break
       case 'session.update':
-        return { entityId: this.updateSession(command.sessionId, command.input).id }
+        result = { entityId: this.updateSession(command.sessionId, command.input).id }
+        break
       case 'session.remove':
         this.removeSession(command.sessionId)
-        return { entityId: command.sessionId }
+        result = { entityId: command.sessionId }
+        break
       case 'session.setRootPaneGroup':
-        return {
+        result = {
           entityId: this.setSessionRootPaneGroup(
             command.sessionId,
             command.rootPaneGroupId
           ).id
         }
+        break
       case 'paneGroup.create':
-        return { entityId: this.createPaneGroup(command.input).id }
+        result = { entityId: this.createPaneGroup(command.input).id }
+        break
       case 'paneGroup.update':
-        return {
+        result = {
           entityId: this.updatePaneGroup(command.paneGroupId, command.input).id
         }
+        break
       case 'paneGroup.setChildren':
-        return {
+        result = {
           entityId: this.setPaneGroupChildren(command.paneGroupId, command.children).id
         }
+        break
       case 'paneGroup.insertPane':
-        return {
+        result = {
           entityId: this.insertPane(command.paneGroupId, command.paneId, command.index).id
         }
+        break
       case 'paneGroup.insertPaneGroup':
-        return {
+        result = {
           entityId: this.insertPaneGroup(
             command.paneGroupId,
             command.childPaneGroupId,
             command.index
           ).id
         }
+        break
       case 'paneNode.move':
-        return {
+        result = {
           entityId: this.moveNode(command.node, command.targetPaneGroupId, command.index).id
         }
+        break
       case 'paneNode.remove':
         this.removeNode(command.node)
-        return { entityId: paneNodeId(command.node) }
+        result = { entityId: paneNodeId(command.node) }
+        break
       case 'pane.create':
-        return { entityId: this.createPane(command.input).id }
+        result = { entityId: this.createPane(command.input).id }
+        break
       case 'pane.split':
-        return { entityId: this.splitPane(command.paneId, command.direction).id }
+        result = { entityId: this.splitPane(command.paneId, command.direction).id }
+        break
       case 'pane.update':
-        return { entityId: this.updatePane(command.paneId, command.input).id }
+        result = { entityId: this.updatePane(command.paneId, command.input).id }
+        break
       case 'pane.remove':
         this.removePane(command.paneId)
-        return { entityId: command.paneId }
+        result = { entityId: command.paneId }
+        break
       default:
         return this.assertNever(command)
     }
+    this.scheduleSave()
+    return result
   }
 
   createProject(input: CreateProjectInput): Project {
@@ -857,6 +896,75 @@ export class WorkspaceStore {
     if (!paneGroup.children.some((child) => paneNodeId(child) === paneGroup.activeChildId)) {
       paneGroup.activeChildId = paneGroup.children[0] ? paneNodeId(paneGroup.children[0]) : undefined
     }
+  }
+
+  private loadState(filePath: string): boolean {
+    try {
+      const raw = fs.readFileSync(filePath, 'utf-8')
+      const data = JSON.parse(raw) as PersistedState
+      if (data.version !== 1) return false
+
+      for (const project of data.projects) {
+        this.state.projects.set(project.id, cloneValue(project))
+      }
+      for (const session of data.sessions) {
+        this.state.sessions.set(session.id, cloneValue(session))
+      }
+      for (const paneGroup of data.paneGroups) {
+        this.state.paneGroups.set(paneGroup.id, cloneValue(paneGroup))
+      }
+      for (const pane of data.panes) {
+        this.state.panes.set(pane.id, cloneValue(pane))
+      }
+      this.state.projectOrder = [...data.projectOrder]
+      this.state.activeSessionId = data.activeSessionId
+
+      // Advance nextId past any existing numeric IDs to avoid conflicts.
+      const allIds = [
+        ...data.projects.map((e) => e.id),
+        ...data.sessions.map((e) => e.id),
+        ...data.paneGroups.map((e) => e.id),
+        ...data.panes.map((e) => e.id)
+      ]
+      for (const id of allIds) {
+        const match = id.match(/(\d+)$/)
+        if (match) {
+          const n = parseInt(match[1], 10)
+          if (n >= this.nextId) this.nextId = n + 1
+        }
+      }
+
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  private saveState(): void {
+    if (!this.storagePath) return
+    const data: PersistedState = {
+      version: 1,
+      projectOrder: [...this.state.projectOrder],
+      activeSessionId: this.state.activeSessionId,
+      projects: Array.from(this.state.projects.values()).map(cloneValue),
+      sessions: Array.from(this.state.sessions.values()).map(cloneValue),
+      paneGroups: Array.from(this.state.paneGroups.values()).map(cloneValue),
+      panes: Array.from(this.state.panes.values()).map(cloneValue)
+    }
+    try {
+      fs.writeFileSync(this.storagePath, JSON.stringify(data, null, 2), 'utf-8')
+    } catch (err) {
+      console.error('[WorkspaceStore] Failed to save state:', err)
+    }
+  }
+
+  private scheduleSave(): void {
+    if (!this.storagePath) return
+    if (this.saveTimer !== undefined) clearTimeout(this.saveTimer)
+    this.saveTimer = setTimeout(() => {
+      this.saveTimer = undefined
+      this.saveState()
+    }, 500)
   }
 
   private seedInitialState(): void {

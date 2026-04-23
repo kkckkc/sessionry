@@ -89,7 +89,8 @@ app.whenReady().then(async () => {
     return new Response('Not found', { status: 404 })
   })
 
-  const workspaceStore = new WorkspaceStore()
+  const workspaceStorePath = path.join(app.getPath('userData'), 'workspace.json')
+  const workspaceStore = new WorkspaceStore(workspaceStorePath)
   const workspaceApi = createWorkspaceApi({
     read: () => workspaceStore.read(),
     executeCommand: (command: WorkspaceCommand) => workspaceStore.executeCommand(command),
