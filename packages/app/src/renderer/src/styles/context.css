@@ -12,7 +12,7 @@
 .sidebar--right {
   --ctx-bg: var(--workspace-bg);
   --ctx-btn-bg: transparent;
-  --ctx-btn-hover: var(--workspace-bg2);
+  --ctx-btn-hover: var(--button-bg-hover);
   --ctx-tab-bg: var(--workspace-bg);
   --ctx-tab-hover-bg: var(--workspace-bg2);
   --ctx-border: var(--border-subtle);

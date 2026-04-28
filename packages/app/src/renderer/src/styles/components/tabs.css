@@ -1,6 +1,5 @@
 .tab-bar-row {
   display: flex;
-  border-bottom: 1px solid var(--ctx-border, var(--border-subtle));
 
   > .tab-bar {
     flex: 1;
@@ -10,29 +9,28 @@
 
   > .tab-bar-actions {
     display: flex;
-    align-items: stretch;
-    border-left: 1px solid var(--ctx-border, var(--border-subtle));
-    gap: 0;
+    align-items: center;
+    background: var(--chrome-bg);
+    border-bottom: 1px solid var(--border-color);
+    gap: 2px;
+    padding: 0 4px;
 
     > .tab-bar-action {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
+      width: 28px;
+      height: 28px;
       border: none;
-      border-right: 1px solid var(--ctx-border, var(--border-subtle));
-      background: var(--ctx-tab-bg, var(--workspace-bg));
+      border-radius: 5px;
+      background: transparent;
       color: var(--text-tertiary);
       cursor: pointer;
       transition: background-color 120ms ease, color 120ms ease;
 
       &:hover {
-        background: var(--ctx-tab-hover-bg, var(--workspace-bg2));
+        background: var(--button-bg-hover);
         color: var(--text-primary);
-      }
-
-      &:last-child {
-        border-right: none;
       }
     }
   }
@@ -45,32 +43,41 @@
 
 .tab-bar {
   display: flex;
+  align-items: center;
   border-bottom: 1px solid var(--ctx-border, var(--border-subtle));
+  background: var(--chrome-bg);
+  height: 36px;
+  padding: 0 6px;
+  gap: 2px;
 
   > .tab {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    border: none;
-    border-right: 1px solid var(--ctx-border, var(--border-subtle));
-    background: var(--ctx-tab-bg, var(--workspace-bg));
-    padding: 0.55rem 0.6rem 0.65rem 0.87rem;
-    color: var(--text-tertiary);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    padding: 0 10px;
+    height: 28px;
+    color: var(--text-secondary);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    letter-spacing: -0.01em;
+    flex-shrink: 0;
     transition:
       background-color 120ms ease,
       color 120ms ease,
       border-color 120ms ease;
 
     &:hover {
-      background: var(--ctx-tab-hover-bg, var(--workspace-bg2));
+      background: var(--button-bg-hover);
       color: var(--text-primary);
     }
 
     &[data-selected] {
-      background: var(--ctx-tab-hover-bg, var(--workspace-bg2));
-      color: var(--text-primary);
+      background: var(--accent-bg);
+      color: var(--accent);
+      border-color: var(--accent-border);
     }
 
     > .tab-close {

@@ -2,8 +2,9 @@
   display: flex;
   gap: 0;
   padding: 0;
+  height: 22px;
   border-top: 1px solid var(--border-color);
-  background: var(--chrome-bg);
+  background: #18181a;
 
   > div:first-child {
     margin-left: auto;

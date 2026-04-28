@@ -46,7 +46,7 @@
     padding: 0.7rem 0.9rem;
     border-bottom: 1px solid var(--border-subtle);
     color: var(--text-primary);
-    background: var(--workspace-bg2);
+    background: var(--chrome-bg);
     font-size: 0.85rem;
   }
 }
@@ -280,7 +280,7 @@
     display: flex;
     flex: 1;
     padding: 0;
-    background: #111214;
+    background: var(--workspace-bg);
 
     > .terminal-surface,
     > .placeholder {
