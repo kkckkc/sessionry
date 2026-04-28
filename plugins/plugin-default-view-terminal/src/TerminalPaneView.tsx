@@ -95,6 +95,13 @@ export const TerminalPaneView = ({
       }
     })
     const terminalInputSubscription = terminal.onData((data) => {
+      // xterm.js auto-responds to DA queries (ESC[c, ESC[>c) with DA responses
+      // (ESC[?1;2c, ESC[>0;276;0c). When these responses arrive at the PTY
+      // after tmux has moved on, tmux forwards them to the inner shell as
+      // literal input — appearing as garbage text (e.g. "1;2c0;276;0c").
+      // DA responses are machine-generated and never represent user input,
+      // so it is safe to suppress them unconditionally.
+      if (/^\x1b\[[?<>][\d;]*c$/.test(data)) return
       window.terminalApp.sendTerminalInput({
         sessionId: currentSession,
         data

@@ -13,6 +13,7 @@ import { ActionRegistry } from './actionRegistry'
 import { createPluginManager } from './pluginManager'
 import { builtInPlugins } from './plugins'
 import { TerminalService } from './terminalService'
+import { SettingsStore } from './settingsStore'
 import { loadUserPlugins } from './pluginLoader'
 
 // Must be called before app.whenReady().
@@ -89,6 +90,9 @@ app.whenReady().then(async () => {
     return new Response('Not found', { status: 404 })
   })
 
+  const settingsStorePath = path.join(app.getPath('userData'), 'settings.yaml')
+  const settingsStore = new SettingsStore(settingsStorePath)
+
   const workspaceStorePath = path.join(app.getPath('userData'), 'workspace.json')
   const workspaceStore = new WorkspaceStore(workspaceStorePath)
   const workspaceApi = createWorkspaceApi({
@@ -105,11 +109,16 @@ app.whenReady().then(async () => {
   const terminalService = new TerminalService(
     (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalData, event),
     (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalState, event),
-    (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalExit, event)
+    (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalExit, event),
+    settingsStore.read().tmux
   )
 
   workspaceStore.subscribeAll((event: WorkspaceEvent) => {
     mainWindow?.webContents.send(IPC_CHANNELS.workspaceEvent, event)
+
+    if (event.type === 'pane.removed' && event.before.type === 'terminal') {
+      terminalService.killSession(event.before.id)
+    }
   })
 
   ipcMain.handle(IPC_CHANNELS.terminalCreate, (_event, input: CreateTerminalSessionInput) =>
