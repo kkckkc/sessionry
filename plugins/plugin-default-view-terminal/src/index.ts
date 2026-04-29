@@ -1,8 +1,41 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin, MainPluginContext } from '@sessionry/plugin-api'
+import { TERMINAL_IPC_CHANNELS } from '@sessionry/plugin-api'
+
+const activateMain = async (context: MainPluginContext): Promise<void> => {
+  // Dynamic import ensures node-pty is never evaluated in the renderer process,
+  // since renderer.tsx imports index.ts to spread the plugin definition.
+  const { TerminalService } = await import('./terminalService')
+
+  const terminalService = new TerminalService(
+    (event) => context.ipc.emit(TERMINAL_IPC_CHANNELS.data, event),
+    (event) => context.ipc.emit(TERMINAL_IPC_CHANNELS.state, event),
+    (event) => context.ipc.emit(TERMINAL_IPC_CHANNELS.exit, event),
+    context.settings.tmux
+  )
+
+  context.ipc.handle(TERMINAL_IPC_CHANNELS.create, (input) =>
+    terminalService.createSession(input as Parameters<typeof terminalService.createSession>[0])
+  )
+  context.ipc.on(TERMINAL_IPC_CHANNELS.input, (payload) =>
+    terminalService.handleInput(payload as Parameters<typeof terminalService.handleInput>[0])
+  )
+  context.ipc.on(TERMINAL_IPC_CHANNELS.resize, (payload) =>
+    terminalService.handleResize(payload as Parameters<typeof terminalService.handleResize>[0])
+  )
+
+  context.workspace.subscribeAll((event) => {
+    if (event.type === 'pane.removed' && event.before.type === 'terminal') {
+      terminalService.killSession(event.before.id)
+    }
+  })
+
+  context.onBeforeQuit(() => terminalService.dispose())
+}
 
 export const terminalPanePlugin: AppPlugin = {
   id: 'plugin-default-view-terminal',
   name: 'Terminal Pane',
+  activateMain,
   actions: [
     {
       id: 'terminal:new',

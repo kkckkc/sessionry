@@ -15,6 +15,7 @@
     "@sessionry/plugin-api": "workspace:*",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
+    "node-pty": "latest",
     "react": "latest"
   },
   "devDependencies": {

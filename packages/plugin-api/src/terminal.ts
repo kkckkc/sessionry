@@ -1,3 +1,12 @@
+export const TERMINAL_IPC_CHANNELS = {
+  create: 'terminal:create',
+  input: 'terminal:input',
+  resize: 'terminal:resize',
+  data: 'terminal:data',
+  exit: 'terminal:exit',
+  state: 'terminal:state'
+} as const
+
 export type TerminalSessionState = 'idle' | 'starting' | 'ready' | 'exited'
 
 export interface TerminalSessionInfo {

@@ -5,14 +5,12 @@ import { pathToFileURL } from 'node:url'
 
 import { IPC_CHANNELS } from '@app-shared/ipc'
 import { createWorkspaceApi } from '@sessionry/plugin-api'
-import type { WorkspaceCommand, WorkspaceEvent } from '@sessionry/plugin-api'
-import type { CreateTerminalSessionInput, TerminalInputPayload, TerminalResizePayload } from '@sessionry/plugin-api'
+import type { PluginIpcApi, WorkspaceCommand, WorkspaceEvent } from '@sessionry/plugin-api'
 
 import { WorkspaceStore } from './workspaceStore'
 import { ActionRegistry } from './actionRegistry'
 import { createPluginManager } from './pluginManager'
 import { builtInPlugins } from './plugins'
-import { TerminalService } from './terminalService'
 import { SettingsStore } from './settingsStore'
 import { loadUserPlugins } from './pluginLoader'
 
@@ -102,34 +100,30 @@ app.whenReady().then(async () => {
   })
   const allPlugins = [...builtInPlugins, ...userPlugins.map((p) => p.plugin)]
   const actionRegistry = new ActionRegistry(allPlugins, workspaceApi, () => workspaceStore.read())
+
+  const ipcApi: PluginIpcApi = {
+    handle: (channel, handler) =>
+      ipcMain.handle(channel, (_event, ...args) => handler(...args)),
+    on: (channel, handler) =>
+      ipcMain.on(channel, (_event, ...args) => handler(...args)),
+    emit: (channel, ...args) =>
+      mainWindow?.webContents.send(channel, ...args)
+  }
+
   const pluginManager = createPluginManager(
-    { workspace: workspaceApi },
+    {
+      workspace: workspaceApi,
+      ipc: ipcApi,
+      settings: settingsStore.read(),
+      onBeforeQuit: (handler) => app.on('before-quit', handler)
+    },
     userPlugins.map((p) => p.plugin)
-  )
-  const terminalService = new TerminalService(
-    (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalData, event),
-    (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalState, event),
-    (event) => mainWindow?.webContents.send(IPC_CHANNELS.terminalExit, event),
-    settingsStore.read().tmux
   )
 
   workspaceStore.subscribeAll((event: WorkspaceEvent) => {
     mainWindow?.webContents.send(IPC_CHANNELS.workspaceEvent, event)
-
-    if (event.type === 'pane.removed' && event.before.type === 'terminal') {
-      terminalService.killSession(event.before.id)
-    }
   })
 
-  ipcMain.handle(IPC_CHANNELS.terminalCreate, (_event, input: CreateTerminalSessionInput) =>
-    terminalService.createSession(input)
-  )
-  ipcMain.on(IPC_CHANNELS.terminalInput, (_event, payload: TerminalInputPayload) => {
-    terminalService.handleInput(payload)
-  })
-  ipcMain.on(IPC_CHANNELS.terminalResize, (_event, payload: TerminalResizePayload) => {
-    terminalService.handleResize(payload)
-  })
   ipcMain.handle(IPC_CHANNELS.pluginModel, () => pluginManager.getViewModel())
   ipcMain.handle(IPC_CHANNELS.userPluginRenderers, () =>
     userPlugins
@@ -150,10 +144,6 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.showFolderDialog, () =>
     dialog.showOpenDialog(mainWindow!, { properties: ['openDirectory', 'createDirectory'] })
   )
-
-  app.on('before-quit', () => {
-    terminalService.dispose()
-  })
 
   createWindow()
 

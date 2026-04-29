@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 
 import type { ActionContribution, ActionDescriptor } from './actions'
+import type { AppSettings } from './settings'
 import type { Pane, WorkspaceApi } from './workspace'
 
 export type SidebarSide = 'left' | 'right'
@@ -69,8 +70,20 @@ export interface RendererAppPlugin extends Omit<AppPlugin, 'views'> {
 }
 
 
+export interface PluginIpcApi {
+  /** Register an invoke handler (renderer calls ipcRenderer.invoke). */
+  handle: (channel: string, handler: (...args: unknown[]) => unknown) => void
+  /** Register a one-way listener (renderer calls ipcRenderer.send). */
+  on: (channel: string, handler: (...args: unknown[]) => void) => void
+  /** Send an event to the renderer. */
+  emit: (channel: string, ...args: unknown[]) => void
+}
+
 export interface MainPluginContext {
   workspace: WorkspaceApi
+  ipc: PluginIpcApi
+  settings: AppSettings
+  onBeforeQuit: (handler: () => void) => void
 }
 
 export interface RendererPluginContext {

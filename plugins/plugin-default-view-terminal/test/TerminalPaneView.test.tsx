@@ -118,6 +118,7 @@ describe('TerminalPaneView', () => {
     disposeMock.mockClear()
     vi.stubGlobal('ResizeObserver', ResizeObserverMock)
     window.terminalApp = {
+      showFolderDialog: vi.fn(),
       createTerminalSession: vi.fn().mockResolvedValue(makeSession('hello')),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),

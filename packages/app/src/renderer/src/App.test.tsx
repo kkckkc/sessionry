@@ -141,6 +141,7 @@ describe('App', () => {
   beforeEach(() => {
     vi.resetModules()
     window.terminalApp = {
+      showFolderDialog: vi.fn(),
       createTerminalSession: vi.fn(async () => terminalSession),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
@@ -179,6 +180,7 @@ describe('App', () => {
     const executeCommand = vi.fn(async () => ({}))
 
     window.terminalApp = {
+      showFolderDialog: vi.fn(),
       createTerminalSession: vi.fn(async () => terminalSession),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
@@ -302,7 +304,8 @@ describe('App', () => {
       },
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
-      onTerminalExit: vi.fn(() => () => {})
+      onTerminalExit: vi.fn(() => () => {}),
+      showFolderDialog: vi.fn()
     }
 
     const { App } = await import('./App')
