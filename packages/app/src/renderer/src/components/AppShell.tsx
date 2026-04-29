@@ -19,6 +19,7 @@ interface AppShellProps {
   session: TerminalSessionInfo | null
   leftVisible: boolean
   rightVisible: boolean
+  statusBarVisible: boolean
   mainContent: ReactNode
   onToolbarAction: (actionId: string) => void
   resolveRendererView: (viewId: string) => RendererViewRegistration | null
@@ -101,6 +102,7 @@ export const AppShell = ({
   session,
   leftVisible,
   rightVisible,
+  statusBarVisible,
   mainContent,
   onToolbarAction,
   resolveRendererView
@@ -187,14 +189,16 @@ export const AppShell = ({
         ) : null}
       </main>
 
-      <footer className="status-bar">
-        {plugins.statusItems.map((item) => (
-          <div key={item.id} className="item">
-            <span>{item.label}</span>
-            <span>{resolveStatusValue(item, session)}</span>
-          </div>
-        ))}
-      </footer>
+      {statusBarVisible && (
+        <footer className="status-bar">
+          {plugins.statusItems.map((item) => (
+            <div key={item.id} className="item">
+              <span>{item.label}</span>
+              <span>{resolveStatusValue(item, session)}</span>
+            </div>
+          ))}
+        </footer>
+      )}
     </div>
   )
 }

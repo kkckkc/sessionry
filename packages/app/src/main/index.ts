@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, net, protocol } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol } from 'electron'
 import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
@@ -144,7 +144,55 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.showFolderDialog, () =>
     dialog.showOpenDialog(mainWindow!, { properties: ['openDirectory', 'createDirectory'] })
   )
+  ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read())
+  ipcMain.handle(IPC_CHANNELS.settingsUpdate, (_event, updates) => {
+    settingsStore.update(updates)
+    mainWindow?.webContents.send('settings:changed', settingsStore.read())
+  })
 
+  const createMenu = () => {
+    const settings = settingsStore.read()
+    const template: Electron.MenuItemConstructorOptions[] = [
+      {
+        label: 'View',
+        submenu: [
+          {
+            label: 'Toggle Status Bar',
+            type: 'checkbox',
+            checked: settings.statusBarVisible,
+            click: () => {
+              const currentSettings = settingsStore.read()
+              settingsStore.update({ statusBarVisible: !currentSettings.statusBarVisible })
+              mainWindow?.webContents.send('settings:changed', settingsStore.read())
+              createMenu()
+            }
+          }
+        ]
+      }
+    ]
+
+    if (process.platform === 'darwin') {
+      template.unshift({
+        label: app.name,
+        submenu: [
+          { role: 'about' },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideOthers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
+      })
+    }
+
+    const menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(menu)
+  }
+
+  createMenu()
   createWindow()
 
   app.on('activate', () => {

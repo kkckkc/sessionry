@@ -1,5 +1,6 @@
 import type { ActionDescriptor, ActionExecutionRequest, ActionExecutionResult } from './actions'
 import type { PluginViewModel } from './plugins'
+import type { AppSettings } from './settings'
 import type {
   WorkspaceCommand,
   WorkspaceCommandResult,
@@ -36,6 +37,11 @@ export interface TerminalAppBridge {
     read: () => WorkspaceStateSnapshot
     executeCommand: (command: WorkspaceCommand) => Promise<WorkspaceCommandResult>
     onEvent: (listener: (event: WorkspaceEvent) => void) => () => void
+  }
+  settings: {
+    read: () => Promise<AppSettings>
+    update: (updates: Partial<AppSettings>) => Promise<void>
+    onChange: (listener: (settings: AppSettings) => void) => () => void
   }
   onTerminalData: (listener: (event: TerminalDataEvent) => void) => () => void
   onTerminalState: (listener: (event: TerminalStateEvent) => void) => () => void

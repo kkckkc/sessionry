@@ -14,4 +14,5 @@ export interface TmuxSettings {
 export interface AppSettings {
   version: 1
   tmux: TmuxSettings
+  statusBarVisible: boolean
 }

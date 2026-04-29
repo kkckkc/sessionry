@@ -5,6 +5,7 @@ import type {
   ActionDescriptor,
   ActionExecutionRequest,
   ActionExecutionResult,
+  AppSettings,
   WorkspaceEvent,
   WorkspaceCommand,
   WorkspaceCommandResult,
@@ -53,6 +54,16 @@ const api = {
   },
   showFolderDialog: (): Promise<{ canceled: boolean; filePaths: string[] }> =>
     ipcRenderer.invoke(IPC_CHANNELS.showFolderDialog),
+  settings: {
+    read: (): Promise<AppSettings> => ipcRenderer.invoke(IPC_CHANNELS.settingsRead),
+    update: (updates: Partial<AppSettings>): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.settingsUpdate, updates),
+    onChange: (listener: (settings: AppSettings) => void): Unsubscribe => {
+      const wrapped = (_event: Electron.IpcRendererEvent, payload: AppSettings) => listener(payload)
+      ipcRenderer.on('settings:changed', wrapped)
+      return () => ipcRenderer.removeListener('settings:changed', wrapped)
+    }
+  },
   onTerminalData: (listener: (event: TerminalDataEvent) => void): Unsubscribe => {
     const wrapped = (_event: Electron.IpcRendererEvent, payload: TerminalDataEvent) => listener(payload)
     ipcRenderer.on(IPC_CHANNELS.terminalData, wrapped)

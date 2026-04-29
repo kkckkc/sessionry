@@ -5,6 +5,7 @@ import type {
   ActionExecutionResult,
   ActionInputSpec,
   ActionInvocationSource,
+  AppSettings,
   PluginViewModel,
   TerminalSessionInfo,
   TerminalStateEvent,
@@ -177,6 +178,7 @@ export const App = () => {
   const [workspaceSnapshot, setWorkspaceSnapshot] = useState<WorkspaceStateSnapshot>(() => readWorkspaceSnapshot())
   const [leftVisible, setLeftVisible] = useState(true)
   const [rightVisible, setRightVisible] = useState(true)
+  const [statusBarVisible, setStatusBarVisible] = useState(true)
   const [clearSignal, setClearSignal] = useState(0)
   const [pendingAction, setPendingAction] = useState<PendingActionState | null>(null)
   const initializedRef = useRef(false)
@@ -196,10 +198,19 @@ export const App = () => {
     if (initializedRef.current) return
     initializedRef.current = true
 
-    void Promise.all([window.terminalApp.getPluginModel(), loadUserPluginRenderers()]).then(
-      ([pluginModel]) => setPlugins(pluginModel)
-    )
+    void Promise.all([
+      window.terminalApp.getPluginModel(),
+      loadUserPluginRenderers(),
+      window.terminalApp.settings.read()
+    ]).then(([pluginModel, , settings]) => {
+      setPlugins(pluginModel)
+      setStatusBarVisible(settings.statusBarVisible)
+    })
     setWorkspaceSnapshot(readWorkspaceSnapshot())
+
+    const unsubscribeSettings = window.terminalApp.settings.onChange((settings: AppSettings) => {
+      setStatusBarVisible(settings.statusBarVisible)
+    })
 
     const unsubscribeState = window.terminalApp.onTerminalState((event: TerminalStateEvent) => {
       setTerminalSessions((value) => ({
@@ -225,6 +236,7 @@ export const App = () => {
     })
 
     return () => {
+      unsubscribeSettings()
       unsubscribeState()
       unsubscribeWorkspace()
       if (workspaceRefreshFrame !== null) window.cancelAnimationFrame(workspaceRefreshFrame)
@@ -294,6 +306,7 @@ export const App = () => {
         session={activeTerminalSession}
         leftVisible={leftVisible}
         rightVisible={rightVisible}
+        statusBarVisible={statusBarVisible}
         mainContent={
           <WorkspaceSlotView
             plugins={plugins}

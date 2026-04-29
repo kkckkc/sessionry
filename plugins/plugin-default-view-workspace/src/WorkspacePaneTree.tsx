@@ -423,26 +423,36 @@ const StackedPaneGroup = ({
             )
           })}
         </Tabs.List>
-        {activePaneId && (
-          <div className="tab-bar-actions">
-            <button
-              type="button"
-              className="tab-bar-action"
-              aria-label="Split horizontal"
-              onClick={() => onSplitPane(activePaneId, 'horizontal')}
-            >
-              <TbLayoutColumns size={14} />
-            </button>
-            <button
-              type="button"
-              className="tab-bar-action"
-              aria-label="Split vertical"
-              onClick={() => onSplitPane(activePaneId, 'vertical')}
-            >
-              <TbLayoutRows size={14} />
-            </button>
-          </div>
-        )}
+        <div className="tab-bar-actions">
+          {activePaneId && (
+            <>
+              <button
+                type="button"
+                className="tab-bar-action"
+                aria-label="Split horizontal"
+                onClick={() => onSplitPane(activePaneId, 'horizontal')}
+              >
+                <TbLayoutColumns size={14} />
+              </button>
+              <button
+                type="button"
+                className="tab-bar-action"
+                aria-label="Split vertical"
+                onClick={() => onSplitPane(activePaneId, 'vertical')}
+              >
+                <TbLayoutRows size={14} />
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className="tab-bar-action tab-bar-action--glyph"
+            aria-label="New tab"
+            onClick={() => onAddTerminalPane(paneGroup.id)}
+          >
+            +
+          </button>
+        </div>
         {activeSplitGroup && (
           <PaneGroupHeader
             paneGroup={activeSplitGroup}

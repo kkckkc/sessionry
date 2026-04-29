@@ -14,11 +14,12 @@ const DEFAULTS: AppSettings = {
     disableStatusBar: false,
     inheritConfig: true,
     killOnExit: true
-  }
+  },
+  statusBarVisible: true
 }
 
 export class SettingsStore {
-  private readonly settings: AppSettings
+  private settings: AppSettings
 
   constructor(private readonly filePath: string) {
     this.settings = this.load()
@@ -26,6 +27,11 @@ export class SettingsStore {
 
   read(): AppSettings {
     return this.settings
+  }
+
+  update(updates: Partial<AppSettings>): void {
+    this.settings = { ...this.settings, ...updates }
+    this.save(this.settings)
   }
 
   private load(): AppSettings {
