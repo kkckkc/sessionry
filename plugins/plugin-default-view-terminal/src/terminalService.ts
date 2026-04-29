@@ -410,6 +410,7 @@ export class TerminalService {
   private ensureTmuxSession(name: string, cwd: string): void {
     if (!this.tmuxSessionExists(name)) {
       this.tmux(['new-session', '-d', '-s', name, '-c', cwd])
+      this.tmux(['set-option', '-t', name, 'mouse', 'on'])
       if (this.tmuxSettings.disableStatusBar) {
         this.tmux(['set-option', '-t', name, 'status', 'off'])
       }

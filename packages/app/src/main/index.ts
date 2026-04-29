@@ -156,6 +156,16 @@ app.whenReady().then(async () => {
       {
         label: 'View',
         submenu: [
+          { role: 'reload' },
+          { role: 'forceReload' },
+          { role: 'toggleDevTools' },
+          { type: 'separator' },
+          { role: 'resetZoom' },
+          { role: 'zoomIn' },
+          { role: 'zoomOut' },
+          { type: 'separator' },
+          { role: 'togglefullscreen' },
+          { type: 'separator' },
           {
             label: 'Toggle Status Bar',
             type: 'checkbox',
@@ -167,6 +177,21 @@ app.whenReady().then(async () => {
               createMenu()
             }
           }
+        ]
+      },
+      {
+        label: 'Window',
+        submenu: [
+          { role: 'minimize' },
+          { role: 'zoom' },
+          ...(process.platform === 'darwin'
+            ? [
+                { type: 'separator' as const },
+                { role: 'front' as const },
+                { type: 'separator' as const },
+                { role: 'window' as const }
+              ]
+            : [{ role: 'close' as const }])
         ]
       }
     ]

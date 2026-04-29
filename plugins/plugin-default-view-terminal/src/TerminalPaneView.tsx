@@ -39,6 +39,7 @@ export const TerminalPaneView = ({
     const terminal = new Terminal({
       cursorBlink: true,
       convertEol: true,
+      scrollback: 10000,
       fontFamily: '"BerkeleyMono Nerd Font Mono Plus Font Awesome Plus Octicons Plus Power Symbols Plus Codicons Plus Pomicons Plus Font Logos Plus Material Design Icons Plus Weather Icons", "SF Mono", "JetBrains Mono", ui-monospace, monospace',
       fontSize: 11,
       lineHeight: 1.15,
@@ -84,6 +85,7 @@ export const TerminalPaneView = ({
 
     const resizeObserver = new ResizeObserver(resizeTerminal)
     resizeObserver.observe(containerRef.current)
+
 
     // Buffer live data while the historical snapshot is loading to avoid
     // interleaving real-time writes with the bulk buffer replay.
@@ -142,7 +144,7 @@ export const TerminalPaneView = ({
       unsubscribeData()
       terminalInputSubscription.dispose()
       resizeObserver.disconnect()
-      terminal.dispose()
+terminal.dispose()
       fitAddon.dispose()
       terminalRef.current = null
       fitAddonRef.current = null

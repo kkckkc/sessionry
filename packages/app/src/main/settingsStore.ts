@@ -9,7 +9,7 @@ export type { AppSettings, TmuxSettings }
 const DEFAULTS: AppSettings = {
   version: 1,
   tmux: {
-    enabled: true,
+    enabled: false,
     dedicatedSocket: true,
     disableStatusBar: false,
     inheritConfig: true,
