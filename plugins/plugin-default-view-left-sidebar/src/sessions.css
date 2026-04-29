@@ -1,0 +1,255 @@
+.sidebar--left {
+  border-right: 1px solid var(--border-color);
+}
+
+.sidebar-resize-handle--left {
+  left: -4px;
+}
+
+.sessions {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  column-gap: 0.375rem;
+  row-gap: 2px;
+  align-content: start;
+
+  /* Structural wrappers — transparent to the grid */
+  > .projects-list,
+  .project-item {
+    display: contents;
+  }
+
+  /* ── Shared row base ── */
+  .projects-section-header,
+  .project-header,
+  .session-item {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: center;
+    padding: 0.3rem 0.375rem;
+    border-radius: 6px;
+  }
+
+  /* ── Section header ── */
+  .projects-section-header {
+    padding: 0.35rem 0.375rem;
+  }
+
+  .projects-section-title {
+    grid-column: 1 / 3;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    user-select: none;
+  }
+
+  .projects-add-btn {
+    grid-column: 3;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 100ms ease;
+  }
+
+  .projects-section-header:hover .projects-add-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── Project row ── */
+  .project-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background 100ms ease;
+
+    &:hover {
+      background: var(--button-bg-hover);
+    }
+  }
+
+  .project-avatar-btn {
+    display: flex;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 6px;
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.3);
+      outline-offset: 1px;
+    }
+
+    &:hover .project-avatar {
+      opacity: 0.8;
+    }
+  }
+
+  .project-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: white;
+    transition: opacity 150ms ease;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    aspect-ratio: 1/1;
+  }
+
+  .project-name {
+    color: var(--text-primary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ── Badge / action slot ──
+     Both children occupy the same grid cell; CSS swaps which is visible. */
+  .project-slot {
+    display: grid;
+
+    > * {
+      grid-column: 1;
+      grid-row: 1;
+      transition: opacity 100ms ease;
+    }
+  }
+
+  .project-header:hover .session-count,
+  .project-header:not(:hover) .session-add-btn {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .session-count {
+    display: flex;
+    align-items: center;
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+  }
+
+  /* ── Sessions collapse wrapper ──
+     Spans all columns but establishes its own row track for the
+     expand/collapse animation. Subgrids the columns so children
+     can still align to the outer column tracks. */
+  .sessions-list-wrapper {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 200ms ease;
+    overflow: hidden;
+
+    &.is-collapsed {
+      grid-template-rows: 0fr;
+    }
+  }
+
+  /* ── Sessions list ──
+     Inherits column tracks via subgrid; creates auto rows for each session. */
+  .sessions-list {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-content: start;
+    row-gap: 2px;
+    padding: 0;
+    list-style: none;
+    min-height: 0;
+    margin: 0 0 0.5rem;
+  }
+
+  /* ── Session row ── */
+  .session-item {
+    transition: background 100ms ease;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+    padding-left: 24px;
+
+    &:hover {
+      background: var(--button-bg-hover);
+
+      .session-remove-btn {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
+    &.is-active {
+      background: var(--accent-bg);
+      > button {
+        color: var(--accent) !important;
+      }
+    }
+  }
+
+  .session-btn {
+    grid-column: 1 / 3;
+    border: 0;
+    border-radius: 0;
+    padding: 0 0.5rem;
+    text-align: left;
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.82rem;
+    letter-spacing: -0.01em;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+
+    &.is-active {
+      color: var(--accent);
+    }
+  }
+
+  .session-remove-btn {
+    grid-column: 3;
+    font-size: 0.875rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 100ms ease;
+  }
+
+  /* ── Shared action button styles ── */
+  .projects-add-btn,
+  .session-add-btn,
+  .session-remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+    }
+  }
+}

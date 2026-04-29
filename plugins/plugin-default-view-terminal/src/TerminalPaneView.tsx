@@ -38,8 +38,9 @@ export const TerminalPaneView = ({
       cursorBlink: true,
       convertEol: true,
       fontFamily: '"BerkeleyMono Nerd Font Mono Plus Font Awesome Plus Octicons Plus Power Symbols Plus Codicons Plus Pomicons Plus Font Logos Plus Material Design Icons Plus Weather Icons", "SF Mono", "JetBrains Mono", ui-monospace, monospace',
-      fontSize: 13,
-      //lineHeight: 1.25,
+      fontSize: 11,
+      lineHeight: 1.15,
+      customGlyphs: true,
       theme: {
         background: '#121212',
         foreground: '#d6e1ff',

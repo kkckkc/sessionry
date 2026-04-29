@@ -1,3 +1,5 @@
+import './sessions.css'
+
 import { useState, useEffect, type FormEvent } from 'react'
 import { Menu } from '@base-ui-components/react/menu'
 import { Dialog } from '@base-ui-components/react/dialog'
@@ -189,28 +191,30 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                     <ProjectAvatar name={project.name} />
                   </button>
                   <span className="project-name">{project.name}</span>
-                  <span className="session-count" aria-label={`${sessions.length} sessions`}>{sessions.length}</span>
-                  <button
-                    type="button"
-                    className="session-add-btn"
-                    title="New session"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      void createSession(workspace, project.id, sessions.length)
-                    }}
-                  >
-                    +
-                  </button>
+                  <div className="project-slot">
+                    <span className="session-count" aria-label={`${sessions.length} sessions`}>{sessions.length}</span>
+                    <button
+                      type="button"
+                      className="session-add-btn"
+                      title="New session"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        void createSession(workspace, project.id, sessions.length)
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
                 <div className={isCollapsed ? 'sessions-list-wrapper is-collapsed' : 'sessions-list-wrapper'}>
                   <ul className="sessions-list">
                     {sessions.map((session) => {
                       const isActive = session.id === workspace.snapshot.activeSessionId
                       return (
-                        <li key={session.id} className="session-item">
+                        <li key={session.id} className={isActive ? 'session-item is-active' : 'session-item'}>
                           <button
                             type="button"
-                            className={isActive ? 'session-btn is-active' : 'session-btn'}
+                            className="session-btn"
                             aria-pressed={isActive}
                             onClick={() => {
                               void workspace.getSession(session.id)?.activate()
@@ -223,10 +227,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                             type="button"
                             className="session-remove-btn"
                             title="Remove session"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleRemoveSession(session.id)
-                            }}
+                            onClick={() => handleRemoveSession(session.id)}
                           >
                             ×
                           </button>
