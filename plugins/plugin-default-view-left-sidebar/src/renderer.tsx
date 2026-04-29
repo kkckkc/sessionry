@@ -3,25 +3,56 @@ import './sessions.css'
 import { useState, useEffect, type FormEvent } from 'react'
 import { Menu } from '@base-ui-components/react/menu'
 import { Dialog } from '@base-ui-components/react/dialog'
-import type { RendererAppPlugin, SidebarViewProps } from '@sessionry/plugin-api'
+import type { RendererAppPlugin, SidebarViewProps, Project } from '@sessionry/plugin-api'
 
 import { projectSessionsSidebarPlugin } from '.'
 
-const PROJECT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899']
+const COLOR_PALETTE = [
+  // Row 1
+  '#da5597', '#e14f62', '#e87b35', '#e9a23b',
+  '#94ca42', '#55b685', '#52b3d0',
+  // Row 2
+  '#6466e9', '#845eee', '#9d59ef', '#c951e7',
+  '#677389', '#77716d', '#2d3748',
+]
 
 const getProjectColor = (name: string): string => {
   let hash = 0
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash)
   }
-  return PROJECT_COLORS[Math.abs(hash) % PROJECT_COLORS.length]
+  return COLOR_PALETTE[Math.abs(hash) % COLOR_PALETTE.length]
 }
 
-const ProjectAvatar = ({ name }: { name: string }) => (
-  <span className="project-avatar" style={{ backgroundColor: getProjectColor(name) }}>
-    {name[0]?.toUpperCase()}
-  </span>
-)
+const getProjectDisplayColor = (project: Project): string => {
+  return (project.metadata.color as string) || getProjectColor(project.name)
+}
+
+const ProjectAvatar = ({ 
+  project, 
+  onClick 
+}: { 
+  project: Project
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void 
+}) => {
+  const color = getProjectDisplayColor(project)
+  
+  return (
+    <button
+      type="button"
+      className="project-avatar-btn"
+      onClick={onClick}
+      title="Change project color"
+    >
+      <span 
+        className="project-avatar" 
+        style={{ backgroundColor: color }}
+      >
+        {project.name[0]?.toUpperCase()}
+      </span>
+    </button>
+  )
+}
 
 const createSession = async (workspace: SidebarViewProps['workspace'], projectId: string, sessionCount: number) => {
   const project = workspace.getProject(projectId)
@@ -43,7 +74,15 @@ const openProject = async (workspace: SidebarViewProps['workspace']) => {
 
   const folder = result.filePaths[0]!
   const name = folder.split(/[\\/]/).filter(Boolean).pop() ?? folder
-  await workspace.createProject({ name, folder })
+  
+  // Auto-assign a random color from the palette
+  const color = COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)]
+  
+  await workspace.createProject({ 
+    name, 
+    folder,
+    metadata: { color }
+  })
 }
 
 interface RenameState {
@@ -107,11 +146,56 @@ const RenameDialog = ({
   )
 }
 
+interface ColorPickerState {
+  projectId: string
+  currentColor: string
+  anchorElement: HTMLElement
+}
+
+const ColorPickerPopup = ({
+  currentColor,
+  onColorSelect,
+  onClose,
+  anchorElement
+}: {
+  currentColor: string
+  onColorSelect: (color: string) => void
+  onClose: () => void
+  anchorElement: HTMLElement
+}) => {
+  return (
+    <Menu.Root open onOpenChange={(isOpen: boolean) => { if (!isOpen) onClose() }}>
+      <Menu.Portal>
+        <Menu.Positioner
+          className="menu-positioner"
+          anchor={{ getBoundingClientRect: () => anchorElement.getBoundingClientRect() }}
+        >
+          <Menu.Popup className="color-picker-popup">
+            <div className="color-picker-grid">
+              {COLOR_PALETTE.map((color) => (
+                <button
+                  key={color}
+                  className={`color-swatch ${color === currentColor ? 'is-selected' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => onColorSelect(color)}
+                  aria-label={`Select color ${color}`}
+                  type="button"
+                />
+              ))}
+            </div>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
+  )
+}
+
 const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
   const [, setRefreshKey] = useState(0)
   const [renameState, setRenameState] = useState<RenameState | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
   const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set())
+  const [colorPicker, setColorPicker] = useState<ColorPickerState | null>(null)
 
   useEffect(() => workspace.subscribeAll(() => setRefreshKey((k) => k + 1)), [workspace])
 
@@ -139,6 +223,34 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
       type, id, name,
       anchor: { getBoundingClientRect: () => new DOMRect(clientX, clientY, 0, 0) }
     })
+  }
+
+  const openColorPicker = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    project: Project
+  ) => {
+    event.stopPropagation()
+    setColorPicker({
+      projectId: project.id,
+      currentColor: getProjectDisplayColor(project),
+      anchorElement: event.currentTarget
+    })
+  }
+
+  const handleColorSelect = async (color: string) => {
+    if (!colorPicker) return
+    
+    const project = workspace.getProject(colorPicker.projectId)
+    if (!project) return
+
+    await project.update({
+      metadata: {
+        ...project.data.metadata,
+        color
+      }
+    })
+    
+    setColorPicker(null)
   }
 
   const handleRename = (name: string) => {
@@ -182,15 +294,17 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                   className="project-header"
                   onContextMenu={(e) => openContextMenu(e, 'project', project.id, project.name)}
                 >
-                  <button
-                    type="button"
-                    className="project-avatar-btn"
-                    title={isCollapsed ? 'Expand project' : 'Collapse project'}
+                  <ProjectAvatar 
+                    project={project}
+                    onClick={(e) => openColorPicker(e, project)}
+                  />
+                  <span 
+                    className="project-name"
                     onClick={() => toggleCollapsed(project.id)}
+                    style={{ cursor: 'pointer' }}
                   >
-                    <ProjectAvatar name={project.name} />
-                  </button>
-                  <span className="project-name">{project.name}</span>
+                    {project.name}
+                  </span>
                   <div className="project-slot">
                     <span className="session-count" aria-label={`${sessions.length} sessions`}>{sessions.length}</span>
                     <button
@@ -261,6 +375,18 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
               >
                 Rename
               </Menu.Item>
+              {contextMenu?.type === 'project' && (
+                <Menu.Item
+                  className="menu-item menu-item--danger"
+                  onClick={() => {
+                    if (!contextMenu) return
+                    void workspace.getProject(contextMenu.id)?.remove()
+                    setContextMenu(null)
+                  }}
+                >
+                  Close
+                </Menu.Item>
+              )}
               {contextMenu?.type === 'session' && (
                 <Menu.Item
                   className="menu-item menu-item--danger"
@@ -282,6 +408,14 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
           renameState={renameState}
           onClose={() => setRenameState(null)}
           onRename={handleRename}
+        />
+      )}
+      {colorPicker && (
+        <ColorPickerPopup
+          currentColor={colorPicker.currentColor}
+          onColorSelect={handleColorSelect}
+          onClose={() => setColorPicker(null)}
+          anchorElement={colorPicker.anchorElement}
         />
       )}
     </>
