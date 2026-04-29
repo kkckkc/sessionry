@@ -5,7 +5,7 @@
   background: transparent;
   overflow: hidden;
 
-  .xterm {
+  .terminal-container {
     height: 100%;
   }
 

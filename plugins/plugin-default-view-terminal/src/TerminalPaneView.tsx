@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 const MIN_COLS = 55
 const MIN_ROWS = 25
 
+import { CanvasAddon } from '@xterm/addon-canvas'
 import { FitAddon } from '@xterm/addon-fit'
 import { Terminal } from '@xterm/xterm'
 
@@ -34,6 +35,7 @@ export const TerminalPaneView = ({
     if (!containerRef.current || terminalRef.current) return
 
     const fitAddon = new FitAddon()
+    const terminalBg = getComputedStyle(containerRef.current).getPropertyValue('--workspace-bg').trim()
     const terminal = new Terminal({
       cursorBlink: true,
       convertEol: true,
@@ -42,7 +44,7 @@ export const TerminalPaneView = ({
       lineHeight: 1.15,
       customGlyphs: true,
       theme: {
-        background: '#121212',
+        background: terminalBg || '#121212',
         foreground: '#d6e1ff',
         cursor: '#ffcb6b',
         black: '#2b3144',
@@ -66,6 +68,7 @@ export const TerminalPaneView = ({
 
     terminal.loadAddon(fitAddon)
     terminal.open(containerRef.current)
+    terminal.loadAddon(new CanvasAddon())
 
     const currentSession = pane.id
     const resizeTerminal = () => {
@@ -173,5 +176,9 @@ export const TerminalPaneView = ({
     })
   }, [pane.id, visible])
 
-  return <div className="terminal-surface" ref={containerRef} />
+  return (
+    <div className="terminal-surface">
+      <div ref={containerRef} className="terminal-container" />
+    </div>
+  )
 }
