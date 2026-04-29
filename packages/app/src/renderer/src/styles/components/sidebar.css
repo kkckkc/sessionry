@@ -1,4 +1,5 @@
 .sidebar {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -14,4 +15,37 @@
     border-left: 1px solid var(--border-color);
     background: var(--sidebar-bg);
   }
+}
+
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  cursor: ew-resize;
+  z-index: 10;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 4px;
+    width: 1px;
+    background: transparent;
+    transition: background 150ms ease;
+  }
+
+  &:hover::after,
+  &:active::after {
+    background: var(--text-tertiary);
+  }
+}
+
+.sidebar-resize-handle--right {
+  right: -4px;
+}
+
+.sidebar-resize-handle--left {
+  left: -4px;
 }

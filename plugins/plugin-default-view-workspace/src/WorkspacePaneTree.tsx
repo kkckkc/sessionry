@@ -544,8 +544,12 @@ export const WorkspacePaneTree = ({
   resolveRendererView,
   clearSignal
 }: WorkspaceViewProps) => {
-  const snapshot = workspace.snapshot
+  const [, setRefreshKey] = useState(0)
   const [renameGroup, setRenameGroup] = useState<{ paneGroupId: string; name: string } | null>(null)
+
+  useEffect(() => workspace.subscribeAll(() => setRefreshKey((k) => k + 1)), [workspace])
+
+  const snapshot = workspace.snapshot
   const activeSession = snapshot.activeSessionId
     ? snapshot.sessions.find((session) => session.id === snapshot.activeSessionId)
     : snapshot.sessions[0]

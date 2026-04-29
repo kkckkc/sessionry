@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Menu } from '@base-ui-components/react/menu'
 import { Dialog } from '@base-ui-components/react/dialog'
 import type { RendererAppPlugin, SidebarViewProps } from '@sessionry/plugin-api'
@@ -106,9 +106,12 @@ const RenameDialog = ({
 }
 
 const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
+  const [, setRefreshKey] = useState(0)
   const [renameState, setRenameState] = useState<RenameState | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
   const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set())
+
+  useEffect(() => workspace.subscribeAll(() => setRefreshKey((k) => k + 1)), [workspace])
 
   const toggleCollapsed = (projectId: string) => {
     setCollapsedProjects((prev) => {
@@ -144,6 +147,10 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
       void workspace.getSession(renameState.id)?.update({ name })
     }
     setRenameState(null)
+  }
+
+  const handleRemoveSession = (sessionId: string) => {
+    void workspace.getSession(sessionId)?.remove()
   }
 
   return (
@@ -200,7 +207,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                     {sessions.map((session) => {
                       const isActive = session.id === workspace.snapshot.activeSessionId
                       return (
-                        <li key={session.id}>
+                        <li key={session.id} className="session-item">
                           <button
                             type="button"
                             className={isActive ? 'session-btn is-active' : 'session-btn'}
@@ -211,6 +218,17 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                             onContextMenu={(e) => openContextMenu(e, 'session', session.id, session.name)}
                           >
                             {session.name}
+                          </button>
+                          <button
+                            type="button"
+                            className="session-remove-btn"
+                            title="Remove session"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRemoveSession(session.id)
+                            }}
+                          >
+                            ×
                           </button>
                         </li>
                       )
@@ -242,6 +260,18 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
               >
                 Rename
               </Menu.Item>
+              {contextMenu?.type === 'session' && (
+                <Menu.Item
+                  className="menu-item menu-item--danger"
+                  onClick={() => {
+                    if (!contextMenu) return
+                    handleRemoveSession(contextMenu.id)
+                    setContextMenu(null)
+                  }}
+                >
+                  Remove
+                </Menu.Item>
+              )}
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>

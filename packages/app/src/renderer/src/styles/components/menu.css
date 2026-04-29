@@ -39,6 +39,14 @@
     font-size: 1rem;
     line-height: 1;
   }
+
+  &.menu-item--danger {
+    color: #ef4444;
+
+    &[data-highlighted] {
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
 }
 
 .group-menu-trigger {

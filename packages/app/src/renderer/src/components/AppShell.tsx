@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import type { IconType } from 'react-icons'
 import * as TbIcons from 'react-icons/tb'
 
@@ -64,6 +64,37 @@ const SidebarView = ({
   )
 }
 
+const MIN_SIDEBAR_WIDTH = 160
+const MAX_SIDEBAR_WIDTH = 520
+
+const startSidebarResize = (
+  side: 'left' | 'right',
+  startWidth: number,
+  setWidth: (w: number) => void,
+  e: React.MouseEvent
+) => {
+  e.preventDefault()
+  const startX = e.clientX
+
+  document.body.style.cursor = 'ew-resize'
+  document.body.style.userSelect = 'none'
+
+  const onMouseMove = (moveEvent: MouseEvent) => {
+    const delta = side === 'left' ? moveEvent.clientX - startX : startX - moveEvent.clientX
+    setWidth(Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, startWidth + delta)))
+  }
+
+  const onMouseUp = () => {
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+  }
+
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+}
+
 export const AppShell = ({
   plugins,
   workspace,
@@ -74,6 +105,9 @@ export const AppShell = ({
   onToolbarAction,
   resolveRendererView
 }: AppShellProps) => {
+  const [leftWidth, setLeftWidth] = useState(280)
+  const [rightWidth, setRightWidth] = useState(300)
+
   const leftRegistration = resolveSidebarRegistration({ side: 'left', plugins, resolveRendererView })
   const rightRegistration = resolveSidebarRegistration({ side: 'right', plugins, resolveRendererView })
   const showLeftSidebar = leftVisible
@@ -84,6 +118,12 @@ export const AppShell = ({
     showLeftSidebar ? 'is-left-visible' : 'is-left-hidden',
     showRightSidebar ? 'is-right-visible' : 'is-right-hidden'
   ].join(' ')
+
+  const gridTemplateColumns = [
+    showLeftSidebar ? `${leftWidth}px` : null,
+    'minmax(0, 1fr)',
+    showRightSidebar ? `${rightWidth}px` : null
+  ].filter(Boolean).join(' ')
 
   return (
     <div className="app-frame">
@@ -113,7 +153,7 @@ export const AppShell = ({
         </Toolbar.Root>
       </header>
 
-      <main className={workspaceClassName}>
+      <main className={workspaceClassName} style={{ gridTemplateColumns }}>
         {showLeftSidebar ? (
           <aside className="sidebar sidebar--left">
             <SidebarView
@@ -122,6 +162,10 @@ export const AppShell = ({
               workspace={workspace}
               resolveRendererView={resolveRendererView}
             />
+            <div
+              className="sidebar-resize-handle sidebar-resize-handle--right"
+              onMouseDown={(e) => startSidebarResize('left', leftWidth, setLeftWidth, e)}
+            />
           </aside>
         ) : null}
 
@@ -129,6 +173,10 @@ export const AppShell = ({
 
         {showRightSidebar ? (
           <aside className="sidebar sidebar--right">
+            <div
+              className="sidebar-resize-handle sidebar-resize-handle--left"
+              onMouseDown={(e) => startSidebarResize('right', rightWidth, setRightWidth, e)}
+            />
             <SidebarView
               registration={rightRegistration}
               plugins={plugins}

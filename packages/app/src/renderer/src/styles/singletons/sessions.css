@@ -160,11 +160,47 @@
     min-height: 0;
   }
 
+  .session-item {
+    position: relative;
+
+    &:hover .session-remove-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .session-remove-btn {
+    position: absolute;
+    right: 0.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 0.875rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 100ms ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+    }
+  }
+
   .session-btn {
     width: 100%;
     border: 0;
     border-radius: 6px;
-    padding: 0.3rem 0.5rem;
+    padding: 0.3rem 1.75rem 0.3rem 0.5rem;
     text-align: left;
     color: var(--text-secondary);
     background: transparent;
