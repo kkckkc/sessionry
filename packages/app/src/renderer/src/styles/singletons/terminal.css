@@ -3,7 +3,7 @@
   height: 100%;
   padding: 0.5rem;
   background: transparent;
-  overflow: auto;
+  overflow: hidden;
 
   .xterm {
     height: 100%;
@@ -12,6 +12,11 @@
   .xterm-screen,
   .xterm-viewport,
   .xterm-scroll-area {
+    background: transparent !important;
     border-radius: 0;
+  }
+
+  .xterm-viewport {
+    overflow-y: hidden !important;
   }
 }

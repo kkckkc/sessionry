@@ -11,6 +11,7 @@
   background: var(--window-bg);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  font-size: 14px;
 }
 
 ::-webkit-scrollbar {
