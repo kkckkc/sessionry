@@ -1,16 +1,26 @@
 import type { AppPlugin, MainPluginContext } from '@sessionry/plugin-api'
 import { TERMINAL_IPC_CHANNELS } from '@sessionry/plugin-api'
+import type { TerminalPluginSettings } from './settings'
 
 const activateMain = async (context: MainPluginContext): Promise<void> => {
   // Dynamic import ensures node-pty is never evaluated in the renderer process,
   // since renderer.tsx imports index.ts to spread the plugin definition.
   const { TerminalService } = await import('./terminalService')
 
+  const pluginSettings = context.settings.plugins['plugin-default-view-terminal'] as TerminalPluginSettings | undefined
+  const tmuxSettings = pluginSettings?.tmux ?? {
+    enabled: false,
+    dedicatedSocket: true,
+    disableStatusBar: false,
+    inheritConfig: true,
+    killOnExit: true
+  }
+
   const terminalService = new TerminalService(
     (event) => context.ipc.emit(TERMINAL_IPC_CHANNELS.data, event),
     (event) => context.ipc.emit(TERMINAL_IPC_CHANNELS.state, event),
     (event) => context.ipc.emit(TERMINAL_IPC_CHANNELS.exit, event),
-    context.settings.tmux
+    tmuxSettings
   )
 
   context.ipc.handle(TERMINAL_IPC_CHANNELS.create, (input) =>

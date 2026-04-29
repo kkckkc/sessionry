@@ -2,20 +2,24 @@ import fs from 'node:fs'
 
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
 
-import type { AppSettings, TmuxSettings } from '@sessionry/plugin-api'
+import type { AppSettings } from '@sessionry/plugin-api'
 
-export type { AppSettings, TmuxSettings }
+export type { AppSettings }
 
 const DEFAULTS: AppSettings = {
   version: 1,
-  tmux: {
-    enabled: false,
-    dedicatedSocket: true,
-    disableStatusBar: false,
-    inheritConfig: true,
-    killOnExit: true
-  },
-  statusBarVisible: true
+  statusBarVisible: true,
+  plugins: {
+    'plugin-default-view-terminal': {
+      tmux: {
+        enabled: false,
+        dedicatedSocket: true,
+        disableStatusBar: false,
+        inheritConfig: true,
+        killOnExit: true
+      }
+    }
+  }
 }
 
 export class SettingsStore {
@@ -40,7 +44,10 @@ export class SettingsStore {
       return {
         ...DEFAULTS,
         ...raw,
-        tmux: { ...DEFAULTS.tmux, ...(raw?.tmux as Partial<TmuxSettings> | undefined) }
+        plugins: {
+          ...DEFAULTS.plugins,
+          ...(raw?.plugins as Record<string, unknown> | undefined)
+        }
       }
     } catch {
       this.save(DEFAULTS)

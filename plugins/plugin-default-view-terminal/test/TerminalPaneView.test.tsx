@@ -133,6 +133,11 @@ describe('TerminalPaneView', () => {
         executeCommand: vi.fn(),
         onEvent: vi.fn()
       },
+      settings: {
+        read: vi.fn(),
+        update: vi.fn(),
+        onChange: vi.fn(() => () => {})
+      },
       onTerminalData: vi.fn((callback) => {
         onTerminalDataCallbacks.push(callback)
         return () => {}

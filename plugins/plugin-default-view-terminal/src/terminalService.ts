@@ -14,9 +14,9 @@ import type {
   TerminalInputPayload,
   TerminalResizePayload,
   TerminalSessionInfo,
-  TerminalStateEvent,
-  TmuxSettings
+  TerminalStateEvent
 } from '@sessionry/plugin-api'
+import type { TmuxSettings } from './settings'
 
 const DEFAULT_PATH = '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
 const EXECUTABLE_MODE = 0o755
