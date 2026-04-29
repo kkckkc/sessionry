@@ -10,5 +10,6 @@
 @import './components/pane.css';
 @import './components/dialog.css';
 @import './components/menu.css';
+@import './components/settings.css';
 @import './components/status-bar.css';
 @import './singletons/terminal.css';

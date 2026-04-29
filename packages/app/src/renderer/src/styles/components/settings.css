@@ -1,0 +1,299 @@
+/* ── Settings Modal Backdrop ── */
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  animation: settings-fade-in 0.15s ease;
+}
+
+@keyframes settings-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal Container ── */
+.settings-modal {
+  width: 720px;
+  max-height: 80vh;
+  border-radius: 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: settings-scale-in 0.15s ease;
+}
+
+@keyframes settings-scale-in {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Modal Header ── */
+.settings-modal-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.settings-modal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  flex: 1;
+}
+
+.settings-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: var(--button-bg-hover);
+    color: var(--text-primary);
+  }
+}
+
+/* ── Modal Body ── */
+.settings-modal-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ── Nav Sidebar ── */
+.settings-modal-nav {
+  width: 168px;
+  border-right: 1px solid var(--border-color);
+  padding: 10px 8px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.settings-modal-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-align: left;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: background 0.12s, color 0.12s;
+  width: 100%;
+
+  &:hover {
+    background: var(--button-bg-hover);
+    color: var(--text-primary);
+  }
+
+  &.is-active {
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 500;
+  }
+}
+
+/* ── Content Area ── */
+.settings-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+}
+
+.settings-modal-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+
+.settings-modal-loading,
+.settings-modal-empty {
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+/* ── Plugin Settings Content ─────────────────────────────────────────────── */
+/* These classes are used by plugin settings views (e.g. terminal plugin).   */
+/* They render inside .settings-modal-content.                                */
+
+/* Hide redundant page-level header — modal already shows section title */
+.settings-header {
+  display: none;
+}
+
+.terminal-settings {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-section {
+  margin-bottom: 0;
+
+  & + .settings-section {
+    margin-top: 8px;
+  }
+}
+
+.settings-section-header {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-top: 20px;
+  margin-bottom: 2px;
+
+  h2 {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+  }
+
+  p {
+    display: none;
+  }
+}
+
+.settings-section-content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Setting Row (setting-control) ── */
+.setting-control {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.setting-control-header {
+  label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+}
+
+.setting-label {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 450;
+  letter-spacing: -0.01em;
+}
+
+.setting-description {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 3px 0 0;
+  line-height: 1.4;
+  max-width: 80%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Toggle Row: label on left, switch on right ── */
+/*
+ * Terminal plugin DOM order inside <label>:
+ *   1. <input class="toggle-input" />  (visually hidden)
+ *   2. <span class="toggle-switch" />
+ *   3. <span class="setting-label" />
+ *
+ * We use CSS order to put the label text first and push the switch to the right.
+ */
+.setting-toggle .setting-control-header label {
+  justify-content: space-between;
+}
+
+.setting-toggle .setting-label {
+  order: 0;
+  flex: 1;
+}
+
+.setting-toggle .toggle-switch {
+  order: 1;
+  flex-shrink: 0;
+}
+
+/* ── Toggle Switch ── */
+.toggle-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+
+  &:checked + .toggle-switch {
+    background: var(--accent);
+
+    &::before {
+      transform: translateX(20px);
+    }
+  }
+
+  &:disabled + .toggle-switch {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &:disabled ~ .setting-label {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: background 0.2s;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}

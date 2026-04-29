@@ -2,8 +2,10 @@ import type { RendererAppPlugin, RendererPluginViewDefinition } from '@sessionry
 import { defaultWorkspacePaneRendererPlugin } from '@sessionry/plugin-default-view-workspace/renderer'
 import { projectSessionsSidebarRendererPlugin } from '@sessionry/plugin-default-view-left-sidebar/renderer'
 import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-terminal/renderer'
+import { coreRendererPlugin } from './coreRendererPlugin'
 
 const builtInRendererPlugins = [
+  coreRendererPlugin,
   terminalPaneRendererPlugin,
   defaultWorkspacePaneRendererPlugin,
   projectSessionsSidebarRendererPlugin
@@ -17,6 +19,16 @@ const rendererViews = builtInRendererPlugins.flatMap((plugin) =>
 )
 
 const rendererViewById = new Map(rendererViews.map((view) => [view.id, view]))
+
+// Also register settings views
+for (const plugin of builtInRendererPlugins) {
+  if (plugin.settingsView) {
+    rendererViewById.set(plugin.settingsView.id, {
+      ...plugin.settingsView,
+      pluginId: plugin.id
+    })
+  }
+}
 
 export const getRendererView = (
   viewId: string

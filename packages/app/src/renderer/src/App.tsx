@@ -15,6 +15,7 @@ import { getActiveVisibleTerminalPaneId } from '@sessionry/plugin-default-view-w
 
 import { AppShell } from './components/AppShell'
 import { createActionKeydownHandler } from './lib/keybindings'
+import { SettingsView } from './components/SettingsView'
 import { WorkspaceSlotView } from './components/WorkspaceSlotView'
 import { readWorkspaceSnapshot, workspace } from './lib/workspace'
 import { getRendererView, loadUserPluginRenderers } from './plugins'
@@ -298,6 +299,9 @@ export const App = () => {
     return () => window.removeEventListener('keydown', handleKeydown)
   }, [activeTerminalPaneId, activeWorkspaceSessionId, plugins.actions, workspaceSnapshot.sessions])
 
+  const showSettings = activeProject?.activeViews.workspace === 'view.settings'
+  const closeSettings = () => executeAction('workspace:show-default-view', 'api')
+
   return (
     <>
       <AppShell
@@ -311,12 +315,17 @@ export const App = () => {
           <WorkspaceSlotView
             plugins={plugins}
             workspace={workspace}
-            selectedViewId={activeProject?.activeViews.workspace}
+            selectedViewId={showSettings ? undefined : activeProject?.activeViews.workspace}
             resolveRendererView={getRendererView}
             clearSignal={clearSignal}
           />
         }
         onToolbarAction={(actionId) => executeAction(actionId, 'toolbar')}
+        resolveRendererView={getRendererView}
+      />
+      <SettingsView
+        open={showSettings}
+        onClose={closeSettings}
         resolveRendererView={getRendererView}
       />
       <ActionDialog

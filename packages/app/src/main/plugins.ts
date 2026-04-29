@@ -3,7 +3,10 @@ import { projectSessionsSidebarPlugin } from '@sessionry/plugin-default-view-lef
 import { terminalPanePlugin } from '@sessionry/plugin-default-view-terminal'
 import { defaultWorkspacePanePlugin } from '@sessionry/plugin-default-view-workspace'
 
+import { corePlugin } from './corePlugin'
+
 export const builtInPlugins: AppPlugin[] = [
+  corePlugin,
   terminalPanePlugin,
   defaultWorkspacePanePlugin,
   projectSessionsSidebarPlugin

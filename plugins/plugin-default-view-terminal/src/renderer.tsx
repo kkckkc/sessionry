@@ -1,6 +1,7 @@
 import type { RendererAppPlugin } from '@sessionry/plugin-api'
 
 import { TerminalPaneView } from './TerminalPaneView'
+import { TerminalSettingsView } from './SettingsView'
 import { terminalPanePlugin } from '.'
 
 const terminalView = terminalPanePlugin.views?.[0]
@@ -10,13 +11,20 @@ if (!terminalView) {
 }
 
 export const terminalPaneRendererPlugin: RendererAppPlugin = {
-  ...terminalPanePlugin,
+  id: terminalPanePlugin.id,
+  name: terminalPanePlugin.name,
+  actions: terminalPanePlugin.actions,
+  statusItems: terminalPanePlugin.statusItems,
   views: [
     {
       ...terminalView,
       component: TerminalPaneView
     }
-  ]
+  ],
+  settingsView: terminalPanePlugin.settingsView ? {
+    ...terminalPanePlugin.settingsView,
+    component: TerminalSettingsView
+  } : undefined
 }
 
 export { TerminalPaneView }

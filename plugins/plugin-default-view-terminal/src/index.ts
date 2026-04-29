@@ -45,6 +45,12 @@ const activateMain = async (context: MainPluginContext): Promise<void> => {
 export const terminalPanePlugin: AppPlugin = {
   id: 'plugin-default-view-terminal',
   name: 'Terminal Pane',
+  settingsView: {
+    id: 'settings.terminal',
+    title: 'Terminal',
+    description: 'Configure terminal and tmux settings',
+    icon: 'TbTerminal'
+  },
   activateMain,
   actions: [
     {

@@ -49,6 +49,19 @@ export interface PaneViewProps extends ViewProps {
   visible: boolean
 }
 
+export interface SettingsViewProps {
+  pluginId: string
+  settings: unknown
+  onUpdate: (updates: unknown) => Promise<void>
+}
+
+export interface PluginSettingsViewDefinition {
+  id: string
+  title: string
+  description?: string
+  icon?: string
+}
+
 export interface RendererViewRegistration {
   component: ComponentType<any>
 }
@@ -59,14 +72,18 @@ export interface AppPlugin {
   actions?: ActionContribution[]
   statusItems?: StatusItemContribution[]
   views?: PluginViewDefinition[]
+  settingsView?: PluginSettingsViewDefinition
   activateMain?: (context: MainPluginContext) => void | Promise<void>
   activateRenderer?: (context: RendererPluginContext) => void | Promise<void>
 }
 
 export interface RendererPluginViewDefinition extends PluginViewDefinition, RendererViewRegistration {}
 
-export interface RendererAppPlugin extends Omit<AppPlugin, 'views'> {
+export interface RendererPluginSettingsViewDefinition extends PluginSettingsViewDefinition, RendererViewRegistration {}
+
+export interface RendererAppPlugin extends Omit<AppPlugin, 'views' | 'settingsView'> {
   views?: RendererPluginViewDefinition[]
+  settingsView?: RendererPluginSettingsViewDefinition
 }
 
 
@@ -88,6 +105,11 @@ export interface MainPluginContext {
 
 export interface RendererPluginContext {
   workspace: WorkspaceApi
+  settings: {
+    read: () => AppSettings
+    update: (updates: Partial<AppSettings>) => Promise<void>
+    onChange: (listener: (settings: AppSettings) => void) => () => void
+  }
 }
 
 

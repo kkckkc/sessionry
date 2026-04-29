@@ -145,6 +145,9 @@ app.whenReady().then(async () => {
     dialog.showOpenDialog(mainWindow!, { properties: ['openDirectory', 'createDirectory'] })
   )
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read())
+  ipcMain.on(IPC_CHANNELS.settingsRead, (event) => {
+    event.returnValue = settingsStore.read()
+  })
   ipcMain.handle(IPC_CHANNELS.settingsUpdate, (_event, updates) => {
     settingsStore.update(updates)
     mainWindow?.webContents.send('settings:changed', settingsStore.read())

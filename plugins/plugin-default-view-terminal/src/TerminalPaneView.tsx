@@ -3,8 +3,8 @@ import { useEffect, useRef } from 'react'
 const MIN_COLS = 55
 const MIN_ROWS = 25
 
-import { CanvasAddon } from '@xterm/addon-canvas'
 import { FitAddon } from '@xterm/addon-fit'
+import { WebglAddon } from '@xterm/addon-webgl'
 import { Terminal } from '@xterm/xterm'
 
 import type { PaneViewProps, TerminalAppBridge } from '@sessionry/plugin-api'
@@ -69,7 +69,7 @@ export const TerminalPaneView = ({
 
     terminal.loadAddon(fitAddon)
     terminal.open(containerRef.current)
-    terminal.loadAddon(new CanvasAddon())
+    terminal.loadAddon(new WebglAddon())
 
     const currentSession = pane.id
     const resizeTerminal = () => {
