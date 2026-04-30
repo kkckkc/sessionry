@@ -18,7 +18,9 @@ const sampleRendererPlugin: RendererAppPlugin = {
       ...samplePlugin.views![0],
       component: SampleView
     }
-  ]
+  ],
+  // TODO: Why do we need to make this undefined
+  settingsView: undefined
 }
 
 export default sampleRendererPlugin

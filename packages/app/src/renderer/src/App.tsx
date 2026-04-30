@@ -1,9 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-
-import { Dialog } from '@base-ui-components/react/dialog'
 import type {
-  ActionExecutionResult,
-  ActionInputSpec,
   ActionInvocationSource,
   AppSettings,
   PluginViewModel,
@@ -11,6 +6,8 @@ import type {
   TerminalStateEvent,
   WorkspaceStateSnapshot
 } from '@sessionry/plugin-api'
+import { useEffect, useRef, useState } from 'react'
+
 import { getActiveVisibleTerminalPaneId } from '@sessionry/plugin-default-view-workspace/renderer'
 
 import { AppShell } from './components/AppShell'
@@ -27,152 +24,6 @@ const emptyPlugins: PluginViewModel = {
   viewsBySlot: {}
 }
 
-interface PendingActionState {
-  result: Extract<ActionExecutionResult, { status: 'needs-input' }>
-  source: ActionInvocationSource
-}
-
-const getEntityOptions = (snapshot: WorkspaceStateSnapshot, spec: ActionInputSpec) => {
-  if (spec.options) return spec.options
-
-  switch (spec.entityType) {
-    case 'project':
-      return snapshot.projects.map((project) => ({ value: project.id, label: project.name }))
-    case 'session':
-      return snapshot.sessions.map((session) => ({ value: session.id, label: session.name }))
-    case 'paneGroup':
-      return snapshot.paneGroups.map((paneGroup) => ({ value: paneGroup.id, label: paneGroup.name }))
-    case 'pane':
-      return snapshot.panes.map((pane) => ({ value: pane.id, label: pane.id }))
-    default:
-      return []
-  }
-}
-
-const toFormValue = (spec: ActionInputSpec, value: unknown): string | boolean => {
-  if (spec.type === 'boolean') return value === true
-  if (typeof value === 'number') return String(value)
-  if (typeof value === 'string') return value
-  return ''
-}
-
-const fromFormValue = (spec: ActionInputSpec, value: unknown): unknown => {
-  if (spec.type === 'boolean') {
-    return value === true
-  }
-
-  if (typeof value !== 'string') return value
-  if (spec.type === 'number') {
-    return value.trim().length === 0 ? undefined : Number(value)
-  }
-
-  return value
-}
-
-const ActionDialog = ({
-  open,
-  pending,
-  snapshot,
-  onClose,
-  onSubmit
-}: {
-  open: boolean
-  pending: PendingActionState | null
-  snapshot: WorkspaceStateSnapshot
-  onClose: () => void
-  onSubmit: (args: Record<string, unknown>) => void
-}) => {
-  const action = pending?.result.action
-  const resolvedArgs = pending?.result.resolvedArgs ?? {}
-  const [formValues, setFormValues] = useState<Record<string, unknown>>({})
-
-  useEffect(() => {
-    setFormValues(
-      Object.fromEntries(
-        (action?.args ?? []).map((spec) => [spec.name, toFormValue(spec, resolvedArgs[spec.name])])
-      )
-    )
-  }, [action?.args])
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (!action) return
-    onSubmit(
-      Object.fromEntries(
-        (action.args ?? []).map((spec) => [spec.name, fromFormValue(spec, formValues[spec.name] ?? resolvedArgs[spec.name])])
-      )
-    )
-  }
-
-  return (
-    <Dialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="dialog-backdrop" />
-        <Dialog.Popup className="dialog">
-          <header className="header">
-            <Dialog.Title>{action?.name}</Dialog.Title>
-            {action?.description ? <Dialog.Description>{action.description}</Dialog.Description> : null}
-          </header>
-          <form onSubmit={handleSubmit}>
-            {(action?.args ?? [])
-              .filter((spec) => !spec.hidden)
-              .map((spec) => {
-                const value = formValues[spec.name] ?? ''
-                const options = spec.type === 'enum' || spec.type === 'entity-ref' ? getEntityOptions(snapshot, spec) : []
-
-                return (
-                  <label key={spec.name} className="field">
-                    <span>{spec.label}</span>
-                    {spec.type === 'boolean' ? (
-                      <input
-                        type="checkbox"
-                        checked={value === true}
-                        onChange={(inputEvent) =>
-                          setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.checked }))
-                        }
-                      />
-                    ) : spec.type === 'enum' || spec.type === 'entity-ref' ? (
-                      <select
-                        value={typeof value === 'string' ? value : ''}
-                        onChange={(inputEvent) =>
-                          setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.value }))
-                        }
-                      >
-                        <option value="">Select…</option>
-                        {options.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type={spec.type === 'number' ? 'number' : 'text'}
-                        value={typeof value === 'string' ? value : ''}
-                        onChange={(inputEvent) =>
-                          setFormValues((current) => ({ ...current, [spec.name]: inputEvent.target.value }))
-                        }
-                      />
-                    )}
-                    {spec.description ? <small>{spec.description}</small> : null}
-                  </label>
-                )
-              })}
-            <div className="actions">
-              <button type="button" className="btn is-ghost" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="btn">
-                Run
-              </button>
-            </div>
-          </form>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
-  )
-}
-
 export const App = () => {
   const [plugins, setPlugins] = useState<PluginViewModel>(emptyPlugins)
   const [terminalSessions, setTerminalSessions] = useState<Record<string, TerminalSessionInfo>>({})
@@ -181,7 +32,6 @@ export const App = () => {
   const [rightVisible, setRightVisible] = useState(true)
   const [statusBarVisible, setStatusBarVisible] = useState(true)
   const [clearSignal, setClearSignal] = useState(0)
-  const [pendingAction, setPendingAction] = useState<PendingActionState | null>(null)
   const initializedRef = useRef(false)
 
   const activeWorkspaceSessionId = workspaceSnapshot.activeSessionId ?? workspaceSnapshot.sessions[0]?.id
@@ -246,12 +96,7 @@ export const App = () => {
 
   const executeAction = (actionId: string, source: ActionInvocationSource, args?: Record<string, unknown>) => {
     void window.terminalApp.actions.execute({ actionId, source, args }).then((result) => {
-      if (result.status === 'needs-input') {
-        setPendingAction({ result, source })
-        return
-      }
-
-      setPendingAction(null)
+      if (result.status !== 'completed') return
 
       for (const effect of result.effects ?? []) {
         switch (effect.type) {
@@ -328,15 +173,7 @@ export const App = () => {
         onClose={closeSettings}
         resolveRendererView={getRendererView}
       />
-      <ActionDialog
-        open={pendingAction !== null}
-        pending={pendingAction}
-        snapshot={workspaceSnapshot}
-        onClose={() => setPendingAction(null)}
-        onSubmit={(args) => {
-          if (pendingAction) executeAction(pendingAction.result.action.id, pendingAction.source, args)
-        }}
-      />
+
     </>
   )
 }

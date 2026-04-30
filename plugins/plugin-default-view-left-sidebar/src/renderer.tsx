@@ -429,7 +429,8 @@ if (!panelView) {
 }
 
 export const projectSessionsSidebarRendererPlugin: RendererAppPlugin = {
-  ...projectSessionsSidebarPlugin,
+  id: projectSessionsSidebarPlugin.id,
+  name: projectSessionsSidebarPlugin.name,
   views: [
     {
       ...panelView,

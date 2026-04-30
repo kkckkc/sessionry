@@ -53,6 +53,7 @@ describe('AppShell', () => {
         session={session}
         leftVisible
         rightVisible
+        statusBarVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
         resolveRendererView={() => null}
@@ -88,6 +89,7 @@ describe('AppShell', () => {
         session={session}
         leftVisible
         rightVisible={false}
+        statusBarVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
         resolveRendererView={() => ({
@@ -107,6 +109,7 @@ describe('AppShell', () => {
         session={session}
         leftVisible={false}
         rightVisible
+        statusBarVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
         resolveRendererView={() => null}

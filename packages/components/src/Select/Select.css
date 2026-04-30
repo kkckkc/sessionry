@@ -1,0 +1,128 @@
+.select-container {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.select-container.has-error .select-trigger {
+  border-color: var(--error-color, #ef4444);
+}
+
+.select-label {
+  color: var(--text-primary);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.select-required {
+  color: var(--error-color, #ef4444);
+}
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 38px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--button-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.select-trigger:hover:not([data-disabled]) {
+  border-color: var(--border-hover-color, var(--border-color));
+}
+
+.select-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.select-trigger[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.select-trigger[data-placeholder] {
+  color: var(--text-secondary);
+}
+
+.select-icon {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.select-trigger[data-popup-open] .select-icon {
+  transform: rotate(180deg);
+}
+
+.select-positioner {
+  z-index: 1000;
+}
+
+.select-popup {
+  min-width: var(--anchor-width);
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+  padding: 0.25rem;
+}
+
+.select-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.select-item:hover:not([data-disabled]) {
+  background: var(--button-hover-bg);
+}
+
+.select-item[data-highlighted] {
+  background: var(--button-hover-bg);
+}
+
+.select-item[data-selected] {
+  background: var(--button-active-bg);
+  font-weight: 500;
+}
+
+.select-item[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.select-item-indicator {
+  margin-left: 0.5rem;
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.select-item:not([data-selected]) .select-item-indicator {
+  visibility: hidden;
+}
+
+.select-error {
+  color: var(--error-color, #ef4444);
+  font-size: 0.8rem;
+}
+
+.select-description {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}

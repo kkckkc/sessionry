@@ -1,0 +1,101 @@
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+}
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(480px, calc(100% - 3rem));
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+  z-index: 1000;
+}
+
+.dialog > .header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dialog > .header h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dialog > .header .dialog-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.dialog > .header .dialog-close:hover {
+  background: var(--button-bg-hover);
+  color: var(--text-primary);
+}
+
+.dialog > .content {
+  padding: 1rem;
+}
+
+.dialog > .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0 1rem 1rem;
+}
+
+.dialog form {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.dialog form .field {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-primary);
+  font-size: 0.84rem;
+}
+
+.dialog form .field input,
+.dialog form .field select {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  background: var(--button-bg);
+  color: var(--text-primary);
+}
+
+.dialog form .field small {
+  color: var(--text-secondary);
+}
+
+.dialog form > .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+  padding: 0;
+}

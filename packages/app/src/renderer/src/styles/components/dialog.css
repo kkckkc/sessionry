@@ -1,81 +1,24 @@
-.dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(8px);
-}
+/* Dialog-specific form styles for Create Session dialog */
+.dialog form {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
 
-.dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(480px, calc(100% - 3rem));
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  background: var(--panel-bg);
-  box-shadow: var(--shadow);
+  .field {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--text-primary);
+    font-size: 0.84rem;
 
-  > .header {
-    padding: 1rem 1rem 0.25rem;
-
-    h2 {
-      margin: 0;
-      font-size: 1rem;
-    }
-
-    p {
-      margin: 0.45rem 0 0;
+    small {
       color: var(--text-secondary);
-      font-size: 0.85rem;
     }
   }
 
-  form {
-    display: grid;
-    gap: 0.85rem;
-    padding: 1rem;
-
-    .field {
-      display: grid;
-      gap: 0.35rem;
-      color: var(--text-primary);
-      font-size: 0.84rem;
-
-      input,
-      select {
-        width: 100%;
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 0.65rem 0.75rem;
-        background: var(--button-bg);
-        color: var(--text-primary);
-      }
-
-      small {
-        color: var(--text-secondary);
-      }
-    }
-
-    > .actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.75rem;
-      margin-top: 0.2rem;
-    }
-
-    .btn {
-      border-radius: 10px;
-      padding: 0.55rem 0.9rem;
-      background: var(--accent);
-      color: #0b1020;
-      font-weight: 600;
-      line-height: normal;
-
-      &.is-ghost {
-        background: var(--button-bg);
-        color: var(--text-primary);
-      }
-    }
+  > .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.2rem;
   }
 }

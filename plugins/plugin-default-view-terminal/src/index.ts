@@ -104,67 +104,6 @@ export const terminalPanePlugin: AppPlugin = {
         status: 'completed',
         effects: [{ type: 'layout.toggle-right' }]
       })
-    },
-    {
-      id: 'session:create',
-      name: 'Create Session',
-      icon: 'TbPlus',
-      description: 'Create a new workspace session for the active project.',
-      category: 'Session',
-      defaultKeybinding: 'C-Shift-n',
-      surfaces: ['toolbar', 'palette'],
-      args: [
-        {
-          name: 'projectId',
-          label: 'Project',
-          description: 'Project that will own the new session.',
-          type: 'entity-ref',
-          entityType: 'project',
-          required: true,
-          fromContext: 'activeProjectId'
-        },
-        {
-          name: 'name',
-          label: 'Session name',
-          type: 'string',
-          required: true
-        },
-        {
-          name: 'folder',
-          label: 'Working directory',
-          description: 'Defaults to the selected project folder.',
-          type: 'string'
-        }
-      ],
-      run: async (context, args) => {
-        const projectId = typeof args.projectId === 'string' ? args.projectId : context.activeProjectId
-        const name = typeof args.name === 'string' ? args.name.trim() : ''
-        const folderArg = typeof args.folder === 'string' ? args.folder.trim() : ''
-
-        if (!projectId || !name) {
-          return { status: 'completed' }
-        }
-
-        const project = context.workspace.getProject(projectId)
-        if (!project) {
-          throw new Error(`Project "${projectId}" was not found.`)
-        }
-
-        const session = await project.createSession({
-          name,
-          folder: folderArg.length > 0 ? folderArg : project.data.folder
-        })
-        await session.createPane({
-          type: 'terminal',
-          state: {
-            title: 'Terminal'
-          },
-          parentPaneGroupId: session.data.rootPaneGroupId
-        })
-        await session.activate()
-
-        return { status: 'completed' }
-      }
     }
   ],
   statusItems: [

@@ -10,7 +10,8 @@ if (!workspaceView) {
 }
 
 export const defaultWorkspacePaneRendererPlugin: RendererAppPlugin = {
-  ...defaultWorkspacePanePlugin,
+  id: defaultWorkspacePanePlugin.id,
+  name: defaultWorkspacePanePlugin.name,
   views: [
     {
       ...workspaceView,

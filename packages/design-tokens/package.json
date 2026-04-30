@@ -1,0 +1,22 @@
+{
+  "name": "@sessionry/design-tokens",
+  "version": "0.1.0",
+  "description": "Design tokens and CSS variables for Sessionry",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css",
+    "./context.css": "./src/context.css",
+    "./base.css": "./src/base.css"
+  },
+  "files": [
+    "src"
+  ],
+  "keywords": [
+    "design-tokens",
+    "css",
+    "theming"
+  ],
+  "author": "Sessionry",
+  "license": "MIT"
+}

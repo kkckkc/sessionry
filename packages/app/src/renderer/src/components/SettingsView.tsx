@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { IconType } from 'react-icons'
 import * as TbIcons from 'react-icons/tb'
 
+import { DialogRoot, DialogPortal, DialogBackdrop, DialogPopup, DialogHeader } from '@sessionry/components'
 import type { AppSettings } from '@sessionry/plugin-api'
 import type { RendererViewRegistration } from '@sessionry/plugin-api'
 
@@ -61,16 +62,6 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
     }
   }, [selectedPluginId, pluginsWithSettings.length])
 
-  // Close on Escape
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [open, onClose])
-
-  if (!open) return null
-
   const selectedPlugin = pluginsWithSettings.find((p) => p.id === selectedPluginId)
 
   const handleUpdateSettings = async (pluginId: string, updates: unknown) => {
@@ -84,56 +75,50 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
   }
 
   return (
-    <div
-      className="settings-backdrop"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div className="settings-modal">
-        <div className="settings-modal-header">
-          <span className="settings-modal-title">Settings</span>
-          <button className="settings-modal-close" onClick={onClose} aria-label="Close settings">
-            <TbIcons.TbX size={14} />
-          </button>
-        </div>
+    <DialogRoot open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+      <DialogPortal>
+        <DialogBackdrop className="dialog-backdrop" />
+        <DialogPopup className="dialog settings-modal">
+          <DialogHeader title="Settings" showClose onClose={onClose} />
+          <div className="settings-modal-body">
+            <nav className="settings-modal-nav">
+              {pluginsWithSettings.map((plugin) => {
+                const Icon = plugin.settingsView.icon ? resolveTablerIcon(plugin.settingsView.icon) : null
+                const isActive = selectedPluginId === plugin.id
+                return (
+                  <button
+                    key={plugin.id}
+                    className={`settings-modal-nav-item${isActive ? ' is-active' : ''}`}
+                    onClick={() => setSelectedPluginId(plugin.id)}
+                  >
+                    {Icon && <Icon size={14} />}
+                    <span>{plugin.settingsView.title}</span>
+                  </button>
+                )
+              })}
+            </nav>
 
-        <div className="settings-modal-body">
-          <nav className="settings-modal-nav">
-            {pluginsWithSettings.map((plugin) => {
-              const Icon = plugin.settingsView.icon ? resolveTablerIcon(plugin.settingsView.icon) : null
-              const isActive = selectedPluginId === plugin.id
-              return (
-                <button
-                  key={plugin.id}
-                  className={`settings-modal-nav-item${isActive ? ' is-active' : ''}`}
-                  onClick={() => setSelectedPluginId(plugin.id)}
-                >
-                  {Icon && <Icon size={14} />}
-                  <span>{plugin.settingsView.title}</span>
-                </button>
-              )
-            })}
-          </nav>
-
-          <div className="settings-modal-content">
-            {selectedPlugin && (
-              <div className="settings-modal-section-title">{selectedPlugin.settingsView.title}</div>
-            )}
-            {settings === null ? (
-              <div className="settings-modal-loading">Loading settings…</div>
-            ) : selectedPlugin ? (
-              <PluginSettingsContent
-                plugin={selectedPlugin}
-                settings={settings.plugins[selectedPlugin.id]}
-                onUpdate={(updates) => handleUpdateSettings(selectedPlugin.id, updates)}
-                resolveRendererView={resolveRendererView}
-              />
-            ) : (
-              <div className="settings-modal-empty">No settings available</div>
-            )}
+            <div className="settings-modal-content">
+              {selectedPlugin && (
+                <div className="settings-modal-section-title">{selectedPlugin.settingsView.title}</div>
+              )}
+              {settings === null ? (
+                <div className="settings-modal-loading">Loading settings…</div>
+              ) : selectedPlugin ? (
+                <PluginSettingsContent
+                  plugin={selectedPlugin}
+                  settings={settings.plugins[selectedPlugin.id]}
+                  onUpdate={(updates) => handleUpdateSettings(selectedPlugin.id, updates)}
+                  resolveRendererView={resolveRendererView}
+                />
+              ) : (
+                <div className="settings-modal-empty">No settings available</div>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </DialogPopup>
+      </DialogPortal>
+    </DialogRoot>
   )
 }
 

@@ -1,4 +1,4 @@
-import type { RendererAppPlugin, RendererPluginViewDefinition } from '@sessionry/plugin-api'
+import type { RendererAppPlugin, RendererViewRegistration } from '@sessionry/plugin-api'
 import { defaultWorkspacePaneRendererPlugin } from '@sessionry/plugin-default-view-workspace/renderer'
 import { projectSessionsSidebarRendererPlugin } from '@sessionry/plugin-default-view-left-sidebar/renderer'
 import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-terminal/renderer'
@@ -18,7 +18,11 @@ const rendererViews = builtInRendererPlugins.flatMap((plugin) =>
   }))
 )
 
-const rendererViewById = new Map(rendererViews.map((view) => [view.id, view]))
+type RegisteredRendererView = RendererViewRegistration & { pluginId: string }
+
+const rendererViewById = new Map<string, RegisteredRendererView>(
+  rendererViews.map((view) => [view.id, view])
+)
 
 // Also register settings views
 for (const plugin of builtInRendererPlugins) {
@@ -32,7 +36,7 @@ for (const plugin of builtInRendererPlugins) {
 
 export const getRendererView = (
   viewId: string
-): (RendererPluginViewDefinition & { pluginId: string }) | null => rendererViewById.get(viewId) ?? null
+): RegisteredRendererView | null => rendererViewById.get(viewId) ?? null
 
 /** Loads renderer bundles for user-installed plugins and registers their views. */
 export const loadUserPluginRenderers = async (): Promise<void> => {

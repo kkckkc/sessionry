@@ -456,7 +456,7 @@ const StackedPaneGroup = ({
         {activeSplitGroup && (
           <PaneGroupHeader
             paneGroup={activeSplitGroup}
-            groupChild={activeChild}
+            groupChild={activeChild ?? null}
             onRenameGroup={onRenameGroup}
             onChangeGroupType={onChangeGroupType}
             onAddTerminalPane={onAddTerminalPane}
@@ -710,7 +710,8 @@ export const WorkspacePaneTree = ({
     if (paneGroup.direction === 'stacked') {
       const activeChild =
         paneGroup.children.find((child) => getNodeId(child) === paneGroup.activeChildId) ??
-        paneGroup.children[0]
+        paneGroup.children[0] ??
+        null
 
       return (
         <StackedPaneGroup

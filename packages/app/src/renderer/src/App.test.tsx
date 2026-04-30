@@ -137,9 +137,21 @@ const snapshot: WorkspaceStateSnapshot = {
 describe('App', () => {
   const onTerminalState = vi.fn(() => () => {})
   const onWorkspaceEvent = vi.fn(() => () => {})
+  const settings = {
+    read: vi.fn(async () => ({
+      version: 1 as const,
+      statusBarVisible: true,
+      plugins: {}
+    })),
+    update: vi.fn(async () => {}),
+    onChange: vi.fn(() => () => {})
+  }
 
   beforeEach(() => {
     vi.resetModules()
+    settings.read.mockClear()
+    settings.update.mockClear()
+    settings.onChange.mockClear()
     window.terminalApp = {
       showFolderDialog: vi.fn(),
       createTerminalSession: vi.fn(async () => terminalSession),
@@ -156,6 +168,7 @@ describe('App', () => {
         executeCommand: vi.fn(async () => ({})),
         onEvent: onWorkspaceEvent
       },
+      settings,
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
@@ -209,6 +222,7 @@ describe('App', () => {
         executeCommand,
         onEvent: onWorkspaceEvent
       },
+      settings,
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
@@ -302,6 +316,7 @@ describe('App', () => {
         executeCommand: vi.fn(async () => ({})),
         onEvent: onWorkspaceEvent
       },
+      settings,
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {}),

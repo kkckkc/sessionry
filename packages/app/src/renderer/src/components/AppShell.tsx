@@ -2,8 +2,7 @@ import { type ReactNode, useState } from 'react'
 import type { IconType } from 'react-icons'
 import * as TbIcons from 'react-icons/tb'
 
-import { Toolbar } from '@base-ui-components/react/toolbar'
-import { Tooltip } from '@base-ui-components/react/tooltip'
+import { Toolbar, ToolbarButton } from '@sessionry/components'
 
 import type { ActionDescriptor, PluginViewModel, SidebarViewProps } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
@@ -129,31 +128,24 @@ export const AppShell = ({
 
   return (
     <div className="app-frame">
-      <header className="toolbar">
-        <div className="brand">
-          Sessionry
-        </div>
-        <Toolbar.Root className="actions" aria-label="Terminal actions">
-          {plugins.toolbarActionIds
-            .map((actionId) => plugins.actions.find((candidate) => candidate.id === actionId))
-            .filter((action): action is ActionDescriptor => action !== undefined)
-            .map((action) => {
-              const Icon = action.icon ? resolveTablerIcon(action.icon) : null
-              return (
-                <Tooltip.Root key={action.id} delay={600}>
-                  <Tooltip.Trigger render={<Toolbar.Button className="btn" onClick={() => onToolbarAction(action.id)} />}>
-                    {Icon ? <Icon size={15} /> : action.name}
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Positioner>
-                      <Tooltip.Popup className="tooltip">{action.name}</Tooltip.Popup>
-                    </Tooltip.Positioner>
-                  </Tooltip.Portal>
-                </Tooltip.Root>
-              )
-            })}
-        </Toolbar.Root>
-      </header>
+      <Toolbar brand="Sessionry" ariaLabel="Terminal actions">
+        {plugins.toolbarActionIds
+          .map((actionId) => plugins.actions.find((candidate) => candidate.id === actionId))
+          .filter((action): action is ActionDescriptor => action !== undefined)
+          .map((action) => {
+            const Icon = action.icon ? resolveTablerIcon(action.icon) : null
+            return (
+              <ToolbarButton 
+                key={action.id}
+                onClick={() => onToolbarAction(action.id)}
+                tooltip={action.name}
+                tooltipDelay={600}
+              >
+                {Icon ? <Icon size={15} /> : action.name}
+              </ToolbarButton>
+            )
+          })}
+      </Toolbar>
 
       <main className={workspaceClassName} style={{ gridTemplateColumns }}>
         {showLeftSidebar ? (
