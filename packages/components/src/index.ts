@@ -23,6 +23,9 @@ export type { SectionProps } from './Section'
 export { Toolbar, ToolbarButton } from './Toolbar'
 export type { ToolbarProps, ToolbarButtonProps } from './Toolbar'
 
+export { PaneTitle } from './PaneTitle'
+export type { PaneTitleProps } from './PaneTitle'
+
 export { 
   Dialog,
   DialogHeader, 

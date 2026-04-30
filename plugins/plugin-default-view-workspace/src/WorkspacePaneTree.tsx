@@ -4,6 +4,7 @@ import { TbLayoutColumns, TbLayoutRows } from 'react-icons/tb'
 import { Dialog } from '@base-ui-components/react/dialog'
 import { Tabs } from '@base-ui-components/react/tabs'
 import { Menu } from '@base-ui-components/react/menu'
+import { PaneTitle } from '@sessionry/components'
 import {
   resolveActiveView,
   type Pane,
@@ -423,6 +424,14 @@ const StackedPaneGroup = ({
             )
           })}
         </Tabs.List>
+        <button
+          type="button"
+          className="tab-bar-action tab-bar-action--glyph"
+          aria-label="New tab"
+          onClick={() => onAddTerminalPane(paneGroup.id)}
+        >
+          +
+        </button>
         <div className="tab-bar-actions">
           {activePaneId && (
             <>
@@ -444,14 +453,6 @@ const StackedPaneGroup = ({
               </button>
             </>
           )}
-          <button
-            type="button"
-            className="tab-bar-action tab-bar-action--glyph"
-            aria-label="New tab"
-            onClick={() => onAddTerminalPane(paneGroup.id)}
-          >
-            +
-          </button>
         </div>
         {activeSplitGroup && (
           <PaneGroupHeader
@@ -627,6 +628,28 @@ export const WorkspacePaneTree = ({
     const paneView = resolveActiveView(plugins, `pane:${pane.type}`)
     const paneRenderer = paneView ? resolveRendererView(paneView.id) : null
     const PaneRenderer = paneRenderer?.component
+    
+    // Store focus handler registered by the pane view
+    const focusHandlerRef = useRef<(() => void) | null>(null)
+
+    const handleTitleClick = () => {
+      // Use registered focus handler if available
+      if (focusHandlerRef.current) {
+        focusHandlerRef.current()
+        return
+      }
+      
+      // Fall back to DOM-based focus for panes without registered handlers
+      const paneElement = document.querySelector(`[data-testid="pane-${pane.id}"] .body`)
+      if (paneElement instanceof HTMLElement) {
+        const focusable = paneElement.querySelector<HTMLElement>('input, textarea, [tabindex]:not([tabindex="-1"])')
+        if (focusable) {
+          focusable.focus()
+        } else {
+          paneElement.focus()
+        }
+      }
+    }
 
     return (
       <article
@@ -636,34 +659,54 @@ export const WorkspacePaneTree = ({
         aria-label={title}
         data-testid={`pane-${pane.id}`}
       >
-        {child && (
-          <div className="pane-actions">
-            <button
-              type="button"
-              className="pane-action"
-              aria-label="Split horizontal"
-              onClick={() => handleSplitPane(pane.id, 'horizontal')}
-            >
-              <TbLayoutColumns size={13} />
-            </button>
-            <button
-              type="button"
-              className="pane-action"
-              aria-label="Split vertical"
-              onClick={() => handleSplitPane(pane.id, 'vertical')}
-            >
-              <TbLayoutRows size={13} />
-            </button>
-            <button
-              type="button"
-              className="pane-action"
-              aria-label="Close pane"
-              onClick={() => handleRemovePaneNode(child)}
-            >
-              ×
-            </button>
-          </div>
-        )}
+        <PaneTitle
+          title={title}
+          onClick={handleTitleClick}
+          actions={
+            child ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Split horizontal"
+                  onClick={() => handleSplitPane(pane.id, 'horizontal')}
+                >
+                  <TbLayoutColumns size={13} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Split vertical"
+                  onClick={() => handleSplitPane(pane.id, 'vertical')}
+                >
+                  <TbLayoutRows size={13} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Close pane"
+                  onClick={() => handleRemovePaneNode(child)}
+                >
+                  ×
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  aria-label="Split horizontal"
+                  onClick={() => handleSplitPane(pane.id, 'horizontal')}
+                >
+                  <TbLayoutColumns size={13} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Split vertical"
+                  onClick={() => handleSplitPane(pane.id, 'vertical')}
+                >
+                  <TbLayoutRows size={13} />
+                </button>
+              </>
+            )
+          }
+        />
         <div className="body">
           {PaneRenderer ? (
             <PaneRenderer
@@ -673,6 +716,9 @@ export const WorkspacePaneTree = ({
               pane={pane}
               clearSignal={clearSignal}
               visible={isVisible}
+              onRegisterFocusHandler={(handler) => {
+                focusHandlerRef.current = handler
+              }}
             />
           ) : (
             <div className="placeholder">

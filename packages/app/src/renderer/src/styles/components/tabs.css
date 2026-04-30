@@ -1,19 +1,44 @@
 .tab-bar-row {
   display: flex;
+  background: var(--chrome-bg);
+  border-bottom: 1px solid var(--border-color);
 
   > .tab-bar {
-    flex: 1;
+    flex: 0 1 auto;
     min-width: 0;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: none;
+  }
+
+  > .tab-bar-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+    flex-shrink: 0;
+    margin-left: 0;
+
+    &:hover {
+      background: var(--button-bg-hover);
+      color: var(--text-primary);
+    }
   }
 
   > .tab-bar-actions {
     display: flex;
     align-items: center;
-    background: var(--chrome-bg);
-    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    border-bottom: none;
     gap: 2px;
     padding: 0 4px;
+    margin-left: auto;
 
     > .tab-bar-action {
       display: flex;

@@ -21,7 +21,8 @@ export const TerminalPaneView = ({
   workspace,
   pane,
   clearSignal,
-  visible = true
+  visible = true,
+  onRegisterFocusHandler
 }: PaneViewProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
@@ -116,6 +117,11 @@ export const TerminalPaneView = ({
 
     terminalRef.current = terminal
     fitAddonRef.current = fitAddon
+    
+    // Register focus handler with parent component
+    onRegisterFocusHandler?.(() => {
+      terminal.focus()
+    })
 
     resizeTerminal()
 
@@ -144,7 +150,7 @@ export const TerminalPaneView = ({
       unsubscribeData()
       terminalInputSubscription.dispose()
       resizeObserver.disconnect()
-terminal.dispose()
+      terminal.dispose()
       fitAddon.dispose()
       terminalRef.current = null
       fitAddonRef.current = null

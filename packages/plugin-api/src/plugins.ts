@@ -47,6 +47,11 @@ export interface PaneViewProps extends ViewProps {
   pane: Pane
   clearSignal: number
   visible: boolean
+  /**
+   * Optional callback to register a focus handler for this pane.
+   * The pane view should call this with a function that focuses the pane content.
+   */
+  onRegisterFocusHandler?: (focusHandler: () => void) => void
 }
 
 export interface SettingsViewProps {
