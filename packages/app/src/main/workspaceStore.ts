@@ -806,7 +806,7 @@ export class WorkspaceStore {
 
       this.moveNode({ kind: 'pane', paneId }, newGroup.id)
       this.updatePane(paneId, { preferredSizePct: 50 })
-      const newPane = this.createPane({
+      this.createPane({
         sessionId: pane.sessionId,
         type: 'terminal',
         preferredSizePct: 50,
@@ -830,7 +830,7 @@ export class WorkspaceStore {
       console.log('Strategy: Add to existing group (direction matches)')
       
       // Add new pane directly to the existing group, right after current pane
-      const newPane = this.createPane({
+      this.createPane({
         sessionId: pane.sessionId,
         type: 'terminal',
         preferredSizePct: 50,
@@ -866,7 +866,7 @@ export class WorkspaceStore {
 
     this.moveNode({ kind: 'pane', paneId }, newGroup.id)
     this.updatePane(paneId, { preferredSizePct: 50 })
-    const newPane = this.createPane({
+    this.createPane({
       sessionId: pane.sessionId,
       type: 'terminal',
       preferredSizePct: 50,

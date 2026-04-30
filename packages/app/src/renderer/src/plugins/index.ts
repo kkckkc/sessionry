@@ -2,13 +2,28 @@ import type { RendererAppPlugin, RendererViewRegistration } from '@sessionry/plu
 import { defaultWorkspacePaneRendererPlugin } from '@sessionry/plugin-default-view-workspace/renderer'
 import { projectSessionsSidebarRendererPlugin } from '@sessionry/plugin-default-view-left-sidebar/renderer'
 import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-terminal/renderer'
+import { PaneHierarchyView } from '@sessionry/plugin-debug-view-pane-hierarchy/renderer'
 import { coreRendererPlugin } from './coreRendererPlugin'
+
+const paneHierarchyRendererPlugin: RendererAppPlugin = {
+  id: 'debug-view-pane-hierarchy',
+  name: 'Pane Hierarchy Debug View',
+  views: [
+    {
+      id: 'pane-hierarchy',
+      slot: 'sidebar:right',
+      title: 'Pane Hierarchy',
+      component: PaneHierarchyView
+    }
+  ]
+}
 
 const builtInRendererPlugins = [
   coreRendererPlugin,
   terminalPaneRendererPlugin,
   defaultWorkspacePaneRendererPlugin,
-  projectSessionsSidebarRendererPlugin
+  projectSessionsSidebarRendererPlugin,
+  paneHierarchyRendererPlugin
 ]
 
 const rendererViews = builtInRendererPlugins.flatMap((plugin) =>

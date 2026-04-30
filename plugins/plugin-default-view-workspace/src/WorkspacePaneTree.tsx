@@ -745,12 +745,11 @@ export const WorkspacePaneTree = ({
           type: 'unknown',
           state: {}
         }, inStack ? null : child, isVisible)
-      : renderGroup(groupById.get(child.paneGroupId), child, inStack)
+      : renderGroup(groupById.get(child.paneGroupId), child)
 
   const renderGroup = (
     paneGroup?: PaneGroup,
-    groupChild: PaneGroupChild | null = null,
-    inStack = false
+    groupChild: PaneGroupChild | null = null
   ) => {
     if (!paneGroup) {
       return <section className="workspace-empty">Pane group not found.</section>

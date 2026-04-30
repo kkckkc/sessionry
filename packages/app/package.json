@@ -19,6 +19,7 @@
     "@sessionry/components": "workspace:*",
     "@sessionry/design-tokens": "workspace:*",
     "@sessionry/plugin-api": "workspace:*",
+    "@sessionry/plugin-debug-view-pane-hierarchy": "workspace:*",
     "@sessionry/plugin-default-view-left-sidebar": "workspace:*",
     "@sessionry/plugin-default-view-terminal": "workspace:*",
     "@sessionry/plugin-default-view-workspace": "workspace:*",

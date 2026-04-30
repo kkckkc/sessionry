@@ -14,7 +14,8 @@ export default defineConfig({
           '@sessionry/plugin-api',
           '@sessionry/plugin-default-view-workspace',
           '@sessionry/plugin-default-view-terminal',
-          '@sessionry/plugin-default-view-left-sidebar'
+          '@sessionry/plugin-default-view-left-sidebar',
+          '@sessionry/plugin-debug-view-pane-hierarchy'
         ]
       })
     ],
@@ -53,6 +54,14 @@ export default defineConfig({
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-left-sidebar/src/index.ts')
         },
         {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/index.ts')
+        },
+        {
           find: '@sessionry/plugin-api',
           replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
         },
@@ -70,7 +79,8 @@ export default defineConfig({
           '@sessionry/plugin-api',
           '@sessionry/plugin-default-view-workspace',
           '@sessionry/plugin-default-view-terminal',
-          '@sessionry/plugin-default-view-left-sidebar'
+          '@sessionry/plugin-default-view-left-sidebar',
+          '@sessionry/plugin-debug-view-pane-hierarchy'
         ]
       })
     ],
@@ -134,6 +144,14 @@ export default defineConfig({
         {
           find: '@sessionry/plugin-default-view-left-sidebar',
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-left-sidebar/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/index.ts')
         },
         {
           find: '@sessionry/plugin-api',

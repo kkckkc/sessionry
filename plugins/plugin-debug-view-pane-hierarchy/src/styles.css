@@ -1,0 +1,18 @@
+.pane-hierarchy-view {
+  padding: 12px;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--color-surface-primary);
+}
+
+.tree-output {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  overflow-x: hidden;
+  word-wrap: break-word;
+}

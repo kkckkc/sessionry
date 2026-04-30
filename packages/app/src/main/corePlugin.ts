@@ -5,6 +5,36 @@ export const corePlugin: AppPlugin = {
   name: 'Core',
   actions: [
     {
+      id: 'layout:toggle-left',
+      name: 'Toggle Left Sidebar',
+      icon: 'TbLayoutSidebarLeftCollapse',
+      description: 'Show or hide the left sidebar',
+      category: 'Layout',
+      defaultKeybinding: 'C-b',
+      surfaces: ['toolbar', 'palette'],
+      run: async () => {
+        return {
+          status: 'completed',
+          effects: [{ type: 'layout.toggle-left' }]
+        }
+      }
+    },
+    {
+      id: 'layout:toggle-right',
+      name: 'Toggle Right Sidebar',
+      icon: 'TbLayoutSidebarRightCollapse',
+      description: 'Show or hide the right sidebar',
+      category: 'Layout',
+      defaultKeybinding: 'C-S-b',
+      surfaces: ['toolbar', 'palette'],
+      run: async () => {
+        return {
+          status: 'completed',
+          effects: [{ type: 'layout.toggle-right' }]
+        }
+      }
+    },
+    {
       id: 'app:open-settings',
       name: 'Open Settings',
       icon: 'TbSettings',
