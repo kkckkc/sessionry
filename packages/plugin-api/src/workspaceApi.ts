@@ -224,6 +224,11 @@ export const createWorkspaceApi = (bridge: WorkspaceBridge): WorkspaceApi => {
       return new PaneGroupHandleImpl(result.entityId ?? '')
     }
 
+    async convertToTabs(): Promise<PaneGroupHandle> {
+      const result = await bridge.executeCommand({ type: 'pane.convertToTabs', paneId: this.id })
+      return new PaneGroupHandleImpl(result.entityId ?? '')
+    }
+
     async update(input: UpdatePaneInput): Promise<void> {
       await bridge.executeCommand({ type: 'pane.update', paneId: this.id, input })
     }

@@ -243,6 +243,21 @@
     display: flex;
     flex: 1;
     padding: 0;
+
+/* Adjust spacing for split groups without headers */
+.workspace-node.is-split:not(:has(> .header)) {
+  padding-top: 0;
+}
+
+.workspace-node.is-split:not(:has(> .header)) > .workspace-split {
+  height: 100%;
+}
+
+/* Ensure stacked groups always show their headers */
+.workspace-node.is-stacked > .header {
+  display: flex;
+}
+
     background: var(--workspace-bg);
 
     > .terminal-surface,

@@ -256,6 +256,7 @@ export type WorkspaceCommand =
   | { type: 'paneNode.remove'; node: PaneGroupChild }
   | { type: 'pane.create'; input: CreatePaneInput }
   | { type: 'pane.split'; paneId: string; direction: Exclude<PaneGroupLayout, 'stacked'> }
+  | { type: 'pane.convertToTabs'; paneId: string }
   | { type: 'pane.update'; paneId: string; input: UpdatePaneInput }
   | { type: 'pane.remove'; paneId: string }
 
@@ -309,6 +310,7 @@ export interface PaneHandle {
   readonly data: PaneData
   readonly session: SessionHandle
   split(direction: Exclude<PaneGroupLayout, 'stacked'>): Promise<PaneGroupHandle>
+  convertToTabs(): Promise<PaneGroupHandle>
   update(input: UpdatePaneInput): Promise<void>
   remove(): Promise<void>
 }

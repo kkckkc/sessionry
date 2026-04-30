@@ -361,3 +361,182 @@ describe('WorkspaceStore', () => {
     })
   })
 })
+
+
+
+  it('splits a pane in a matching direction group by adding to the group', () => {
+    const service = new WorkspaceStore()
+    
+    // Get the horizontal root group
+    const rootGroup = service.getPaneGroup('pane-group-root')
+    expect(rootGroup?.direction).toBe('horizontal')
+    expect(rootGroup?.children.length).toBe(2)
+    
+    // Split a pane in the left tabs group horizontally
+    // This should create a new horizontal group since left tabs is stacked
+    service.splitPane('pane-terminal-primary', 'horizontal')
+    
+    // Now get that new horizontal group and split one of its panes horizontally
+    const leftTabs = service.getPaneGroup('pane-group-left-tabs')
+    const newGroupId = leftTabs?.activeChildId
+    const newGroup = service.getPaneGroup(newGroupId!)
+    expect(newGroup?.direction).toBe('horizontal')
+    
+    const firstPaneId = newGroup?.children[0]?.kind === 'pane' ? newGroup.children[0].paneId : null
+    expect(firstPaneId).toBeTruthy()
+    
+    // Split the first pane horizontally - should add to existing horizontal group
+    service.splitPane(firstPaneId!, 'horizontal')
+    
+    const updatedGroup = service.getPaneGroup(newGroupId!)
+    expect(updatedGroup?.children.length).toBe(3) // Original 2 + 1 new
+    expect(updatedGroup?.direction).toBe('horizontal')
+  })
+
+  it('splits a pane in a non-matching direction group by creating a new group', () => {
+    const service = new WorkspaceStore()
+    
+    // Split a pane horizontally to create a horizontal group
+    service.splitPane('pane-terminal-primary', 'horizontal')
+    
+    const leftTabs = service.getPaneGroup('pane-group-left-tabs')
+    const horizontalGroupId = leftTabs?.activeChildId
+    const horizontalGroup = service.getPaneGroup(horizontalGroupId!)
+    expect(horizontalGroup?.direction).toBe('horizontal')
+    
+    const firstPaneId = horizontalGroup?.children[0]?.kind === 'pane' ? horizontalGroup.children[0].paneId : null
+    
+    // Split vertically - should create a new vertical group
+    service.splitPane(firstPaneId!, 'vertical')
+    
+    const updatedHorizontalGroup = service.getPaneGroup(horizontalGroupId!)
+    const newVerticalGroupChild = updatedHorizontalGroup?.children.find(c => c.kind === 'group')
+    expect(newVerticalGroupChild).toBeTruthy()
+    
+    const verticalGroup = service.getPaneGroup((newVerticalGroupChild as any).paneGroupId)
+    expect(verticalGroup?.direction).toBe('vertical')
+    expect(verticalGroup?.children.length).toBe(2)
+  })
+
+  it('converts a pane to a stacked (tabbed) group', () => {
+    const service = new WorkspaceStore()
+    
+    // Get a pane from the horizontal root group
+    const rootGroup = service.getPaneGroup('pane-group-root')
+    const leftTabsGroupChild = rootGroup?.children[0]
+    expect(leftTabsGroupChild?.kind).toBe('group')
+    
+    // Get a pane from left tabs
+    const leftTabs = service.getPaneGroup((leftTabsGroupChild as any).paneGroupId)
+    const paneChild = leftTabs?.children[0]
+    expect(paneChild?.kind).toBe('pane')
+    const paneId = (paneChild as any).paneId
+    
+    // Convert the pane to tabs (adds new tab to existing stacked group)
+    const result = service.convertPaneToTabs(paneId)
+    
+    // Since parent is already stacked, it returns the parent group with new tab added
+    expect(result.id).toBe(leftTabs!.id)
+    expect(result.direction).toBe('stacked')
+    expect(result.children.length).toBe(3) // Original 2 panes + 1 new tab
+    
+    // Verify original pane is still there
+    expect(result.children.some(c => c.kind === 'pane' && (c as any).paneId === paneId)).toBe(true)
+    
+    // Verify new terminal pane was added
+    const newPaneChild = result.children.find(c => c.kind === 'pane' && (c as any).paneId !== paneId && (c as any).paneId !== 'pane-activity')
+    expect(newPaneChild).toBeTruthy()
+    
+    // The new terminal pane should be active
+    expect(result.activeChildId).toBe((newPaneChild as any).paneId)
+  })
+
+  it('converts a pane to tabs and preserves parent stacked group active state', () => {
+    const service = new WorkspaceStore()
+    
+    // Get the active pane from left tabs (which is stacked)
+    const leftTabs = service.getPaneGroup('pane-group-left-tabs')
+    expect(leftTabs?.direction).toBe('stacked')
+    
+    const activePaneId = leftTabs?.activeChildId
+    expect(activePaneId).toBeTruthy()
+    
+    // Convert the active pane to tabs (adds new tab to existing stacked group)
+    const result = service.convertPaneToTabs(activePaneId!)
+    
+    // Since parent is already stacked, it returns the parent group with new tab added
+    expect(result.id).toBe(leftTabs!.id)
+    
+    // Verify the new terminal pane is now active
+    const newPaneChild = result.children.find(c => 
+      c.kind === 'pane' && 
+      (c as any).paneId !== activePaneId && 
+      (c as any).paneId !== 'pane-activity'
+    )
+    expect(result.activeChildId).toBe((newPaneChild as any).paneId)
+  })
+
+  it('removes a pane and logs the tree structure', () => {
+    const service = new WorkspaceStore()
+    
+    // Get left tabs group
+    const leftTabs = service.getPaneGroup('pane-group-left-tabs')
+    expect(leftTabs?.children.length).toBe(2)
+    
+    // Remove the activity pane
+    service.removePane('pane-activity')
+    
+    // Verify it was removed
+    const updatedLeftTabs = service.getPaneGroup('pane-group-left-tabs')
+    expect(updatedLeftTabs?.children.length).toBe(1)
+    expect(updatedLeftTabs?.children[0]).toEqual({ kind: 'pane', paneId: 'pane-terminal-primary' })
+  })
+
+  it('collapses horizontal/vertical groups with single child', () => {
+    const service = new WorkspaceStore()
+    
+    // Create a horizontal split group with 2 panes
+    const leftTabs = service.getPaneGroup('pane-group-left-tabs')!
+    const firstPane = (leftTabs.children[0] as any).paneId
+    const firstPaneData = service.getPane(firstPane)!
+    service.splitPane(firstPane, 'horizontal')
+    
+    // Find the new horizontal group
+    const updatedLeftTabs = service.getPaneGroup('pane-group-left-tabs')!
+    const horizontalGroupChild = updatedLeftTabs.children.find(c => c.kind === 'group')
+    expect(horizontalGroupChild).toBeTruthy()
+    const horizontalGroup = service.getPaneGroup((horizontalGroupChild as any).paneGroupId)!
+    expect(horizontalGroup.direction).toBe('horizontal')
+    expect(horizontalGroup.children.length).toBe(2)
+    
+    // Verify the group name matches the pane title
+    expect(horizontalGroup.name).toBe((firstPaneData.state as any).title)
+    
+    // Remove one pane from the horizontal group - should collapse
+    const paneToRemove = (horizontalGroup.children[1] as any).paneId
+    service.removePane(paneToRemove)
+    
+    // Verify the horizontal group was collapsed and removed
+    expect(service.getPaneGroup(horizontalGroup.id)).toBeNull()
+    
+    // Verify the remaining pane was promoted to the parent (leftTabs)
+    const finalLeftTabs = service.getPaneGroup('pane-group-left-tabs')!
+    const promotedPane = finalLeftTabs.children.find(c => c.kind === 'pane' && (c as any).paneId === firstPane)
+    expect(promotedPane).toBeTruthy()
+  })
+
+  it('names pane groups based on the pane title when converting to tabs', () => {
+    const service = new WorkspaceStore()
+    
+    // Get a pane from the right column (vertical group)
+    const rightColumn = service.getPaneGroup('pane-group-right-column')!
+    const outlinePane = (rightColumn.children[0] as any).paneId
+    const outlinePaneData = service.getPane(outlinePane)!
+    
+    // Convert to tabs
+    const newGroup = service.convertPaneToTabs(outlinePane)
+    
+    // Verify the group name matches the pane title
+    expect(newGroup.name).toBe((outlinePaneData.state as any).title)
+    expect(newGroup.direction).toBe('stacked')
+  })

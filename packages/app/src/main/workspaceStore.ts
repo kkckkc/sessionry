@@ -203,6 +203,9 @@ export class WorkspaceStore {
       case 'pane.split':
         result = { entityId: this.splitPane(command.paneId, command.direction).id }
         break
+      case 'pane.convertToTabs':
+        result = { entityId: this.convertPaneToTabs(command.paneId).id }
+        break
       case 'pane.update':
         result = { entityId: this.updatePane(command.paneId, command.input).id }
         break
@@ -607,10 +610,109 @@ export class WorkspaceStore {
   removeNode(node: PaneGroupChild): void {
     const parent = this.findParentOfNode(node)
     if (!parent) throw new Error('Node is not attached to a pane group.')
+    
+    // Helper to render tree structure
+    const renderTree = (child: PaneGroupChild, indent = ''): string => {
+      if (child.kind === 'pane') {
+        const p = this.state.panes.get(child.paneId)
+        return `${indent}├─ Pane: ${child.paneId} (${p?.preferredSizePct ?? 0}%)`
+      }
+      const g = this.state.paneGroups.get(child.paneGroupId)
+      if (!g) return `${indent}├─ Group: ${child.paneGroupId} (not found)`
+      let result = `${indent}├─ Group: ${child.paneGroupId} [${g.direction}] (${g.preferredSizePct ?? 0}%)`
+      g.children.forEach((c, i) => {
+        const isLast = i === g.children.length - 1
+        result += '\n' + renderTree(c, indent + (isLast ? '   ' : '│  '))
+      })
+      return result
+    }
+
+    // Log BEFORE state
+    const nodeId = isPaneChild(node) ? node.paneId : node.paneGroupId
+    const nodeType = isPaneChild(node) ? 'Pane' : 'Group'
+    console.log('\n=== REMOVE NODE OPERATION START ===')
+    console.log(`Target ${nodeType.toLowerCase()}:`, nodeId)
+    console.log('\nBEFORE - Parent group tree:')
+    console.log(`Group: ${parent.id} [${parent.direction}]`)
+    parent.children.forEach((child, i) => {
+      const isLast = i === parent.children.length - 1
+      console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+    })
+
     const beforeChildren = cloneValue(parent.children)
     parent.children = parent.children.filter((child) => paneNodeId(child) !== paneNodeId(node))
     this.reconcileActiveChildAfterRemoval(parent, paneNodeId(node))
     this.emitChildrenChanged(parent, beforeChildren)
+
+    // Collapse horizontal/vertical groups with only one child (but keep stacked groups)
+    if (parent.children.length === 1 && parent.direction !== 'stacked') {
+      const grandparent = this.findParentOfNode({ kind: 'group', paneGroupId: parent.id })
+      if (grandparent) {
+        const singleChild = parent.children[0]
+        const parentIndex = grandparent.children.findIndex(
+          (child) => !isPaneChild(child) && child.paneGroupId === parent.id
+        )
+        
+        // Replace parent group with its single child in grandparent
+        const grandparentBefore = cloneValue(grandparent.children)
+        grandparent.children = grandparent.children.filter(
+          (child) => !(child.kind === 'group' && child.paneGroupId === parent.id)
+        )
+        grandparent.children = this.insertChild(grandparent.children, singleChild, parentIndex)
+        
+        // If grandparent is stacked and the removed group was active, update to the promoted child
+        if (grandparent.direction === 'stacked' && grandparent.activeChildId === parent.id) {
+          grandparent.activeChildId = paneNodeId(singleChild)
+        }
+        
+        this.emitChildrenChanged(grandparent, grandparentBefore)
+        
+        // Remove the now-empty parent group
+        this.state.paneGroups.delete(parent.id)
+        this.emit({
+          type: 'paneGroup.removed',
+          entityType: 'paneGroup',
+          entityId: parent.id,
+          projectId: this.getSessionProjectId(parent.sessionId),
+          sessionId: parent.sessionId,
+          paneGroupId: parent.id,
+          before: cloneValue(parent)
+        })
+
+        // Log collapsed state
+        console.log('\nAFTER - Collapsed (single child promoted):')
+        if (singleChild.kind === 'pane') {
+          const p = this.state.panes.get(singleChild.paneId)
+          console.log(`Pane: ${singleChild.paneId} (${p?.preferredSizePct ?? 0}%)`)
+        } else {
+          const g = this.state.paneGroups.get(singleChild.paneGroupId)
+          console.log(`Group: ${singleChild.paneGroupId} [${g?.direction}] (${g?.preferredSizePct ?? 0}%)`)
+        }
+        console.log('=== REMOVE NODE OPERATION END ===\n')
+      } else {
+        // Log normal AFTER state
+        console.log('\nAFTER - Updated parent group tree:')
+        console.log(`Group: ${parent.id} [${parent.direction}]`)
+        parent.children.forEach((child, i) => {
+          const isLast = i === parent.children.length - 1
+          console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+        })
+        console.log('=== REMOVE NODE OPERATION END ===\n')
+      }
+    } else {
+      // Log normal AFTER state
+      console.log('\nAFTER - Updated parent group tree:')
+      console.log(`Group: ${parent.id} [${parent.direction}]`)
+      if (parent.children.length === 0) {
+        console.log('   (empty - no children)')
+      } else {
+        parent.children.forEach((child, i) => {
+          const isLast = i === parent.children.length - 1
+          console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+        })
+      }
+      console.log('=== REMOVE NODE OPERATION END ===\n')
+    }
 
     if (isPaneChild(node)) {
       this.removePane(node.paneId)
@@ -659,21 +761,112 @@ export class WorkspaceStore {
     const paneIndex = parentGroup.children.findIndex((child) => isPaneChild(child) && child.paneId === paneId)
     if (paneIndex === -1) throw new Error('Pane is not attached to its parent pane group.')
 
+    // Helper to render tree structure
+    const renderTree = (node: PaneGroupChild, indent = ''): string => {
+      if (node.kind === 'pane') {
+        const p = this.state.panes.get(node.paneId)
+        return `${indent}├─ Pane: ${node.paneId} (${p?.preferredSizePct ?? 0}%)`
+      }
+      const g = this.state.paneGroups.get(node.paneGroupId)
+      if (!g) return `${indent}├─ Group: ${node.paneGroupId} (not found)`
+      let result = `${indent}├─ Group: ${node.paneGroupId} [${g.direction}] (${g.preferredSizePct ?? 0}%)`
+      g.children.forEach((child, i) => {
+        const isLast = i === g.children.length - 1
+        result += '\n' + renderTree(child, indent + (isLast ? '   ' : '│  '))
+      })
+      return result
+    }
+
+    // Log BEFORE state
+    console.log('\n=== SPLIT OPERATION START ===')
+    console.log('Split direction:', direction)
+    console.log('Target pane:', paneId, `(${pane.preferredSizePct}%)`)
+    console.log('\nBEFORE - Parent group tree:')
+    console.log(`Group: ${parentGroup.id} [${parentGroup.direction}]`)
+    parentGroup.children.forEach((child, i) => {
+      const isLast = i === parentGroup.children.length - 1
+      console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+    })
+
+    // Special case: if parent is stacked, create a new split group with both panes
+    if (parentGroup.direction === 'stacked') {
+      console.log('Strategy: Create new split group (parent is stacked)')
+      
+      const newGroup = this.createPaneGroup({
+        sessionId: pane.sessionId,
+        name: (pane.state as any)?.title || '',
+        direction,
+        parentPaneGroupId: parentGroup.id,
+        index: paneIndex
+      })
+
+      if (parentGroup.activeChildId === paneId) {
+        this.updatePaneGroup(parentGroup.id, { activeChildId: newGroup.id })
+      }
+
+      this.moveNode({ kind: 'pane', paneId }, newGroup.id)
+      this.updatePane(paneId, { preferredSizePct: 50 })
+      const newPane = this.createPane({
+        sessionId: pane.sessionId,
+        type: 'terminal',
+        preferredSizePct: 50,
+        state: { title: 'Terminal' },
+        parentPaneGroupId: newGroup.id
+      })
+
+      const result = this.getPaneGroupRequired(newGroup.id)
+      console.log('\nAFTER - New split group tree:')
+      console.log(`Group: ${result.id} [${result.direction}]`)
+      result.children.forEach((child, i) => {
+        const isLast = i === result.children.length - 1
+        console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+      })
+      console.log('=== SPLIT OPERATION END ===\n')
+      return result
+    }
+
+    // Check if parent group matches the split direction
+    if (parentGroup.direction === direction) {
+      console.log('Strategy: Add to existing group (direction matches)')
+      
+      // Add new pane directly to the existing group, right after current pane
+      const newPane = this.createPane({
+        sessionId: pane.sessionId,
+        type: 'terminal',
+        preferredSizePct: 50,
+        state: { title: 'Terminal' },
+        parentPaneGroupId: parentGroup.id,
+        index: paneIndex + 1
+      })
+      
+      // Adjust size of current pane
+      this.updatePane(paneId, { preferredSizePct: 50 })
+      
+      const result = this.getPaneGroupRequired(parentGroup.id)
+      console.log('\nAFTER - Updated parent group tree:')
+      console.log(`Group: ${result.id} [${result.direction}]`)
+      result.children.forEach((child, i) => {
+        const isLast = i === result.children.length - 1
+        console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+      })
+      console.log('=== SPLIT OPERATION END ===\n')
+      return result
+    }
+
+    // Create new group if directions don't match
+    console.log('Strategy: Create nested group (direction does not match)')
+    
     const newGroup = this.createPaneGroup({
       sessionId: pane.sessionId,
-      name: '',
+      name: (pane.state as any)?.title || '',
       direction,
       parentPaneGroupId: parentGroup.id,
       index: paneIndex
     })
 
-    if (parentGroup.direction === 'stacked' && parentGroup.activeChildId === paneId) {
-      this.updatePaneGroup(parentGroup.id, { activeChildId: newGroup.id })
-    }
-
     this.moveNode({ kind: 'pane', paneId }, newGroup.id)
     this.updatePane(paneId, { preferredSizePct: 50 })
-    this.createPane({
+    const newPane = this.createPane({
       sessionId: pane.sessionId,
       type: 'terminal',
       preferredSizePct: 50,
@@ -681,8 +874,115 @@ export class WorkspaceStore {
       parentPaneGroupId: newGroup.id
     })
 
-    return this.getPaneGroupRequired(newGroup.id)
+    const result = this.getPaneGroupRequired(newGroup.id)
+    const updatedParent = this.getPaneGroupRequired(parentGroup.id)
+    console.log('\nAFTER - Updated parent group tree (with new nested group):')
+    console.log(`Group: ${updatedParent.id} [${updatedParent.direction}]`)
+    updatedParent.children.forEach((child, i) => {
+      const isLast = i === updatedParent.children.length - 1
+      console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+    })
+    console.log('=== SPLIT OPERATION END ===\n')
+    return result
   }
+
+  convertPaneToTabs(paneId: string): PaneGroup {
+    const pane = this.getPaneRequired(paneId)
+    const parentGroup = this.findParentOfNode({ kind: 'pane', paneId })
+    if (!parentGroup) throw new Error('Pane is not attached to a pane group.')
+
+    const paneIndex = parentGroup.children.findIndex((child) => isPaneChild(child) && child.paneId === paneId)
+    if (paneIndex === -1) throw new Error('Pane is not attached to its parent pane group.')
+
+    // Helper to render tree structure (reused from splitPane)
+    const renderTree = (node: PaneGroupChild, indent = ''): string => {
+      if (node.kind === 'pane') {
+        const p = this.state.panes.get(node.paneId)
+        return `${indent}├─ Pane: ${node.paneId} (${p?.preferredSizePct ?? 0}%)`
+      }
+      const g = this.state.paneGroups.get(node.paneGroupId)
+      if (!g) return `${indent}├─ Group: ${node.paneGroupId} (not found)`
+      let result = `${indent}├─ Group: ${node.paneGroupId} [${g.direction}] (${g.preferredSizePct ?? 0}%)`
+      g.children.forEach((child, i) => {
+        const isLast = i === g.children.length - 1
+        result += '\n' + renderTree(child, indent + (isLast ? '   ' : '│  '))
+      })
+      return result
+    }
+
+    // Log BEFORE state
+    console.log('\n=== CONVERT TO TABS OPERATION START ===')
+    console.log('Target pane:', paneId, `(${pane.preferredSizePct}%)`)
+    console.log('\nBEFORE - Parent group tree:')
+    console.log(`Group: ${parentGroup.id} [${parentGroup.direction}]`)
+    parentGroup.children.forEach((child, i) => {
+      const isLast = i === parentGroup.children.length - 1
+      console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+    })
+
+    // Special case: if parent is already stacked, just add a new tab to it
+    if (parentGroup.direction === 'stacked') {
+      console.log('Strategy: Add new tab to existing stacked group')
+      
+      // Create a new pane as a sibling tab in the same stacked group
+      const newPane = this.createPane({
+        sessionId: pane.sessionId,
+        type: 'terminal',
+        state: { title: 'Terminal' },
+        parentPaneGroupId: parentGroup.id,
+        index: paneIndex + 1
+      })
+      
+      // Set the new pane as active
+      this.updatePaneGroup(parentGroup.id, { activeChildId: newPane.id })
+
+      const updatedParent = this.getPaneGroupRequired(parentGroup.id)
+      console.log('\nAFTER - Updated parent group tree (new tab added):')
+      console.log(`Group: ${updatedParent.id} [${updatedParent.direction}]`)
+      updatedParent.children.forEach((child, i) => {
+        const isLast = i === updatedParent.children.length - 1
+        console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+      })
+      console.log('=== CONVERT TO TABS OPERATION END ===\n')
+      return updatedParent
+    }
+
+    // Create new stacked group (inherit size from the pane being converted)
+    const newGroup = this.createPaneGroup({
+      sessionId: pane.sessionId,
+      name: (pane.state as any)?.title || '',
+      direction: 'stacked',
+      preferredSizePct: pane.preferredSizePct,
+      parentPaneGroupId: parentGroup.id,
+      index: paneIndex
+    })
+
+    // Move original pane into new stacked group
+    this.moveNode({ kind: 'pane', paneId }, newGroup.id)
+    
+    // Create a second pane as a new tab
+    const newPane = this.createPane({
+      sessionId: pane.sessionId,
+      type: 'terminal',
+      state: { title: 'Terminal' },
+      parentPaneGroupId: newGroup.id
+    })
+    
+    // Set the new pane as active in the stacked group
+    this.updatePaneGroup(newGroup.id, { activeChildId: newPane.id })
+
+    const result = this.getPaneGroupRequired(newGroup.id)
+    const updatedParent = this.getPaneGroupRequired(parentGroup.id)
+    console.log('\nAFTER - Updated parent group tree (with new stacked group):')
+    console.log(`Group: ${updatedParent.id} [${updatedParent.direction}]`)
+    updatedParent.children.forEach((child, i) => {
+      const isLast = i === updatedParent.children.length - 1
+      console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+    })
+    console.log('=== CONVERT TO TABS OPERATION END ===\n')
+    return result
+  }
+
 
   updatePane(paneId: string, input: UpdatePaneInput): Pane {
     const pane = this.getPaneRequired(paneId)
@@ -706,11 +1006,108 @@ export class WorkspaceStore {
   removePane(paneId: string): void {
     const pane = this.getPaneRequired(paneId)
     const parent = this.findParentOfNode({ kind: 'pane', paneId })
+    
+    // Helper to render tree structure
+    const renderTree = (node: PaneGroupChild, indent = ''): string => {
+      if (node.kind === 'pane') {
+        const p = this.state.panes.get(node.paneId)
+        return `${indent}├─ Pane: ${node.paneId} (${p?.preferredSizePct ?? 0}%)`
+      }
+      const g = this.state.paneGroups.get(node.paneGroupId)
+      if (!g) return `${indent}├─ Group: ${node.paneGroupId} (not found)`
+      let result = `${indent}├─ Group: ${node.paneGroupId} [${g.direction}] (${g.preferredSizePct ?? 0}%)`
+      g.children.forEach((child, i) => {
+        const isLast = i === g.children.length - 1
+        result += '\n' + renderTree(child, indent + (isLast ? '   ' : '│  '))
+      })
+      return result
+    }
+
     if (parent) {
+      // Log BEFORE state
+      console.log('\n=== REMOVE PANE OPERATION START ===')
+      console.log('Target pane:', paneId, `(${pane.preferredSizePct ?? 0}%)`)
+      console.log('\nBEFORE - Parent group tree:')
+      console.log(`Group: ${parent.id} [${parent.direction}]`)
+      parent.children.forEach((child, i) => {
+        const isLast = i === parent.children.length - 1
+        console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+      })
+
       const beforeChildren = cloneValue(parent.children)
       parent.children = parent.children.filter((child) => !(isPaneChild(child) && child.paneId === paneId))
       this.reconcileActiveChildAfterRemoval(parent, paneId)
       this.emitChildrenChanged(parent, beforeChildren)
+
+      // Collapse horizontal/vertical groups with only one child (but keep stacked groups)
+      if (parent.children.length === 1 && parent.direction !== 'stacked') {
+        const grandparent = this.findParentOfNode({ kind: 'group', paneGroupId: parent.id })
+        if (grandparent) {
+          const singleChild = parent.children[0]
+          const parentIndex = grandparent.children.findIndex(
+            (child) => !isPaneChild(child) && child.paneGroupId === parent.id
+          )
+          
+          // Replace parent group with its single child in grandparent
+          const grandparentBefore = cloneValue(grandparent.children)
+          grandparent.children = grandparent.children.filter(
+            (child) => !(child.kind === 'group' && child.paneGroupId === parent.id)
+          )
+          grandparent.children = this.insertChild(grandparent.children, singleChild, parentIndex)
+          
+          // If grandparent is stacked and the removed group was active, update to the promoted child
+          if (grandparent.direction === 'stacked' && grandparent.activeChildId === parent.id) {
+            grandparent.activeChildId = paneNodeId(singleChild)
+          }
+          
+          this.emitChildrenChanged(grandparent, grandparentBefore)
+          
+          // Remove the now-empty parent group
+          this.state.paneGroups.delete(parent.id)
+          this.emit({
+            type: 'paneGroup.removed',
+            entityType: 'paneGroup',
+            entityId: parent.id,
+            projectId: this.getSessionProjectId(parent.sessionId),
+            sessionId: parent.sessionId,
+            paneGroupId: parent.id,
+            before: cloneValue(parent)
+          })
+
+          // Log collapsed state
+          console.log('\nAFTER - Collapsed (single child promoted):')
+          if (singleChild.kind === 'pane') {
+            const p = this.state.panes.get(singleChild.paneId)
+            console.log(`Pane: ${singleChild.paneId} (${p?.preferredSizePct ?? 0}%)`)
+          } else {
+            const g = this.state.paneGroups.get(singleChild.paneGroupId)
+            console.log(`Group: ${singleChild.paneGroupId} [${g?.direction}] (${g?.preferredSizePct ?? 0}%)`)
+          }
+          console.log('=== REMOVE PANE OPERATION END ===\n')
+        } else {
+          // Log normal AFTER state
+          console.log('\nAFTER - Updated parent group tree:')
+          console.log(`Group: ${parent.id} [${parent.direction}]`)
+          parent.children.forEach((child, i) => {
+            const isLast = i === parent.children.length - 1
+            console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+          })
+          console.log('=== REMOVE PANE OPERATION END ===\n')
+        }
+      } else {
+        // Log normal AFTER state
+        console.log('\nAFTER - Updated parent group tree:')
+        console.log(`Group: ${parent.id} [${parent.direction}]`)
+        if (parent.children.length === 0) {
+          console.log('   (empty - no children)')
+        } else {
+          parent.children.forEach((child, i) => {
+            const isLast = i === parent.children.length - 1
+            console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+          })
+        }
+        console.log('=== REMOVE PANE OPERATION END ===\n')
+      }
     }
 
     this.state.panes.delete(paneId)
@@ -1098,6 +1495,10 @@ export class WorkspaceStore {
       case 'pane.create':
         return { workspace: false, projectId: this.sessionProjectId(command.input.sessionId) }
       case 'pane.split': {
+        const pane = this.state.panes.get(command.paneId)
+        return { workspace: false, projectId: pane ? this.sessionProjectId(pane.sessionId) : null }
+      }
+      case 'pane.convertToTabs': {
         const pane = this.state.panes.get(command.paneId)
         return { workspace: false, projectId: pane ? this.sessionProjectId(pane.sessionId) : null }
       }
