@@ -190,6 +190,28 @@ const ColorPickerPopup = ({
   )
 }
 
+const countTerminalPanesInSession = (workspace: SidebarViewProps['workspace'], sessionId: string): number => {
+  const paneGroupById = new Map(workspace.snapshot.paneGroups.map((paneGroup) => [paneGroup.id, paneGroup]))
+  const paneById = new Map(workspace.snapshot.panes.map((pane) => [pane.id, pane]))
+  const session = workspace.snapshot.sessions.find((value) => value.id === sessionId)
+  if (!session) return 0
+
+  const visitGroup = (paneGroupId: string): number => {
+    const paneGroup = paneGroupById.get(paneGroupId)
+    if (!paneGroup) return 0
+
+    return paneGroup.children.reduce((count, child) => {
+      if (child.kind === 'pane') {
+        return count + (paneById.get(child.paneId)?.type === 'terminal' ? 1 : 0)
+      }
+
+      return count + visitGroup(child.paneGroupId)
+    }, 0)
+  }
+
+  return visitGroup(session.rootPaneGroupId)
+}
+
 const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
   const [, setRefreshKey] = useState(0)
   const [renameState, setRenameState] = useState<RenameState | null>(null)
@@ -324,6 +346,8 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                   <ul className="sessions-list">
                     {sessions.map((session) => {
                       const isActive = session.id === workspace.snapshot.activeSessionId
+                      const terminalPaneCount = countTerminalPanesInSession(workspace, session.id)
+
                       return (
                         <li key={session.id} className={isActive ? 'session-item is-active' : 'session-item'}>
                           <button
@@ -337,14 +361,22 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                           >
                             {session.name}
                           </button>
-                          <button
-                            type="button"
-                            className="session-remove-btn"
-                            title="Remove session"
-                            onClick={() => handleRemoveSession(session.id)}
-                          >
-                            ×
-                          </button>
+                          <div className="session-slot">
+                            <span
+                              className="session-pane-count"
+                              aria-label={`${terminalPaneCount} terminal panes`}
+                            >
+                              {terminalPaneCount}
+                            </span>
+                            <button
+                              type="button"
+                              className="session-remove-btn"
+                              title="Remove session"
+                              onClick={() => handleRemoveSession(session.id)}
+                            >
+                              ×
+                            </button>
+                          </div>
                         </li>
                       )
                     })}

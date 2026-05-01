@@ -148,6 +148,19 @@ const getPreferredSizeStyle = (preferredSizePct?: number): CSSProperties | undef
         flexShrink: 1
       }
 
+const hasStackedDescendant = (
+  child: PaneGroupChild,
+  groupById: Map<string, PaneGroup>
+): boolean => {
+  if (child.kind === 'pane') return false
+
+  const paneGroup = groupById.get(child.paneGroupId)
+  if (!paneGroup) return false
+  if (paneGroup.direction === 'stacked') return true
+
+  return paneGroup.children.some((nestedChild) => hasStackedDescendant(nestedChild, groupById))
+}
+
 export const getActiveVisibleTerminalPaneId = (
   snapshot: WorkspaceStateSnapshot,
   sessionId?: string
@@ -192,8 +205,10 @@ interface StackedPaneGroupProps {
   paneById: Map<string, Pane>
   groupById: Map<string, PaneGroup>
   preferredSizeStyle?: CSSProperties
+  nestedInStackedPaneGroup?: boolean
   onSelectStackedChild: (paneGroupId: string, childId: string) => void
   onRemovePaneNode: (node: PaneGroupChild) => void
+  onRemovePaneGroup: (paneGroupId: string) => void
   onAddTerminalPane: (paneGroupId: string) => void
   onSplitPaneGroup: (paneGroupId: string, direction: 'horizontal' | 'vertical') => void
   renderChild: (child: PaneGroupChild, isActive: boolean) => ReactNode
@@ -205,8 +220,10 @@ const StackedPaneGroup = ({
   paneById,
   groupById,
   preferredSizeStyle,
+  nestedInStackedPaneGroup = false,
   onSelectStackedChild,
   onRemovePaneNode,
+  onRemovePaneGroup,
   onAddTerminalPane,
   onSplitPaneGroup,
   renderChild
@@ -243,7 +260,7 @@ const StackedPaneGroup = ({
       value={activeChildId ?? ''}
       onValueChange={(val: string) => onSelectStackedChild(paneGroup.id, val)}
     >
-      <div className="tab-bar-row">
+      <div className={`tab-bar-row${nestedInStackedPaneGroup ? ' is-nested-stacked-pane-group' : ''}`}>
         <Tabs.List className="tab-bar" aria-label={`${title} tabs`}>
           {paneGroup.children.map((child) => {
             const childId = getNodeId(child)
@@ -297,8 +314,15 @@ const StackedPaneGroup = ({
           >
             <TbLayoutRows size={14} />
           </button>
+          <button
+            type="button"
+            className="tab-bar-action"
+            aria-label="Close pane group"
+            onClick={() => onRemovePaneGroup(paneGroup.id)}
+          >
+            ×
+          </button>
         </div>
-
       </div>
       <div className="workspace-stacked-content">
         {paneGroup.children.map((child) => {
@@ -379,6 +403,10 @@ export const WorkspacePaneTree = ({
     void workspace.getPane(paneId)?.split(direction)
   }
 
+  const handleRemovePaneGroup = (paneGroupId: string) => {
+    void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode({ kind: 'group', paneGroupId })
+  }
+
   const handleSplitPaneGroup = async (paneGroupId: string, direction: 'horizontal' | 'vertical') => {
     const paneGroup = workspace.getPaneGroup(paneGroupId)
     if (!paneGroup) return
@@ -400,7 +428,13 @@ export const WorkspacePaneTree = ({
     })
   }
 
-  const renderPane = (pane: Pane, child: PaneGroupChild | null = null, isVisible = true) => {
+  const renderPane = (
+    pane: Pane,
+    child: PaneGroupChild | null = null,
+    isVisible = true,
+    withStackedGroupTitleBalance = false,
+    nestedInStackedPaneGroup = false
+  ) => {
     const title = getPaneTitle(pane)
     const description = getPaneDescription(pane)
     const isLiveTerminal = pane.type === 'terminal' && pane.id === activeTerminalPaneId
@@ -429,6 +463,12 @@ export const WorkspacePaneTree = ({
         aria-label={title}
         data-testid={`pane-${pane.id}`}
       >
+        {withStackedGroupTitleBalance ? (
+          <div
+            className={`workspace-title-balance${nestedInStackedPaneGroup ? ' is-nested-stacked-pane-group' : ''}`}
+            aria-hidden="true"
+          />
+        ) : null}
         <PaneTitle
           title={title}
           onClick={handleTitleClick}
@@ -512,18 +552,26 @@ export const WorkspacePaneTree = ({
     )
   }
 
-  const renderNode = (child: PaneGroupChild, inStack = false, isVisible = true) =>
+  const renderNode = (
+    child: PaneGroupChild,
+    inStack = false,
+    isVisible = true,
+    withStackedGroupTitleBalance = false,
+    nestedInStackedPaneGroup = false
+  ) =>
     child.kind === 'pane'
       ? renderPane(paneById.get(child.paneId) ?? {
           id: child.paneId,
           sessionId: activeSession.id,
           type: 'unknown',
           state: {}
-        }, inStack ? null : child, isVisible)
-      : renderGroup(groupById.get(child.paneGroupId))
+        }, inStack ? null : child, isVisible, withStackedGroupTitleBalance, nestedInStackedPaneGroup)
+      : renderGroup(groupById.get(child.paneGroupId), withStackedGroupTitleBalance, nestedInStackedPaneGroup)
 
   const renderGroup = (
-    paneGroup?: PaneGroup
+    paneGroup?: PaneGroup,
+    withStackedGroupTitleBalance = false,
+    nestedInStackedPaneGroup = false
   ) => {
     if (!paneGroup) {
       return <section className="workspace-empty">Pane group not found.</section>
@@ -546,14 +594,19 @@ export const WorkspacePaneTree = ({
           paneById={paneById}
           groupById={groupById}
           preferredSizeStyle={preferredSizeStyle}
+          nestedInStackedPaneGroup={nestedInStackedPaneGroup}
           onSelectStackedChild={handleSelectStackedChild}
           onRemovePaneNode={handleRemovePaneNode}
+          onRemovePaneGroup={handleRemovePaneGroup}
           onAddTerminalPane={handleAddTerminalPane}
           onSplitPaneGroup={handleSplitPaneGroup}
-          renderChild={(child, isActive) => renderNode(child, true, isActive)}
+          renderChild={(child, isActive) => renderNode(child, true, isActive, false, true)}
         />
       )
     }
+
+    const shouldBalanceChildren =
+      paneGroup.direction === 'horizontal' && paneGroup.children.some((child) => hasStackedDescendant(child, groupById))
 
     return (
       <section
@@ -563,10 +616,22 @@ export const WorkspacePaneTree = ({
         aria-label={title}
         data-testid={`group-${paneGroup.id}`}
       >
+        {withStackedGroupTitleBalance ? (
+          <div
+            className={`workspace-title-balance${nestedInStackedPaneGroup ? ' is-nested-stacked-pane-group' : ''}`}
+            aria-hidden="true"
+          />
+        ) : null}
         <div className={`workspace-split is-${paneGroup.direction}`}>
           {paneGroup.children.length > 0 ? (
             paneGroup.children.flatMap((child, index) => {
-              const node = renderNode(child)
+              const node = renderNode(
+                child,
+                false,
+                true,
+                shouldBalanceChildren && !hasStackedDescendant(child, groupById),
+                nestedInStackedPaneGroup
+              )
               if (index === 0) return [node]
               const prevChild = paneGroup.children[index - 1]
               return [

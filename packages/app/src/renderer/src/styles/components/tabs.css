@@ -3,6 +3,15 @@
   background: var(--chrome-bg);
   border-bottom: 1px solid var(--border-color);
 
+  &.is-nested-stacked-pane-group {
+    background: var(--workspace-bg);
+
+    > .tab-bar,
+    > .tab-bar-actions {
+      background: var(--workspace-bg);
+    }
+  }
+
   > .tab-bar {
     flex: 0 1 auto;
     min-width: 0;

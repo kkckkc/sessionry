@@ -150,6 +150,17 @@
   }
 }
 
+.workspace-title-balance {
+  flex-shrink: 0;
+  height: 37px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--chrome-bg);
+
+  &.is-nested-stacked-pane-group {
+    background: var(--workspace-bg);
+  }
+}
+
 .workspace-stacked-content {
   display: flex;
   flex: 1;

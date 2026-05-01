@@ -123,6 +123,8 @@
      Both children occupy the same grid cell; CSS swaps which is visible. */
   .project-slot {
     display: grid;
+    width: 18px;
+    justify-items: center;
 
     > * {
       grid-column: 1;
@@ -227,8 +229,40 @@
     }
   }
 
-  .session-remove-btn {
+  .session-slot {
     grid-column: 3;
+    display: grid;
+    width: 18px;
+    justify-items: center;
+
+    > * {
+      grid-column: 1;
+      grid-row: 1;
+      transition: opacity 100ms ease;
+    }
+  }
+
+  .session-item:hover .session-pane-count,
+  .session-item:not(:hover) .session-remove-btn {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .session-pane-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    color: var(--text-tertiary);
+    font-size: 0.7rem;
+    padding: 0 0.25rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  .session-remove-btn {
     font-size: 0.875rem;
     opacity: 0;
     pointer-events: none;
