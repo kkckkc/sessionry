@@ -258,6 +258,14 @@
     display: flex;
     flex: 1;
     padding: 0;
+    background: var(--workspace-bg);
+
+    > .terminal-surface,
+    > .placeholder {
+      flex: 1;
+    }
+  }
+}
 
 /* Adjust spacing for split groups without headers */
 .workspace-node.is-split:not(:has(> .header)) {
@@ -271,15 +279,6 @@
 /* Ensure stacked groups always show their headers */
 .workspace-node.is-stacked > .header {
   display: flex;
-}
-
-    background: var(--workspace-bg);
-
-    > .terminal-surface,
-    > .placeholder {
-      flex: 1;
-    }
-  }
 }
 
 .workspace-empty,
