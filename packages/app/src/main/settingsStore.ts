@@ -8,6 +8,7 @@ export type { AppSettings }
 
 const DEFAULTS: AppSettings = {
   version: 1,
+  theme: 'system',
   statusBarVisible: true,
   confirmations: {
     confirmPaneClose: true,

@@ -85,7 +85,7 @@ export interface SelectProps {
  * />
  * ```
  */
-export const Select = ({ 
+export const Select = ({
   label,
   description,
   error,
@@ -99,9 +99,10 @@ export const Select = ({
   name
 }: SelectProps) => {
   const hasError = Boolean(error)
-  
+  const selectedLabel = options.find(o => o.value === (value ?? defaultValue))?.label
+
   return (
-    <Field.Root 
+    <Field.Root
       className={hasError ? 'select-container has-error' : 'select-container'}
       disabled={disabled}
       invalid={hasError}
@@ -113,7 +114,7 @@ export const Select = ({
           {required && <span className="select-required"> *</span>}
         </Field.Label>
       )}
-      
+
       <BaseSelect.Root
         value={value}
         defaultValue={defaultValue}
@@ -123,7 +124,9 @@ export const Select = ({
         name={name}
       >
         <BaseSelect.Trigger className="select-trigger">
-          <BaseSelect.Value placeholder={placeholder} />
+          <BaseSelect.Value placeholder={placeholder}>
+            {selectedLabel ?? placeholder}
+          </BaseSelect.Value>
           <BaseSelect.Icon className="select-icon">▼</BaseSelect.Icon>
         </BaseSelect.Trigger>
         

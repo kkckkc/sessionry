@@ -1,6 +1,7 @@
 import type {
   ActionInvocationSource,
   AppSettings,
+  AppTheme,
   PluginViewModel,
   TerminalSessionInfo,
   TerminalStateEvent,
@@ -16,6 +17,7 @@ import { SettingsView } from './components/SettingsView'
 import { WorkspaceSlotView } from './components/WorkspaceSlotView'
 import { readWorkspaceSnapshot, workspace } from './lib/workspace'
 import { getRendererView, loadUserPluginRenderers } from './plugins'
+import { applyTheme, watchSystemTheme } from './lib/theme'
 
 const emptyPlugins: PluginViewModel = {
   actions: [],
@@ -32,6 +34,7 @@ export const App = () => {
   const [rightVisible, setRightVisible] = useState(true)
   const [statusBarVisible, setStatusBarVisible] = useState(true)
   const [clearSignal, setClearSignal] = useState(0)
+  const themeRef = useRef<AppTheme>('system')
   const initializedRef = useRef(false)
 
   const activeWorkspaceSessionId = workspaceSnapshot.activeSessionId ?? workspaceSnapshot.sessions[0]?.id
@@ -56,12 +59,18 @@ export const App = () => {
     ]).then(([pluginModel, , settings]) => {
       setPlugins(pluginModel)
       setStatusBarVisible(settings.statusBarVisible)
+      themeRef.current = settings.theme ?? 'system'
+      applyTheme(themeRef.current)
     })
     setWorkspaceSnapshot(readWorkspaceSnapshot())
 
     const unsubscribeSettings = window.terminalApp.settings.onChange((settings: AppSettings) => {
       setStatusBarVisible(settings.statusBarVisible)
+      themeRef.current = settings.theme ?? 'system'
+      applyTheme(themeRef.current)
     })
+
+    const unsubscribeSystemTheme = watchSystemTheme(() => themeRef.current)
 
     const unsubscribeState = window.terminalApp.onTerminalState((event: TerminalStateEvent) => {
       setTerminalSessions((value) => ({
@@ -88,6 +97,7 @@ export const App = () => {
 
     return () => {
       unsubscribeSettings()
+      unsubscribeSystemTheme()
       unsubscribeState()
       unsubscribeWorkspace()
       if (workspaceRefreshFrame !== null) window.cancelAnimationFrame(workspaceRefreshFrame)

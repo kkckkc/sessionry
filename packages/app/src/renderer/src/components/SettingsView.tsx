@@ -9,11 +9,13 @@ import {
   DialogPopup,
   DialogHeader,
   SettingsSection,
-  SettingToggle
+  SettingToggle,
+  SettingSelect
 } from '@sessionry/components'
-import type { AppSettings } from '@sessionry/plugin-api'
+import type { AppSettings, AppTheme } from '@sessionry/plugin-api'
 import type { RendererViewRegistration } from '@sessionry/plugin-api'
 import { PluginSurface } from './PluginSurface'
+import { applyTheme } from '../lib/theme'
 
 interface ConfirmationsSettings {
   confirmPaneClose: boolean
@@ -60,6 +62,16 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
 
   const pluginsWithSettings: PluginWithSettings[] = [
     {
+      id: 'app-appearance',
+      name: 'Appearance',
+      settingsView: {
+        id: 'settings.appearance',
+        title: 'Appearance',
+        description: 'Configure the visual appearance of the app',
+        icon: 'TbPalette'
+      }
+    },
+    {
       id: 'app-confirmations',
       name: 'Confirmations',
       settingsView: {
@@ -91,13 +103,25 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
   const selectedSettings =
     settings === null || !selectedPlugin
       ? null
-      : selectedPlugin.id === 'app-confirmations'
-        ? settings.confirmations
-        : settings.plugins[selectedPlugin.id]
+      : selectedPlugin.id === 'app-appearance'
+        ? { theme: settings.theme ?? 'system' }
+        : selectedPlugin.id === 'app-confirmations'
+          ? settings.confirmations
+          : settings.plugins[selectedPlugin.id]
 
   const handleUpdateSettings = async (pluginId: string, updates: unknown) => {
     if (!settings) return
     
+    // Handle built-in appearance settings
+    if (pluginId === 'app-appearance') {
+      const theme = (updates as { theme: AppTheme }).theme
+      const nextSettings: AppSettings = { ...settings, theme }
+      setSettings(nextSettings)
+      applyTheme(theme)
+      await window.terminalApp.settings.update({ theme })
+      return
+    }
+
     // Handle built-in confirmations settings (not a plugin)
     if (pluginId === 'app-confirmations') {
       const nextSettings: AppSettings = {
@@ -181,6 +205,15 @@ interface PluginSettingsContentProps {
 }
 
 const PluginSettingsContent = ({ plugin, settings, onUpdate, resolveRendererView }: PluginSettingsContentProps) => {
+  // Handle built-in appearance settings
+  if (plugin.id === 'app-appearance') {
+    return (
+      <PluginSurface pluginId={plugin.id} surface="settings" slot="settings" viewId={plugin.settingsView.id}>
+        <AppearanceSettingsView settings={settings as { theme: AppTheme }} onUpdate={onUpdate} />
+      </PluginSurface>
+    )
+  }
+
   // Handle built-in confirmations settings
   if (plugin.id === 'app-confirmations') {
     return (
@@ -211,6 +244,34 @@ const PluginSettingsContent = ({ plugin, settings, onUpdate, resolveRendererView
     >
       <Component pluginId={plugin.id} settings={settings} onUpdate={onUpdate} />
     </PluginSurface>
+  )
+}
+
+interface AppearanceSettingsViewProps {
+  settings: { theme: AppTheme }
+  onUpdate: (updates: unknown) => Promise<void>
+}
+
+const THEME_OPTIONS: { value: AppTheme; label: string }[] = [
+  { value: 'system', label: 'System' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'light', label: 'Light' }
+]
+
+const AppearanceSettingsView = ({ settings, onUpdate }: AppearanceSettingsViewProps) => {
+  const theme = settings?.theme ?? 'system'
+
+  return (
+    <div className="appearance-settings">
+      <SettingsSection title="Theme">
+        <SettingSelect
+          label="Color theme"
+          options={THEME_OPTIONS}
+          value={theme}
+          onChange={(value) => void onUpdate({ theme: value as AppTheme })}
+        />
+      </SettingsSection>
+    </div>
   )
 }
 

@@ -81,3 +81,9 @@
   display: flex;
   flex-direction: column;
 }
+
+/* ── Appearance Settings ── */
+.appearance-settings {
+  display: flex;
+  flex-direction: column;
+}
