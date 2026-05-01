@@ -93,6 +93,27 @@ These CSS custom properties are the supported public token surface for consumers
 --shadow
 ```
 
+### Typography tokens
+
+```css
+--display-font-size
+--display-font-weight
+--heading-font-size
+--heading-font-weight
+--title-font-size
+--title-font-weight
+--body-lg-font-size
+--body-lg-font-weight
+--body-font-size
+--body-font-weight
+--body-sm-font-size
+--body-sm-font-weight
+--caption-font-size
+--caption-font-weight
+--overline-font-size
+--overline-font-weight
+```
+
 ### Spacing tokens
 
 ```css

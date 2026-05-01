@@ -5,7 +5,8 @@
 .confirmation-dialog > .content.confirmation-content {
   padding: 1rem 1.125rem;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--body-lg-font-size);
+  font-weight: var(--body-lg-font-weight);
   line-height: 1.5;
 }
 

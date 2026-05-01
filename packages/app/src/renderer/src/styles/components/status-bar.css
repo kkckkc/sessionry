@@ -17,7 +17,8 @@
     color: var(--text-secondary);
     min-width: 0;
     display: flex;
-    font-size: 0.68rem;
+    font-size: var(--caption-font-size);
+    font-weight: var(--caption-font-weight);
     gap: 0.25rem;
 
     &:last-child {

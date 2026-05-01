@@ -71,7 +71,7 @@
 }
 
 .tab-bar-action--glyph {
-  font-size: 1rem;
+  font-size: var(--title-font-size);
   line-height: 1;
 }
 
@@ -95,7 +95,8 @@
     height: 28px;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 0.82rem;
+    font-size: var(--body-font-size);
+    font-weight: var(--body-font-weight);
     letter-spacing: -0.01em;
     flex-shrink: 0;
     transition:
@@ -127,7 +128,7 @@
       background: transparent;
       color: inherit;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: var(--title-font-size);
       line-height: 1;
       opacity: 0;
       transition: opacity 120ms ease, background-color 120ms ease;

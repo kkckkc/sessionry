@@ -66,9 +66,9 @@
 
 /* Label */
 .toggle-label {
-  font-size: 13px;
+  font-size: var(--body-font-size);
   color: var(--text-primary);
-  font-weight: 450;
+  font-weight: var(--body-font-weight);
   letter-spacing: -0.01em;
   user-select: none;
 }

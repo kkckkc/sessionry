@@ -18,7 +18,8 @@
   padding: 0.45rem 0.65rem;
   background: transparent;
   color: var(--text-primary);
-  font-size: 0.84rem;
+  font-size: var(--body-font-size);
+  font-weight: var(--body-font-weight);
   text-align: left;
   cursor: pointer;
   outline: none;
@@ -36,7 +37,7 @@
   &.menu-item--has-submenu::after {
     content: '›';
     color: var(--text-tertiary);
-    font-size: 1rem;
+    font-size: var(--title-font-size);
     line-height: 1;
   }
 
@@ -67,7 +68,8 @@
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: var(--body-sm-font-size);
+  font-weight: var(--body-sm-font-weight);
   letter-spacing: 0.05em;
   opacity: 0;
   transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease;
@@ -86,7 +88,8 @@
 }
 
 .tab-bar-actions .group-menu-trigger {
-  font-size: 0.75rem;
+  font-size: var(--body-sm-font-size);
+  font-weight: var(--body-sm-font-weight);
   letter-spacing: 0.05em;
 }
 

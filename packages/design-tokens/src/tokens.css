@@ -58,6 +58,31 @@
   --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.55);
   --shadow: var(--shadow-xl); /* backward-compat alias */
 
+  /* Typography scale */
+  --display-font-size: 28px;
+  --display-font-weight: 600;
+
+  --heading-font-size: 20px;
+  --heading-font-weight: 600;
+
+  --title-font-size: 16px;
+  --title-font-weight: 600;
+
+  --body-lg-font-size: 14px;
+  --body-lg-font-weight: 400;
+
+  --body-font-size: 13px;
+  --body-font-weight: 400;
+
+  --body-sm-font-size: 12px;
+  --body-sm-font-weight: 400;
+
+  --caption-font-size: 11px;
+  --caption-font-weight: 500;
+
+  --overline-font-size: 10px;
+  --overline-font-weight: 600;
+
   /* Spacing scale */
   --space-1: 2px;
   --space-2: 4px;

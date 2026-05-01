@@ -3,11 +3,18 @@
   min-height: 0;
 }
 
-.plugin-surface[data-plugin-surface='sidebar'],
 .plugin-surface[data-plugin-surface='workspace'],
 .plugin-surface[data-plugin-surface='pane'] {
   display: flex;
   flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.plugin-surface[data-plugin-surface='sidebar'] {
+  display: block;
+  flex: 1;
+  width: 100%;
   min-width: 0;
   min-height: 0;
 }

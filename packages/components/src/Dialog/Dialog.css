@@ -30,8 +30,8 @@
 .dialog > .header h2 {
   flex: 1;
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--title-font-size);
+  font-weight: var(--title-font-weight);
   letter-spacing: -0.02em;
 }
 
@@ -75,7 +75,8 @@
   display: grid;
   gap: 0.35rem;
   color: var(--text-primary);
-  font-size: 0.84rem;
+  font-size: var(--body-font-size);
+  font-weight: var(--body-font-weight);
 }
 
 .dialog form .field input,
@@ -90,6 +91,8 @@
 
 .dialog form .field small {
   color: var(--text-secondary);
+  font-size: var(--body-sm-font-size);
+  font-weight: var(--body-sm-font-weight);
 }
 
 .dialog form > .actions {

@@ -12,7 +12,8 @@
 
 .toolbar > .brand {
   min-width: 0;
-  font-size: 0.8rem;
+  font-size: var(--body-font-size);
+  font-weight: var(--body-font-weight);
   color: var(--text-secondary);
 }
 

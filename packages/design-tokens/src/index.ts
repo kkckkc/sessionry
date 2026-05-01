@@ -80,6 +80,25 @@ export interface ShadowTokens {
   shadow: string // backward-compat alias for shadowXl
 }
 
+export interface TypographyTokens {
+  displayFontSize: string
+  displayFontWeight: string
+  headingFontSize: string
+  headingFontWeight: string
+  titleFontSize: string
+  titleFontWeight: string
+  bodyLgFontSize: string
+  bodyLgFontWeight: string
+  bodyFontSize: string
+  bodyFontWeight: string
+  bodySmFontSize: string
+  bodySmFontWeight: string
+  captionFontSize: string
+  captionFontWeight: string
+  overlineFontSize: string
+  overlineFontWeight: string
+}
+
 export interface SpacingTokens {
   space1: string
   space2: string
@@ -115,6 +134,7 @@ export interface ContextTokens {
 export interface DesignTokens {
   colors: ColorTokens
   shadows: ShadowTokens
+  typography: TypographyTokens
   spacing: SpacingTokens
   radii: RadiusTokens
   context: ContextTokens

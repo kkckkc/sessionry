@@ -9,8 +9,8 @@
 
 .select-label {
   color: var(--text-primary);
-  font-size: 0.84rem;
-  font-weight: 500;
+  font-size: var(--body-font-size);
+  font-weight: var(--caption-font-weight);
 }
 
 .select-required {
@@ -28,7 +28,8 @@
   border-radius: 10px;
   background: var(--button-bg);
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: var(--body-lg-font-size);
+  font-weight: var(--body-lg-font-weight);
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
@@ -53,7 +54,7 @@
 
 .select-icon {
   margin-left: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--body-sm-font-size);
   color: var(--text-secondary);
   transition: transform 0.2s ease;
 }
@@ -84,7 +85,8 @@
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: var(--body-lg-font-size);
+  font-weight: var(--body-lg-font-weight);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
@@ -99,7 +101,7 @@
 
 .select-item[data-selected] {
   background: var(--button-active-bg);
-  font-weight: 500;
+  font-weight: var(--caption-font-weight);
 }
 
 .select-item[data-disabled] {
@@ -110,7 +112,7 @@
 .select-item-indicator {
   margin-left: 0.5rem;
   color: var(--accent);
-  font-size: 0.875rem;
+  font-size: var(--body-lg-font-size);
 }
 
 .select-item:not([data-selected]) .select-item-indicator {
@@ -119,10 +121,12 @@
 
 .select-error {
   color: var(--error-color, #ef4444);
-  font-size: 0.8rem;
+  font-size: var(--body-sm-font-size);
+  font-weight: var(--body-sm-font-weight);
 }
 
 .select-description {
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: var(--body-sm-font-size);
+  font-weight: var(--body-sm-font-weight);
 }
