@@ -78,32 +78,6 @@ export const terminalPanePlugin: AppPlugin = {
         status: 'completed',
         effects: [{ type: 'terminal.clear-active' }]
       })
-    },
-    {
-      id: 'layout:toggle-left',
-      name: 'Toggle Left Sidebar',
-      icon: 'TbLayoutSidebar',
-      description: 'Show or hide the left sidebar.',
-      category: 'Layout',
-      defaultKeybinding: 'C-b',
-      surfaces: ['toolbar', 'palette'],
-      run: () => ({
-        status: 'completed',
-        effects: [{ type: 'layout.toggle-left' }]
-      })
-    },
-    {
-      id: 'layout:toggle-right',
-      name: 'Toggle Right Sidebar',
-      icon: 'TbLayoutSidebarRight',
-      description: 'Show or hide the right sidebar.',
-      category: 'Layout',
-      defaultKeybinding: 'C-Shift-b',
-      surfaces: ['toolbar', 'palette'],
-      run: () => ({
-        status: 'completed',
-        effects: [{ type: 'layout.toggle-right' }]
-      })
     }
   ],
   statusItems: [

@@ -1,16 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import React, { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 
 import { TbLayoutColumns, TbLayoutRows, TbLayoutNavbar } from 'react-icons/tb'
-import { Dialog } from '@base-ui-components/react/dialog'
 import { Tabs } from '@base-ui-components/react/tabs'
-import { Menu } from '@base-ui-components/react/menu'
 import { PaneTitle } from '@sessionry/components'
 import {
   resolveActiveView,
   type Pane,
   type PaneGroup,
   type PaneGroupChild,
-  type PaneGroupLayout,
   type WorkspaceStateSnapshot,
   type WorkspaceViewProps
 } from '@sessionry/plugin-api'
@@ -189,138 +186,8 @@ export const getActiveVisibleTerminalPaneId = (
   return visitGroup(activeSession.rootPaneGroupId)
 }
 
-const GROUP_TYPES: Array<{ value: PaneGroupLayout; label: string }> = [
-  { value: 'stacked', label: 'Stacked (Tabs)' },
-  { value: 'horizontal', label: 'Horizontal' },
-  { value: 'vertical', label: 'Vertical' }
-]
-
-interface PaneGroupHeaderProps {
-  paneGroup: PaneGroup
-  groupChild: PaneGroupChild | null
-  onRenameGroup: (paneGroupId: string, currentName: string) => void
-  onChangeGroupType: (paneGroupId: string, direction: PaneGroupLayout) => void
-  onAddTerminalPane: (paneGroupId: string) => void
-  onRemovePaneNode: (node: PaneGroupChild) => void
-  title?: ReactNode
-  wrapInHeader?: boolean
-  className?: string
-}
-
-const PaneGroupActions = ({
-  paneGroup,
-  groupChild,
-  onRenameGroup,
-  onChangeGroupType,
-  onAddTerminalPane,
-  onRemovePaneNode,
-  className
-}: Omit<PaneGroupHeaderProps, 'title' | 'wrapInHeader'>) => {
-  const isTabBar = className?.includes('tab-bar-actions') ?? false
-  const menuTriggerClassName = isTabBar ? 'group-menu-trigger tab-bar-action' : 'group-menu-trigger'
-  const iconButtonClassName = isTabBar
-    ? 'tab-bar-action tab-bar-action--glyph'
-    : undefined
-
-  return (
-    <div className={className ?? 'header-actions pane-group-actions'}>
-      <Menu.Root>
-        <Menu.Trigger
-          render={<button type="button" className={menuTriggerClassName} aria-label="Group options" />}
-        >
-          ···
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Positioner className="menu-positioner" align="end">
-            <Menu.Popup className="menu-popup">
-              <Menu.Item
-                className="menu-item"
-                onClick={() => onRenameGroup(paneGroup.id, paneGroup.name)}
-              >
-                Rename
-              </Menu.Item>
-              <Menu.SubmenuRoot>
-                <Menu.SubmenuTrigger className="menu-item menu-item--has-submenu">
-                  Change Type
-                </Menu.SubmenuTrigger>
-                <Menu.Portal>
-                  <Menu.Positioner className="menu-positioner">
-                    <Menu.Popup className="menu-popup">
-                      {GROUP_TYPES.filter((t) => t.value !== paneGroup.direction).map((t) => (
-                        <Menu.Item
-                          key={t.value}
-                          className="menu-item"
-                          onClick={() => onChangeGroupType(paneGroup.id, t.value)}
-                        >
-                          {t.label}
-                        </Menu.Item>
-                      ))}
-                    </Menu.Popup>
-                  </Menu.Positioner>
-                </Menu.Portal>
-              </Menu.SubmenuRoot>
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.Root>
-      <button
-        type="button"
-        className={isTabBar ? `group-add ${iconButtonClassName}` : 'group-add'}
-        aria-label="New terminal pane"
-        onClick={() => onAddTerminalPane(paneGroup.id)}
-      >
-        +
-      </button>
-      {groupChild && (
-        <button
-          type="button"
-          className={isTabBar ? `group-close ${iconButtonClassName}` : 'group-close'}
-          aria-label="Close pane group"
-          onClick={() => onRemovePaneNode(groupChild)}
-        >
-          ×
-        </button>
-      )}
-    </div>
-  )
-}
-
-const PaneGroupHeader = ({
-  paneGroup,
-  groupChild,
-  onRenameGroup,
-  onChangeGroupType,
-  onAddTerminalPane,
-  onRemovePaneNode,
-  title = <span>{getGroupTitle(paneGroup)}</span>,
-  wrapInHeader = true,
-  className
-}: PaneGroupHeaderProps) => {
-  const actions = (
-    <PaneGroupActions
-      paneGroup={paneGroup}
-      groupChild={groupChild}
-      onRenameGroup={onRenameGroup}
-      onChangeGroupType={onChangeGroupType}
-      onAddTerminalPane={onAddTerminalPane}
-      onRemovePaneNode={onRemovePaneNode}
-      className={wrapInHeader ? 'header-actions pane-group-actions' : className}
-    />
-  )
-
-  if (!wrapInHeader) return actions
-
-  return (
-    <header className="header">
-      {title}
-      {actions}
-    </header>
-  )
-}
-
 interface StackedPaneGroupProps {
   paneGroup: PaneGroup
-  groupChild: PaneGroupChild | null
   activeChild?: PaneGroupChild
   paneById: Map<string, Pane>
   groupById: Map<string, PaneGroup>
@@ -328,15 +195,12 @@ interface StackedPaneGroupProps {
   onSelectStackedChild: (paneGroupId: string, childId: string) => void
   onRemovePaneNode: (node: PaneGroupChild) => void
   onAddTerminalPane: (paneGroupId: string) => void
-  onSplitPane: (paneId: string, direction: 'horizontal' | 'vertical') => void
-  onRenameGroup: (paneGroupId: string, name: string) => void
-  onChangeGroupType: (paneGroupId: string, direction: PaneGroupLayout) => void
+  onSplitPaneGroup: (paneGroupId: string, direction: 'horizontal' | 'vertical') => void
   renderChild: (child: PaneGroupChild, isActive: boolean) => ReactNode
 }
 
 const StackedPaneGroup = ({
   paneGroup,
-  groupChild,
   activeChild,
   paneById,
   groupById,
@@ -344,20 +208,12 @@ const StackedPaneGroup = ({
   onSelectStackedChild,
   onRemovePaneNode,
   onAddTerminalPane,
-  onSplitPane,
-  onRenameGroup,
-  onChangeGroupType,
+  onSplitPaneGroup,
   renderChild
 }: StackedPaneGroupProps) => {
   const lastFocusedByChildRef = useRef(new Map<string, HTMLElement>())
   const panelByChildRef = useRef(new Map<string, HTMLDivElement>())
   const activeChildId = activeChild ? getNodeId(activeChild) : undefined
-  const activePaneId = activeChild?.kind === 'pane' ? activeChild.paneId : null
-  const activeGroup = activeChild?.kind === 'group' ? groupById.get(activeChild.paneGroupId) : null
-  const activeSplitGroup =
-    activeChild?.kind === 'group' && activeGroup && activeGroup.direction !== 'stacked'
-      ? activeGroup
-      : null
   const title = getGroupTitle(paneGroup)
 
   useEffect(() => {
@@ -387,14 +243,6 @@ const StackedPaneGroup = ({
       value={activeChildId ?? ''}
       onValueChange={(val: string) => onSelectStackedChild(paneGroup.id, val)}
     >
-      <PaneGroupHeader
-        paneGroup={paneGroup}
-        groupChild={groupChild}
-        onRenameGroup={onRenameGroup}
-        onChangeGroupType={onChangeGroupType}
-        onAddTerminalPane={onAddTerminalPane}
-        onRemovePaneNode={onRemovePaneNode}
-      />
       <div className="tab-bar-row">
         <Tabs.List className="tab-bar" aria-label={`${title} tabs`}>
           {paneGroup.children.map((child) => {
@@ -433,39 +281,24 @@ const StackedPaneGroup = ({
           +
         </button>
         <div className="tab-bar-actions">
-          {activePaneId && (
-            <>
-              <button
-                type="button"
-                className="tab-bar-action"
-                aria-label="Split horizontal"
-                onClick={() => onSplitPane(activePaneId, 'horizontal')}
-              >
-                <TbLayoutColumns size={14} />
-              </button>
-              <button
-                type="button"
-                className="tab-bar-action"
-                aria-label="Split vertical"
-                onClick={() => onSplitPane(activePaneId, 'vertical')}
-              >
-                <TbLayoutRows size={14} />
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            className="tab-bar-action"
+            aria-label="Split horizontal"
+            onClick={() => onSplitPaneGroup(paneGroup.id, 'horizontal')}
+          >
+            <TbLayoutColumns size={14} />
+          </button>
+          <button
+            type="button"
+            className="tab-bar-action"
+            aria-label="Split vertical"
+            onClick={() => onSplitPaneGroup(paneGroup.id, 'vertical')}
+          >
+            <TbLayoutRows size={14} />
+          </button>
         </div>
-        {activeSplitGroup && (
-          <PaneGroupHeader
-            paneGroup={activeSplitGroup}
-            groupChild={activeChild ?? null}
-            onRenameGroup={onRenameGroup}
-            onChangeGroupType={onChangeGroupType}
-            onAddTerminalPane={onAddTerminalPane}
-            onRemovePaneNode={onRemovePaneNode}
-            wrapInHeader={false}
-            className="tab-bar-actions pane-group-actions"
-          />
-        )}
+
       </div>
       <div className="workspace-stacked-content">
         {paneGroup.children.map((child) => {
@@ -496,58 +329,7 @@ const StackedPaneGroup = ({
   )
 }
 
-const RenameGroupDialog = ({
-  paneGroupName,
-  onClose,
-  onRename
-}: {
-  paneGroupName: string
-  onClose: () => void
-  onRename: (name: string) => void
-}) => {
-  const [value, setValue] = useState(paneGroupName)
 
-  useEffect(() => {
-    setValue(paneGroupName)
-  }, [paneGroupName])
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    onRename(value.trim() || paneGroupName)
-  }
-
-  return (
-    <Dialog.Root open onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="dialog-backdrop" />
-        <Dialog.Popup className="dialog">
-          <header className="header">
-            <Dialog.Title>Rename Pane Group</Dialog.Title>
-          </header>
-          <form onSubmit={handleSubmit}>
-            <label className="field">
-              <span>Name</span>
-              <input
-                type="text"
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-                autoFocus
-              />
-            </label>
-            <div className="actions">
-              <button type="button" className="btn is-ghost" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="btn">
-                Rename
-              </button>
-            </div>
-          </form>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
-  )
-}
 
 export const WorkspacePaneTree = ({
   plugins,
@@ -556,7 +338,6 @@ export const WorkspacePaneTree = ({
   clearSignal
 }: WorkspaceViewProps) => {
   const [, setRefreshKey] = useState(0)
-  const [renameGroup, setRenameGroup] = useState<{ paneGroupId: string; name: string } | null>(null)
 
   useEffect(() => workspace.subscribeAll(() => setRefreshKey((k) => k + 1)), [workspace])
 
@@ -592,23 +373,80 @@ export const WorkspacePaneTree = ({
     void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node)
   }
 
-  const handleRenameGroup = (paneGroupId: string, currentName: string) => {
-    setRenameGroup({ paneGroupId, name: currentName })
-  }
 
-  const commitRenameGroup = (name: string) => {
-    if (!renameGroup) return
-
-    void workspace.getPaneGroup(renameGroup.paneGroupId)?.update({ name })
-    setRenameGroup(null)
-  }
-
-  const handleChangeGroupType = (paneGroupId: string, direction: PaneGroupLayout) => {
-    void workspace.getPaneGroup(paneGroupId)?.update({ direction })
-  }
 
   const handleSplitPane = (paneId: string, direction: 'horizontal' | 'vertical') => {
     void workspace.getPane(paneId)?.split(direction)
+  }
+
+  const handleSplitPaneGroup = async (paneGroupId: string, direction: 'horizontal' | 'vertical') => {
+    const paneGroup = workspace.getPaneGroup(paneGroupId)
+    if (!paneGroup) return
+
+    const session = workspace.getSession(activeSession.id)
+    if (!session) return
+
+    // Find parent group by searching all groups
+    const parentGroup = snapshot.paneGroups.find(g => 
+      g.children.some(child => child.kind === 'group' && child.paneGroupId === paneGroupId)
+    )
+    
+    // Handle root pane group (no parent)
+    if (!parentGroup) {
+      // Check if this is actually the root group
+      if (activeSession.rootPaneGroupId !== paneGroupId) return
+
+      // Create new root group with split direction
+      const newRootGroup = await session.createPaneGroup({
+        name: paneGroup.data.name,
+        direction
+      })
+
+      // Set as new root first (this detaches the old root)
+      await session.setRootPaneGroup(newRootGroup.id)
+
+      // Now insert the old root as a child
+      await newRootGroup.insertPaneGroup(paneGroupId, 0)
+      await paneGroup.update({ preferredSizePct: 50 })
+
+      // Create new terminal pane as sibling
+      await session.createPane({
+        type: 'terminal',
+        state: { title: 'Terminal' },
+        parentPaneGroupId: newRootGroup.id,
+        preferredSizePct: 50
+      })
+      return
+    }
+
+    const parentGroupHandle = workspace.getPaneGroup(parentGroup.id)
+    if (!parentGroupHandle) return
+
+    // Find index of current group in parent
+    const currentIndex = parentGroup.children.findIndex(
+      child => child.kind === 'group' && child.paneGroupId === paneGroupId
+    )
+    if (currentIndex === -1) return
+
+    // Create new parent group with split direction
+    const newParentGroup = await session.createPaneGroup({
+      name: paneGroup.data.name,
+      direction,
+      parentPaneGroupId: parentGroup.id,
+      index: currentIndex
+    })
+
+    // Move the stacked group into new parent
+    await newParentGroup.moveNode({ kind: 'group', paneGroupId }, 0)
+    await paneGroup.update({ preferredSizePct: 50 })
+
+    // Create new terminal pane as sibling
+    await session.createPane({
+      type: 'terminal',
+      state: { title: 'Terminal' },
+      parentPaneGroupId: newParentGroup.id,
+      preferredSizePct: 50
+    })
   }
 
   const handleConvertToTabs = (paneId: string) => {
@@ -745,11 +583,10 @@ export const WorkspacePaneTree = ({
           type: 'unknown',
           state: {}
         }, inStack ? null : child, isVisible)
-      : renderGroup(groupById.get(child.paneGroupId), child)
+      : renderGroup(groupById.get(child.paneGroupId))
 
   const renderGroup = (
-    paneGroup?: PaneGroup,
-    groupChild: PaneGroupChild | null = null
+    paneGroup?: PaneGroup
   ) => {
     if (!paneGroup) {
       return <section className="workspace-empty">Pane group not found.</section>
@@ -768,7 +605,6 @@ export const WorkspacePaneTree = ({
         <StackedPaneGroup
           key={paneGroup.id}
           paneGroup={paneGroup}
-          groupChild={groupChild}
           activeChild={activeChild}
           paneById={paneById}
           groupById={groupById}
@@ -776,9 +612,7 @@ export const WorkspacePaneTree = ({
           onSelectStackedChild={handleSelectStackedChild}
           onRemovePaneNode={handleRemovePaneNode}
           onAddTerminalPane={handleAddTerminalPane}
-          onSplitPane={handleSplitPane}
-          onRenameGroup={handleRenameGroup}
-          onChangeGroupType={handleChangeGroupType}
+          onSplitPaneGroup={handleSplitPaneGroup}
           renderChild={(child, isActive) => renderNode(child, true, isActive)}
         />
       )
@@ -818,15 +652,6 @@ export const WorkspacePaneTree = ({
   }
 
   return (
-    <>
-      <div className="workspace-tree">{renderGroup(groupById.get(activeSession.rootPaneGroupId))}</div>
-      {renameGroup && (
-        <RenameGroupDialog
-          paneGroupName={renameGroup.name}
-          onClose={() => setRenameGroup(null)}
-          onRename={commitRenameGroup}
-        />
-      )}
-    </>
+    <div className="workspace-tree">{renderGroup(groupById.get(activeSession.rootPaneGroupId))}</div>
   )
 }
