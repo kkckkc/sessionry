@@ -5,14 +5,13 @@
  *
  * Usage:
  * ```typescript
- * // Import all tokens
- * import '@sessionry/design-tokens/tokens.css'
- * import '@sessionry/design-tokens/context.css'
- * import '@sessionry/design-tokens/base.css'
+ * // Import the canonical theme entrypoint
+ * import '@sessionry/design-tokens/theme.css'
  * ```
  */
 
 // Re-export CSS files for convenience
+export const theme = './theme.css'
 export const tokens = './tokens.css'
 export const context = './context.css'
 export const base = './base.css'

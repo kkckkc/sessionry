@@ -1,7 +1,5 @@
 import type { Preview } from '@storybook/react'
-import '@sessionry/design-tokens/tokens.css'
-import '@sessionry/design-tokens/context.css'
-import '@sessionry/design-tokens/base.css'
+import '@sessionry/design-tokens/theme.css'
 import '../src/style.css'
 
 const preview: Preview = {

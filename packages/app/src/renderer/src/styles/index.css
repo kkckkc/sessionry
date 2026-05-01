@@ -1,6 +1,4 @@
-@import '@sessionry/design-tokens/tokens.css';
-@import '@sessionry/design-tokens/base.css';
-@import '@sessionry/design-tokens/context.css';
+@import '@sessionry/design-tokens/theme.css';
 @import '@sessionry/components/style.css';
 @import './layout/app-frame.css';
 @import './layout/workspace-layout.css';
