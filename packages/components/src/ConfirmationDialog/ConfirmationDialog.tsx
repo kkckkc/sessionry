@@ -17,6 +17,12 @@ export interface ConfirmationDialogProps {
    */
   message: ReactNode
   /**
+   * Visual intent of the confirm button
+   * @default 'primary'
+   */
+  intent?: 'primary' | 'danger'
+
+  /**
    * Label for the confirm button
    * @default "Confirm"
    */
@@ -69,6 +75,7 @@ export const ConfirmationDialog = ({
   open,
   title,
   message,
+  intent = 'primary',
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   onConfirm,
@@ -81,10 +88,10 @@ export const ConfirmationDialog = ({
         <p>{message}</p>
       </DialogContent>
       <DialogFooter className="actions confirmation-actions">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="secondary" onClick={onCancel}>
           {cancelLabel}
         </Button>
-        <Button onClick={onConfirm}>
+        <Button variant={intent} onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </DialogFooter>

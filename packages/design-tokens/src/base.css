@@ -5,7 +5,7 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: dark light;
   font-family:
     'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', sans-serif;
   background: var(--window-bg);
@@ -24,7 +24,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--badge-bg);
   border-radius: 3px;
 }
 

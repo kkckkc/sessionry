@@ -223,6 +223,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
     open: boolean
     title: string
     message: string
+    intent?: 'primary' | 'danger'
     onConfirm: () => void
   } | null>(null)
 
@@ -303,6 +304,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
         open: true,
         title: 'Close Session',
         message: `Are you sure you want to close "${sessionName}"? All panes in this session will be closed.`,
+        intent: 'danger',
         onConfirm: () => {
           void workspace.getSession(sessionId)?.remove()
           setConfirmDialog(null)
@@ -480,6 +482,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
           open={confirmDialog.open}
           title={confirmDialog.title}
           message={confirmDialog.message}
+          intent={confirmDialog.intent}
           onConfirm={confirmDialog.onConfirm}
           onCancel={() => setConfirmDialog(null)}
         />

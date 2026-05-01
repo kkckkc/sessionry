@@ -366,6 +366,7 @@ export const WorkspacePaneTree = ({
     open: boolean
     title: string
     message: string
+    intent?: 'primary' | 'danger'
     onConfirm: () => void
   } | null>(null)
 
@@ -412,6 +413,7 @@ export const WorkspacePaneTree = ({
           open: true,
           title: 'Close Pane',
           message: `Are you sure you want to close "${title}"?`,
+          intent: 'danger',
           onConfirm: () => {
             void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node)
             setConfirmDialog(null)
@@ -442,6 +444,7 @@ export const WorkspacePaneTree = ({
         open: true,
         title: 'Close Pane Group',
         message: `Are you sure you want to close "${title}"? This will close ${childCount} ${childCount === 1 ? 'pane' : 'panes'}.`,
+        intent: 'danger',
         onConfirm: () => {
           void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode({ kind: 'group', paneGroupId })
           setConfirmDialog(null)
@@ -707,6 +710,7 @@ export const WorkspacePaneTree = ({
           open={confirmDialog.open}
           title={confirmDialog.title}
           message={confirmDialog.message}
+          intent={confirmDialog.intent}
           onConfirm={confirmDialog.onConfirm}
           onCancel={() => setConfirmDialog(null)}
         />

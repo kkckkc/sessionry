@@ -5,13 +5,13 @@
   gap: 0.5rem;
   padding: 0.25rem 0.75rem;
   border-bottom: 1px solid var(--border-subtle);
-  background: #0c0c0e;
+  background: var(--workspace-bg);
   transition: background-color 120ms ease;
   cursor: pointer;
 }
 
 .pane:focus-within .pane-title {
-  background: #0e1015;
+  background: var(--canvas-bg);
 }
 
 .pane-title-text {
@@ -53,6 +53,6 @@
 }
 
 .pane-title-actions > button:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-strong);
   color: var(--text-primary);
 }

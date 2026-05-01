@@ -4,7 +4,7 @@
   padding: 0;
   height: 22px;
   border-top: 1px solid var(--border-color);
-  background: #18181a;
+  background: var(--window-bg);
 
   > div:first-child {
     margin-left: auto;

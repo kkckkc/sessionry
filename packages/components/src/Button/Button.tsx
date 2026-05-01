@@ -8,8 +8,8 @@ export interface ButtonProps {
    * Button variant
    * @default 'default'
    */
-  variant?: 'default' | 'ghost'
-  
+  variant?: 'default' | 'primary' | 'secondary' | 'danger' | 'ghost'
+
   /**
    * Tooltip text to display on hover
    */
@@ -60,7 +60,7 @@ export interface ButtonProps {
  * <Button onClick={handleClick}>Click me</Button>
  * ```
  */
-export const Button = ({ 
+export const Button = ({
   variant = 'default',
   tooltip,
   children,
@@ -71,7 +71,13 @@ export const Button = ({
   tooltipDelay = 600,
   ...props
 }: ButtonProps) => {
-  const className = variant === 'ghost' ? 'btn is-ghost' : 'btn'
+  const className = [
+    'btn',
+    variant === 'secondary' && 'is-secondary',
+    variant === 'ghost' && 'is-ghost',
+    variant === 'primary' && 'is-primary',
+    variant === 'danger' && 'is-danger',
+  ].filter(Boolean).join(' ')
   
   // If no tooltip, return button directly
   if (!tooltip) {

@@ -1,8 +1,8 @@
 /**
  * @sessionry/design-tokens
- * 
+ *
  * Design tokens and CSS variables for the Sessionry design system.
- * 
+ *
  * Usage:
  * ```typescript
  * // Import all tokens
@@ -22,35 +22,86 @@ export interface ColorTokens {
   // Raw palette
   windowBg: string
   chromeBg: string
+  surfaceHigh: string
   sidebarBg: string
   workspaceBg: string
   workspaceBg2: string
-  
+  canvasBg: string
+
   // Panel backgrounds
   panelBg: string
   panelBgSoft: string
   panelBgStrong: string
-  
+
   // Borders
   borderColor: string
+  borderStrong: string
   borderSubtle: string
-  
+
   // Text
   textPrimary: string
   textSecondary: string
   textTertiary: string
-  
+
   // Accent
   accent: string
   accentBg: string
   accentBorder: string
-  
+
+  // Status / Semantic
+  danger: string
+  dangerBg: string
+  success: string
+  successBg: string
+  warning: string
+  warningBg: string
+
+  // Input
+  inputBg: string
+  inputBorder: string
+
+  // Badge
+  badgeBg: string
+  badgeText: string
+
+  // Terminal
+  termPrompt: string
+  termPath: string
+
   // Interactive
   buttonBg: string
   buttonBgHover: string
-  
-  // Elevation
-  shadow: string
+}
+
+export interface ShadowTokens {
+  shadowSm: string
+  shadowMd: string
+  shadowLg: string
+  shadowXl: string
+  shadow: string // backward-compat alias for shadowXl
+}
+
+export interface SpacingTokens {
+  space1: string
+  space2: string
+  space3: string
+  space4: string
+  space5: string
+  space6: string
+  space7: string
+  space8: string
+  space9: string
+}
+
+export interface RadiusTokens {
+  radius1: string
+  radius2: string
+  radius3: string
+  radius4: string
+  radius5: string
+  radius6: string
+  radius7: string
+  radius8: string
 }
 
 export interface ContextTokens {
@@ -64,6 +115,9 @@ export interface ContextTokens {
 
 export interface DesignTokens {
   colors: ColorTokens
+  shadows: ShadowTokens
+  spacing: SpacingTokens
+  radii: RadiusTokens
   context: ContextTokens
 }
 

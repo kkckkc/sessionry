@@ -133,7 +133,7 @@
       transition: opacity 120ms ease, background-color 120ms ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.12);
+        background: var(--border-strong);
         opacity: 1;
       }
     }

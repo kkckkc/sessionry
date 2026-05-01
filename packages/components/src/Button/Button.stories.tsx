@@ -9,7 +9,7 @@ const meta: Meta<typeof Button> = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'ghost'],
+      options: ['default', 'primary', 'secondary', 'ghost'],
       description: 'Button variant style'
     },
     tooltip: {
@@ -80,6 +80,16 @@ export const WithIcon: Story = {
       </>
     ),
     tooltip: 'Open settings'
+  }
+}
+
+/**
+ * Primary variant — accent-filled, for the dominant action
+ */
+export const Primary: Story = {
+  args: {
+    variant: 'primary',
+    children: 'Confirm'
   }
 }
 

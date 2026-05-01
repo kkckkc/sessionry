@@ -1,53 +1,84 @@
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-2);
   border: 1px solid var(--ctx-border, var(--border-color));
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
-  line-height: 1.5;
+  border-radius: var(--radius-3);
+  padding: 4px 10px;
   background: var(--ctx-btn-bg, var(--button-bg));
   color: var(--text-primary);
   cursor: pointer;
   font-weight: 500;
-  font-size: 0.72rem;
+  font-size: 11px;
+  line-height: 1;
   transition:
     background-color 120ms ease,
-    border-color 120ms ease;
+    border-color 120ms ease,
+    color 120ms ease;
 
   &:hover {
     background: var(--ctx-btn-hover, var(--button-bg-hover));
-    border-color: rgba(255, 255, 255, 0.14);
+    border-color: var(--border-strong);
   }
 
-  &.is-ghost {
-    background: var(--ctx-btn-bg, var(--button-bg));
-    color: var(--text-primary);
+  &[data-disabled] {
+    opacity: 0.4;
+    cursor: default;
   }
+}
 
-  &[data-tooltip] {
-    position: relative;
 
-    &::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      padding: 0.75rem 0.5rem;
-      border: 1px solid var(--border-color);
-      border-radius: 2px;
-      background: var(--panel-bg-strong);
-      color: var(--text-secondary);
-      font-size: 0.7rem;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 100ms ease;
-    }
+.btn.is-secondary {
+  border-color: var(--border-color);
+  background: var(--surface-high);
+  color: var(--text-primary);
 
-    &:hover::after {
-      opacity: 1;
-    }
+  &:hover {
+    background: var(--panel-bg-soft);
+    border-color: var(--border-strong);
   }
+}
+
+.btn.is-primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
+
+  &:hover {
+    background: color-mix(in srgb, var(--accent) 85%, #000);
+    border-color: transparent;
+  }
+}
+
+.btn.is-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-primary);
+
+  &:hover {
+    background: var(--ctx-btn-hover, var(--button-bg-hover));
+    border-color: transparent;
+  }
+}
+
+.btn.is-danger {
+  border-color: transparent;
+  background: var(--danger);
+  color: #fff;
+
+  &:hover {
+    background: color-mix(in srgb, var(--danger) 85%, #000);
+    border-color: transparent;
+  }
+}
+
+.tooltip {
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-2);
+  background: var(--panel-bg-strong);
+  color: var(--text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
 }

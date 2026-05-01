@@ -25,7 +25,7 @@
   user-select: none;
 
   &[data-highlighted] {
-    background: rgba(255, 255, 255, 0.07);
+    background: var(--border-color);
   }
 
   &[data-disabled] {
@@ -41,10 +41,10 @@
   }
 
   &.menu-item--danger {
-    color: #ef4444;
+    color: var(--danger);
 
     &[data-highlighted] {
-      background: rgba(239, 68, 68, 0.1);
+      background: var(--danger-bg);
     }
   }
 }
@@ -74,7 +74,7 @@
 
   &:hover,
   &[data-popup-open] {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--badge-bg);
     color: var(--text-primary);
     opacity: 1;
   }
