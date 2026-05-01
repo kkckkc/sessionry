@@ -197,6 +197,7 @@ export interface CreateSessionInput {
 export interface UpdateSessionInput {
   name?: string
   folder?: string
+  rootPaneGroupId?: string
 }
 
 export interface CreatePaneGroupInput {
@@ -252,6 +253,12 @@ export type WorkspaceCommand =
       childPaneGroupId: string
       index?: number
     }
+  | {
+      type: 'paneGroup.split'
+      paneGroupId: string
+      direction: Exclude<PaneGroupLayout, 'stacked'>
+      newChild?: PaneGroupChild
+    }
   | { type: 'paneNode.move'; node: PaneGroupChild; targetPaneGroupId: string; index?: number }
   | { type: 'paneNode.remove'; node: PaneGroupChild }
   | { type: 'pane.create'; input: CreatePaneInput }
@@ -303,6 +310,10 @@ export interface PaneGroupHandle {
   moveNode(node: PaneGroupChild, index?: number): Promise<void>
   removeNode(node: PaneGroupChild): Promise<void>
   remove(): Promise<void>
+  split(
+    direction: Exclude<PaneGroupLayout, 'stacked'>,
+    newChild?: PaneGroupChild
+  ): Promise<PaneGroupHandle>
 }
 
 export interface PaneHandle {

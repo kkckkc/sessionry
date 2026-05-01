@@ -383,70 +383,7 @@ export const WorkspacePaneTree = ({
     const paneGroup = workspace.getPaneGroup(paneGroupId)
     if (!paneGroup) return
 
-    const session = workspace.getSession(activeSession.id)
-    if (!session) return
-
-    // Find parent group by searching all groups
-    const parentGroup = snapshot.paneGroups.find(g => 
-      g.children.some(child => child.kind === 'group' && child.paneGroupId === paneGroupId)
-    )
-    
-    // Handle root pane group (no parent)
-    if (!parentGroup) {
-      // Check if this is actually the root group
-      if (activeSession.rootPaneGroupId !== paneGroupId) return
-
-      // Create new root group with split direction
-      const newRootGroup = await session.createPaneGroup({
-        name: paneGroup.data.name,
-        direction
-      })
-
-      // Set as new root first (this detaches the old root)
-      await session.setRootPaneGroup(newRootGroup.id)
-
-      // Now insert the old root as a child
-      await newRootGroup.insertPaneGroup(paneGroupId, 0)
-      await paneGroup.update({ preferredSizePct: 50 })
-
-      // Create new terminal pane as sibling
-      await session.createPane({
-        type: 'terminal',
-        state: { title: 'Terminal' },
-        parentPaneGroupId: newRootGroup.id,
-        preferredSizePct: 50
-      })
-      return
-    }
-
-    const parentGroupHandle = workspace.getPaneGroup(parentGroup.id)
-    if (!parentGroupHandle) return
-
-    // Find index of current group in parent
-    const currentIndex = parentGroup.children.findIndex(
-      child => child.kind === 'group' && child.paneGroupId === paneGroupId
-    )
-    if (currentIndex === -1) return
-
-    // Create new parent group with split direction
-    const newParentGroup = await session.createPaneGroup({
-      name: paneGroup.data.name,
-      direction,
-      parentPaneGroupId: parentGroup.id,
-      index: currentIndex
-    })
-
-    // Move the stacked group into new parent
-    await newParentGroup.moveNode({ kind: 'group', paneGroupId }, 0)
-    await paneGroup.update({ preferredSizePct: 50 })
-
-    // Create new terminal pane as sibling
-    await session.createPane({
-      type: 'terminal',
-      state: { title: 'Terminal' },
-      parentPaneGroupId: newParentGroup.id,
-      preferredSizePct: 50
-    })
+    await paneGroup.split(direction)
   }
 
   const handleConvertToTabs = (paneId: string) => {

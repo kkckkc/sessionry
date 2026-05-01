@@ -15,4 +15,6 @@
   white-space: pre;
   overflow-x: hidden;
   word-wrap: break-word;
+  user-select: text;
+  -webkit-user-select: text;
 }

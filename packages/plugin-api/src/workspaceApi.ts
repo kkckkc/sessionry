@@ -7,6 +7,7 @@ import type {
   PaneGroupChild,
   PaneGroupData,
   PaneGroupHandle,
+  PaneGroupLayout,
   PaneHandle,
   PaneNodeHandle,
   ProjectData,
@@ -205,6 +206,19 @@ export const createWorkspaceApi = (bridge: WorkspaceBridge): WorkspaceApi => {
 
     async remove(): Promise<void> {
       await bridge.executeCommand({ type: 'paneNode.remove', node: { kind: 'group', paneGroupId: this.id } })
+    }
+
+    async split(
+      direction: Exclude<PaneGroupLayout, 'stacked'>,
+      newChild?: PaneGroupChild
+    ): Promise<PaneGroupHandle> {
+      const result = await bridge.executeCommand({
+        type: 'paneGroup.split',
+        paneGroupId: this.id,
+        direction,
+        newChild
+      })
+      return new PaneGroupHandleImpl(result.entityId ?? '')
     }
   }
 

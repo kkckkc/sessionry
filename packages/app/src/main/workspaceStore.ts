@@ -15,6 +15,7 @@ import type {
   PaneGroup,
   PaneGroupChild,
   PaneGroupChildPane,
+  PaneGroupLayout,
   Project,
   Session,
   Unsubscribe,
@@ -188,6 +189,11 @@ export class WorkspaceStore {
           ).id
         }
         break
+      case 'paneGroup.split':
+        result = {
+          entityId: this.splitPaneGroup(command.paneGroupId, command.direction, command.newChild).id
+        }
+        break
       case 'paneNode.move':
         result = {
           entityId: this.moveNode(command.node, command.targetPaneGroupId, command.index).id
@@ -346,6 +352,9 @@ export class WorkspaceStore {
     const before = cloneValue(session)
     session.name = input.name ?? session.name
     session.folder = input.folder ?? session.folder
+    if (input.rootPaneGroupId !== undefined) {
+      session.rootPaneGroupId = input.rootPaneGroupId
+    }
 
     this.emit({
       type: 'session.updated',
@@ -646,8 +655,47 @@ export class WorkspaceStore {
 
     // Collapse horizontal/vertical groups with only one child (but keep stacked groups)
     if (parent.children.length === 1 && parent.direction !== 'stacked') {
+      const session = this.getSessionRequired(parent.sessionId)
+      const isRootGroup = session.rootPaneGroupId === parent.id
       const grandparent = this.findParentOfNode({ kind: 'group', paneGroupId: parent.id })
-      if (grandparent) {
+      
+      if (isRootGroup) {
+        // Special case: root group with single child - promote child to be new root
+        const singleChild = parent.children[0]
+        
+        if (singleChild.kind === 'group') {
+          // Promote the child group to be the new root
+          this.updateSession(session.id, { rootPaneGroupId: singleChild.paneGroupId })
+          
+          // Remove the old root group
+          this.state.paneGroups.delete(parent.id)
+          this.emit({
+            type: 'paneGroup.removed',
+            entityType: 'paneGroup',
+            entityId: parent.id,
+            projectId: this.getSessionProjectId(parent.sessionId),
+            sessionId: parent.sessionId,
+            paneGroupId: parent.id,
+            before: cloneValue(parent)
+          })
+          
+          // Log collapsed state
+          const promotedGroup = this.state.paneGroups.get(singleChild.paneGroupId)!
+          console.log('\nAFTER - Collapsed root group (child promoted to root):')
+          console.log(`Group: ${singleChild.paneGroupId} [${promotedGroup.direction}] (root)`)
+          promotedGroup.children.forEach((child, i) => {
+            const isLast = i === promotedGroup.children.length - 1
+            console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+          })
+          console.log('=== REMOVE NODE OPERATION END ===\n')
+        } else {
+          // Cannot promote a pane to root - keep the root group
+          console.log('\nAFTER - Updated parent group tree (cannot promote pane to root):')
+          console.log(`Group: ${parent.id} [${parent.direction}] (root)`)
+          console.log(renderTree(singleChild, '   ').replace('├─', '└─'))
+          console.log('=== REMOVE NODE OPERATION END ===\n')
+        }
+      } else if (grandparent) {
         const singleChild = parent.children[0]
         const parentIndex = grandparent.children.findIndex(
           (child) => !isPaneChild(child) && child.paneGroupId === parent.id
@@ -885,6 +933,219 @@ export class WorkspaceStore {
     console.log('=== SPLIT OPERATION END ===\n')
     return result
   }
+
+
+  splitPaneGroup(
+    paneGroupId: string,
+    direction: Exclude<PaneGroupLayout, 'stacked'>,
+    newChild?: PaneGroupChild
+  ): PaneGroup {
+    const paneGroup = this.getPaneGroupRequired(paneGroupId)
+    const session = this.getSessionRequired(paneGroup.sessionId)
+    
+    // Helper to render tree structure
+    const renderTree = (node: PaneGroupChild, indent = ''): string => {
+      if (node.kind === 'pane') {
+        const p = this.state.panes.get(node.paneId)
+        return `${indent}├─ Pane: ${node.paneId} (${p?.preferredSizePct ?? 0}%)`
+      }
+      const g = this.state.paneGroups.get(node.paneGroupId)
+      if (!g) return `${indent}├─ Group: ${node.paneGroupId} (not found)`
+      let result = `${indent}├─ Group: ${node.paneGroupId} [${g.direction}] (${g.preferredSizePct ?? 0}%)`
+      g.children.forEach((child, i) => {
+        const isLast = i === g.children.length - 1
+        result += '\n' + renderTree(child, indent + (isLast ? '   ' : '│  '))
+      })
+      return result
+    }
+    
+    // Check if this is the root group BEFORE finding parent
+    const isRootGroup = session.rootPaneGroupId === paneGroupId
+    
+    // Find parent group by searching all groups
+    const parentGroup = this.findParentOfNode({ kind: 'group', paneGroupId })
+    
+    // Handle root pane group (no parent)
+    if (isRootGroup) {
+      // Log BEFORE state
+      console.log('\n=== SPLIT PANE GROUP OPERATION START (ROOT) ===')
+      console.log('Split direction:', direction)
+      console.log('Target group:', paneGroupId, `[${paneGroup.direction}]`)
+      console.log('New child:', newChild ? (newChild.kind === 'pane' ? `Pane: ${newChild.paneId}` : `Group: ${newChild.paneGroupId}`) : 'New terminal pane')
+      console.log('\nBEFORE - Root group tree:')
+      console.log(`Group: ${paneGroup.id} [${paneGroup.direction}] (root)`)
+      paneGroup.children.forEach((child, i) => {
+        const isLast = i === paneGroup.children.length - 1
+        console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+      })
+      console.log('Strategy: Create new root group with split direction')
+
+      // Create new root group with split direction
+      const newRootGroup = this.createPaneGroup({
+        sessionId: paneGroup.sessionId,
+        name: paneGroup.name,
+        direction
+      })
+
+      // Set as new root first (this detaches the old root)
+      this.updateSession(session.id, { rootPaneGroupId: newRootGroup.id })
+
+      // Get the actual stored group (not the cloned return value)
+      const storedNewRootGroup = this.state.paneGroups.get(newRootGroup.id)!
+
+      // Now manually add old root as child (bypass insertPaneGroup validation)
+      storedNewRootGroup.children.push({ kind: 'group', paneGroupId })
+      
+      // Add new child as second child
+      if (newChild) {
+        if (newChild.kind === 'pane') {
+          // Verify pane exists
+          this.getPaneRequired(newChild.paneId)
+          // Remove from current parent if attached (manually, not via removeNode which deletes orphans)
+          const currentParent = this.findParentOfNode(newChild)
+          if (currentParent) {
+            const index = currentParent.children.findIndex(
+              child => child.kind === 'pane' && child.paneId === newChild.paneId
+            )
+            if (index !== -1) {
+              currentParent.children.splice(index, 1)
+            }
+          }
+          storedNewRootGroup.children.push(newChild)
+        } else {
+          // Verify group exists
+          this.getPaneGroupRequired(newChild.paneGroupId)
+          // Remove from current parent if attached (manually, not via removeNode which deletes orphans)
+          const currentParent = this.findParentOfNode(newChild)
+          if (currentParent) {
+            const index = currentParent.children.findIndex(
+              child => child.kind === 'group' && child.paneGroupId === newChild.paneGroupId
+            )
+            if (index !== -1) {
+              currentParent.children.splice(index, 1)
+            }
+          }
+          storedNewRootGroup.children.push(newChild)
+        }
+      } else {
+        // Create new terminal pane without parent, then manually add
+        const newPane = this.createPane({
+          sessionId: paneGroup.sessionId,
+          type: 'terminal',
+          state: { title: 'Terminal' }
+        })
+        storedNewRootGroup.children.push({ kind: 'pane', paneId: newPane.id })
+      }
+
+      // Set preferredSizePct on both children directly on stored objects
+      const storedOldRoot = this.state.paneGroups.get(paneGroupId)!
+      storedOldRoot.preferredSizePct = 50
+      
+      const secondChild = storedNewRootGroup.children[1]
+      if (secondChild.kind === 'pane') {
+        const storedPane = this.state.panes.get(secondChild.paneId)!
+        storedPane.preferredSizePct = 50
+      } else {
+        const storedGroup = this.state.paneGroups.get(secondChild.paneGroupId)!
+        storedGroup.preferredSizePct = 50
+      }
+
+      // Emit single comprehensive event for new root group with complete structure
+      this.emit({
+        type: 'paneGroup.updated',
+        entityType: 'paneGroup',
+        entityId: newRootGroup.id,
+        projectId: this.getSessionProjectId(paneGroup.sessionId),
+        sessionId: paneGroup.sessionId,
+        paneGroupId: newRootGroup.id,
+        before: { ...cloneValue(storedNewRootGroup), children: [] },
+        after: cloneValue(storedNewRootGroup)
+      })
+
+      // Log AFTER state
+      const result = this.getPaneGroupRequired(newRootGroup.id)
+      console.log('\nAFTER - New root group tree:')
+      console.log(`Group: ${result.id} [${result.direction}] (root)`)
+      result.children.forEach((child, i) => {
+        const isLast = i === result.children.length - 1
+        console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+      })
+      console.log('=== SPLIT PANE GROUP OPERATION END (ROOT) ===\n')
+
+      return result
+    }
+
+    // Handle nested pane group
+    if (!parentGroup) {
+      throw new Error('Pane group is not attached to a parent pane group.')
+    }
+
+    const paneGroupIndex = parentGroup.children.findIndex(
+      (child) => child.kind === 'group' && child.paneGroupId === paneGroupId
+    )
+    if (paneGroupIndex === -1) {
+      throw new Error('Pane group is not attached to its parent pane group.')
+    }
+
+    // Log BEFORE state
+    console.log('\n=== SPLIT PANE GROUP OPERATION START (NESTED) ===')
+    console.log('Split direction:', direction)
+    console.log('Target group:', paneGroupId, `[${paneGroup.direction}] (${paneGroup.preferredSizePct ?? 0}%)`)
+    console.log('New child:', newChild ? (newChild.kind === 'pane' ? `Pane: ${newChild.paneId}` : `Group: ${newChild.paneGroupId}`) : 'New terminal pane')
+    console.log('\nBEFORE - Parent group tree:')
+    console.log(`Group: ${parentGroup.id} [${parentGroup.direction}]`)
+    parentGroup.children.forEach((child, i) => {
+      const isLast = i === parentGroup.children.length - 1
+      console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+    })
+    console.log('Strategy: Create new parent group with split direction')
+
+    // Create new parent group with split direction
+    const newParentGroup = this.createPaneGroup({
+      sessionId: paneGroup.sessionId,
+      name: paneGroup.name,
+      direction,
+      parentPaneGroupId: parentGroup.id,
+      index: paneGroupIndex
+    })
+
+    // Move the pane group into new parent
+    this.moveNode({ kind: 'group', paneGroupId }, newParentGroup.id, 0)
+    this.updatePaneGroup(paneGroupId, { preferredSizePct: 50 })
+
+    // Add new child as second child
+    if (newChild) {
+      // Move the child (handles both attached and detached cases)
+      this.moveNode(newChild, newParentGroup.id, 1)
+      if (newChild.kind === 'pane') {
+        this.updatePane(newChild.paneId, { preferredSizePct: 50 })
+      } else {
+        this.updatePaneGroup(newChild.paneGroupId, { preferredSizePct: 50 })
+      }
+    } else {
+      // Create new terminal pane as default
+      this.createPane({
+        sessionId: paneGroup.sessionId,
+        type: 'terminal',
+        state: { title: 'Terminal' },
+        parentPaneGroupId: newParentGroup.id,
+        preferredSizePct: 50
+      })
+    }
+
+    // Log AFTER state
+    const result = this.getPaneGroupRequired(newParentGroup.id)
+    console.log('\nAFTER - New parent group tree:')
+    console.log(`Group: ${result.id} [${result.direction}] (${result.preferredSizePct ?? 0}%)`)
+    result.children.forEach((child, i) => {
+      const isLast = i === result.children.length - 1
+      console.log(renderTree(child, isLast ? '   ' : '│  ').replace('├─', isLast ? '└─' : '├─'))
+    })
+    console.log('=== SPLIT PANE GROUP OPERATION END (NESTED) ===\n')
+
+    return result
+  }
+
 
   convertPaneToTabs(paneId: string): PaneGroup {
     const pane = this.getPaneRequired(paneId)
