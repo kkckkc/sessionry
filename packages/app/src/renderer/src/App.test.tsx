@@ -141,6 +141,11 @@ describe('App', () => {
     read: vi.fn(async () => ({
       version: 1 as const,
       statusBarVisible: true,
+      confirmations: {
+        confirmPaneClose: true,
+        confirmPaneGroupClose: true,
+        confirmSessionClose: true
+      },
       plugins: {}
     })),
     update: vi.fn(async () => {}),

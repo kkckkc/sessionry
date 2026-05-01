@@ -1,4 +1,4 @@
-.toolbar {
+.app-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -11,33 +11,17 @@
   -webkit-app-region: drag;
   -webkit-user-select: none;
 
-  > .brand {
-    min-width: 0;
-    margin-left: 2rem;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    -webkit-app-region: no-drag;
-  }
-
-  > .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.125rem;
-    -webkit-app-region: no-drag;
-  }
-
   @media (max-width: 860px) {
     padding-left: 1rem;
   }
 }
 
-.tooltip {
-  padding: 0.3rem 0.55rem;
-  border-radius: 6px;
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 0.78rem;
-  pointer-events: none;
-  box-shadow: var(--shadow);
+.app-toolbar > .brand {
+  min-width: 0;
+  margin-left: 2rem;
+  -webkit-app-region: no-drag;
+}
+
+.app-toolbar > .actions {
+  -webkit-app-region: no-drag;
 }

@@ -2,8 +2,15 @@ import './sessions.css'
 
 import { useState, useEffect, type FormEvent } from 'react'
 import { Menu } from '@base-ui-components/react/menu'
-import { Dialog } from '@base-ui-components/react/dialog'
-import { ConfirmationDialog } from '@sessionry/components'
+import {
+  Button,
+  ConfirmationDialog,
+  DialogBackdrop,
+  DialogHeader,
+  DialogPopup,
+  DialogPortal,
+  DialogRoot
+} from '@sessionry/components'
 import type { RendererAppPlugin, SidebarViewProps, Project } from '@sessionry/plugin-api'
 
 import { projectSessionsSidebarPlugin } from '.'
@@ -115,35 +122,34 @@ const RenameDialog = ({
   }
 
   return (
-    <Dialog.Root open onOpenChange={(isOpen: boolean) => { if (!isOpen) onClose() }}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="dialog-backdrop" />
-        <Dialog.Popup className="dialog">
-          <header className="header">
-            <Dialog.Title>{title}</Dialog.Title>
-          </header>
-          <form onSubmit={handleSubmit}>
-            <label className="field">
+    <DialogRoot open onOpenChange={(isOpen: boolean) => { if (!isOpen) onClose() }}>
+      <DialogPortal>
+        <DialogBackdrop className="dialog-backdrop" />
+        <DialogPopup className="dialog rename-dialog">
+          <DialogHeader title={title} />
+          <form className="rename-dialog-form" onSubmit={handleSubmit}>
+            <label className="rename-dialog-field">
               <span>Name</span>
               <input
+                className="rename-dialog-input"
                 type="text"
                 value={value}
                 onChange={(event) => setValue(event.target.value)}
                 autoFocus
               />
             </label>
-            <div className="actions">
-              <button type="button" className="btn is-ghost" onClick={onClose}>
+            <div className="rename-dialog-actions">
+              <Button type="button" variant="ghost" onClick={onClose}>
                 Cancel
-              </button>
-              <button type="submit" className="btn">
+              </Button>
+              <Button type="submit">
                 Rename
-              </button>
+              </Button>
             </div>
           </form>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </DialogPopup>
+      </DialogPortal>
+    </DialogRoot>
   )
 }
 

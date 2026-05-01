@@ -7,15 +7,9 @@ import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { Terminal } from '@xterm/xterm'
 
-import type { PaneViewProps, TerminalAppBridge } from '@sessionry/plugin-api'
+import type { PaneViewProps } from '@sessionry/plugin-api'
 
 import '@xterm/xterm/css/xterm.css'
-
-declare global {
-  interface Window {
-    terminalApp: TerminalAppBridge
-  }
-}
 
 export const TerminalPaneView = ({
   workspace,

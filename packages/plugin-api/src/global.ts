@@ -1,4 +1,4 @@
-import type { TerminalAppBridge } from '@sessionry/plugin-api'
+import type { TerminalAppBridge } from './rendererBridge'
 
 declare global {
   interface Window {

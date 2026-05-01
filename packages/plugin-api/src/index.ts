@@ -1,3 +1,5 @@
+import './global'
+
 export * from './actions'
 export * from './pluginRegistry'
 export * from './plugins'

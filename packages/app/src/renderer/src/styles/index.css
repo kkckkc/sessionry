@@ -4,7 +4,6 @@
 @import './layout/workspace-layout.css';
 @import './components/toolbar.css';
 @import './components/settings.css';
-@import './components/dialog.css';
 @import './components/tabs.css';
 @import './components/sidebar.css';
 @import './components/pane.css';

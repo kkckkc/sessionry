@@ -128,7 +128,7 @@ export const AppShell = ({
 
   return (
     <div className="app-frame">
-      <Toolbar brand="Sessionry" ariaLabel="Terminal actions">
+      <Toolbar className="app-toolbar" brand="Sessionry" ariaLabel="Terminal actions">
         {plugins.toolbarActionIds
           .map((actionId) => plugins.actions.find((candidate) => candidate.id === actionId))
           .filter((action): action is ActionDescriptor => action !== undefined)
