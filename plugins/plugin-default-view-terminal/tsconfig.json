@@ -3,8 +3,16 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@sessionry/components": ["../../packages/components/src/index.ts"],
       "@sessionry/plugin-api": ["../../packages/plugin-api/src/index.ts"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx", "vitest.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+    "vitest.config.ts",
+    "../../packages/components/src/css.d.ts"
+  ]
 }

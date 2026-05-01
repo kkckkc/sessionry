@@ -1,0 +1,50 @@
+.sr-setting-toggle {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sr-setting-toggle:last-child {
+  border-bottom: none;
+}
+
+.sr-setting-toggle-header {
+  display: flex;
+}
+
+.sr-setting-toggle-control {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.sr-setting-toggle-control:has(.toggle-root[data-disabled]) {
+  cursor: not-allowed;
+}
+
+.sr-setting-toggle-control .toggle-label {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  flex: 1;
+}
+
+.sr-setting-toggle-description {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 3px 0 0;
+  line-height: 1.4;
+  max-width: 80%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sr-setting-toggle-control .toggle-root {
+  order: 1;
+  flex-shrink: 0;
+}

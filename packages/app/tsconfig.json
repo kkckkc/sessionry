@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@sessionry/components": ["../components/src/index.ts"],
       "@sessionry/plugin-default-view-left-sidebar/renderer": ["../../plugins/plugin-default-view-left-sidebar/src/renderer.tsx"],
       "@sessionry/plugin-default-view-left-sidebar": ["../../plugins/plugin-default-view-left-sidebar/src/index.ts"],
       "@sessionry/plugin-default-view-terminal/renderer": ["../../plugins/plugin-default-view-terminal/src/renderer.tsx"],

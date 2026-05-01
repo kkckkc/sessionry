@@ -1,4 +1,3 @@
-import { type ReactNode } from 'react'
 import { Select as BaseSelect } from '@base-ui/react/select'
 import { Field } from '@base-ui/react/field'
 import './Select.css'
@@ -97,8 +96,7 @@ export const Select = ({
   placeholder = 'Select...',
   disabled = false,
   required = false,
-  name,
-  ...props 
+  name
 }: SelectProps) => {
   const hasError = Boolean(error)
   

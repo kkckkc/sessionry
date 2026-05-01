@@ -23,6 +23,12 @@ export type { SelectProps, SelectOption } from './Select'
 export { Section } from './Section'
 export type { SectionProps } from './Section'
 
+export { SettingsSection } from './SettingsSection'
+export type { SettingsSectionProps } from './SettingsSection'
+
+export { SettingToggle } from './SettingToggle'
+export type { SettingToggleProps } from './SettingToggle'
+
 export { Toolbar, ToolbarButton } from './Toolbar'
 export type { ToolbarProps, ToolbarButtonProps } from './Toolbar'
 

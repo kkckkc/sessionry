@@ -55,19 +55,22 @@ export const Toggle = ({
   checked,
   onChange,
   disabled,
+  className = '',
   ...props 
 }: ToggleProps) => {
   return (
-    <Switch.Root
-      checked={checked}
-      onCheckedChange={onChange}
-      disabled={disabled}
-      className="toggle-container"
-      {...props}
-    >
-      <Switch.Thumb className="toggle-switch" />
+    <label className={['toggle-container', className].filter(Boolean).join(' ')}>
+      <Switch.Root
+        checked={checked}
+        onCheckedChange={onChange}
+        disabled={disabled}
+        className="toggle-root"
+        {...props}
+      >
+        <Switch.Thumb className="toggle-switch" />
+      </Switch.Root>
       {label && <span className="toggle-label">{label}</span>}
-    </Switch.Root>
+    </label>
   )
 }
 

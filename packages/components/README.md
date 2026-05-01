@@ -12,7 +12,7 @@ pnpm add @sessionry/components
 
 ```typescript
 import { Button } from '@sessionry/components'
-import '@sessionry/components/styles.css'
+import '@sessionry/components/style.css'
 
 function App() {
   return <Button onClick={() => console.log('clicked')}>Click me</Button>

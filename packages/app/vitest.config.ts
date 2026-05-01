@@ -9,6 +9,10 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: '@sessionry/components',
+        replacement: path.resolve(rootDir, '../components/src/index.ts')
+      },
+      {
         find: '@sessionry/plugin-default-view-terminal/renderer',
         replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-terminal/src/renderer.tsx')
       },

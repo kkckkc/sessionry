@@ -6,4 +6,6 @@
 @import './Dialog/Dialog.css';
 @import './ConfirmationDialog/ConfirmationDialog.css';
 @import './Section/Section.css';
+@import './SettingsSection/SettingsSection.css';
+@import './SettingToggle/SettingToggle.css';
 @import './PaneTitle/PaneTitle.css';

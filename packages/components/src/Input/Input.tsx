@@ -1,4 +1,3 @@
-import { type ReactNode } from 'react'
 import { Input as BaseInput } from '@base-ui/react/input'
 import { Field } from '@base-ui/react/field'
 import './Input.css'

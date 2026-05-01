@@ -267,6 +267,9 @@ importers:
 
   plugins/plugin-default-view-terminal:
     dependencies:
+      '@sessionry/components':
+        specifier: workspace:*
+        version: link:../../packages/components
       '@sessionry/plugin-api':
         specifier: workspace:*
         version: link:../../packages/plugin-api

@@ -8,21 +8,19 @@
   gap: 0.75rem;
 }
 
-.toggle-container[data-disabled] {
+.toggle-container:has(.toggle-root[data-disabled]) {
   cursor: not-allowed;
   opacity: 0.4;
 }
 
-/* Hidden input (Base UI manages this internally) */
-.toggle-input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
+/* Root switch */
+.toggle-root {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-/* Toggle switch thumb */
+/* Visual switch thumb container */
 .toggle-switch {
   position: relative;
   width: 44px;
@@ -33,8 +31,9 @@
   flex-shrink: 0;
 }
 
-/* Checked state - Base UI uses data-state attribute */
-.toggle-switch[data-state="checked"] {
+/* Checked state - Base UI uses data-checked on Root and Thumb */
+.toggle-root[data-checked] .toggle-switch,
+.toggle-switch[data-checked] {
   background: var(--accent);
 }
 
@@ -53,11 +52,13 @@
 }
 
 /* Checked state indicator position */
-.toggle-switch[data-state="checked"]::before {
+.toggle-root[data-checked] .toggle-switch::before,
+.toggle-switch[data-checked]::before {
   transform: translateX(20px);
 }
 
 /* Disabled state */
+.toggle-root[data-disabled] .toggle-switch,
 .toggle-switch[data-disabled] {
   opacity: 0.4;
   cursor: not-allowed;
@@ -72,12 +73,13 @@
   user-select: none;
 }
 
-.toggle-label[data-disabled] {
+.toggle-root[data-disabled] ~ .toggle-label {
   opacity: 0.4;
 }
 
 /* Focus visible state for keyboard navigation */
-.toggle-container:focus-visible {
+.toggle-container:has(.toggle-root:focus-visible),
+.toggle-container:has(.toggle-root[data-focused]) {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;

@@ -2,7 +2,15 @@ import { useEffect, useState } from 'react'
 import type { IconType } from 'react-icons'
 import * as TbIcons from 'react-icons/tb'
 
-import { DialogRoot, DialogPortal, DialogBackdrop, DialogPopup, DialogHeader } from '@sessionry/components'
+import {
+  DialogRoot,
+  DialogPortal,
+  DialogBackdrop,
+  DialogPopup,
+  DialogHeader,
+  SettingsSection,
+  SettingToggle
+} from '@sessionry/components'
 import type { AppSettings } from '@sessionry/plugin-api'
 import type { RendererViewRegistration } from '@sessionry/plugin-api'
 
@@ -79,12 +87,23 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
   }, [selectedPluginId, pluginsWithSettings.length])
 
   const selectedPlugin = pluginsWithSettings.find((p) => p.id === selectedPluginId)
+  const selectedSettings =
+    settings === null || !selectedPlugin
+      ? null
+      : selectedPlugin.id === 'app-confirmations'
+        ? settings.confirmations
+        : settings.plugins[selectedPlugin.id]
 
   const handleUpdateSettings = async (pluginId: string, updates: unknown) => {
     if (!settings) return
     
     // Handle built-in confirmations settings (not a plugin)
     if (pluginId === 'app-confirmations') {
+      const nextSettings: AppSettings = {
+        ...settings,
+        confirmations: updates as ConfirmationsSettings
+      }
+      setSettings(nextSettings)
       await window.terminalApp.settings.update({
         confirmations: updates as ConfirmationsSettings
       })
@@ -92,11 +111,16 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
     }
     
     // Handle plugin settings
-    await window.terminalApp.settings.update({
+    const nextSettings: AppSettings = {
+      ...settings,
       plugins: {
         ...settings.plugins,
         [pluginId]: updates
       }
+    }
+    setSettings(nextSettings)
+    await window.terminalApp.settings.update({
+      plugins: nextSettings.plugins
     })
   }
 
@@ -133,7 +157,7 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
               ) : selectedPlugin ? (
                 <PluginSettingsContent
                   plugin={selectedPlugin}
-                  settings={settings.plugins[selectedPlugin.id]}
+                  settings={selectedSettings}
                   onUpdate={(updates) => handleUpdateSettings(selectedPlugin.id, updates)}
                   resolveRendererView={resolveRendererView}
                 />
@@ -190,67 +214,31 @@ const ConfirmationsSettingsView = ({ settings, onUpdate }: ConfirmationsSettings
 
   return (
     <div className="confirmations-settings">
-      <div className="settings-section">
-        <div className="settings-section-header">
-          <h2>Close Confirmations</h2>
-          <p>Configure when to show confirmation dialogs before closing items</p>
-        </div>
-        <div className="settings-section-content">
-          <div className="setting-control setting-toggle">
-            <div className="setting-control-header">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={confirmations.confirmPaneClose}
-                  onChange={(e) => updateSetting('confirmPaneClose', e.target.checked)}
-                  className="toggle-input"
-                />
-                <span className="toggle-switch" />
-                <span className="setting-label">Confirm pane close</span>
-              </label>
-            </div>
-            <p className="setting-description">
-              Show a confirmation dialog when closing individual panes (terminals, editors, etc.)
-            </p>
-          </div>
+      <SettingsSection
+        title="Close Confirmations"
+        description="Configure when to show confirmation dialogs before closing items"
+      >
+        <SettingToggle
+          label="Confirm pane close"
+          description="Show a confirmation dialog when closing individual panes (terminals, editors, etc.)"
+          checked={confirmations.confirmPaneClose}
+          onChange={(checked) => updateSetting('confirmPaneClose', checked)}
+        />
 
-          <div className="setting-control setting-toggle">
-            <div className="setting-control-header">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={confirmations.confirmPaneGroupClose}
-                  onChange={(e) => updateSetting('confirmPaneGroupClose', e.target.checked)}
-                  className="toggle-input"
-                />
-                <span className="toggle-switch" />
-                <span className="setting-label">Confirm pane group close</span>
-              </label>
-            </div>
-            <p className="setting-description">
-              Show a confirmation dialog when closing pane groups (tabs or splits containing multiple panes)
-            </p>
-          </div>
+        <SettingToggle
+          label="Confirm pane group close"
+          description="Show a confirmation dialog when closing pane groups (tabs or splits containing multiple panes)"
+          checked={confirmations.confirmPaneGroupClose}
+          onChange={(checked) => updateSetting('confirmPaneGroupClose', checked)}
+        />
 
-          <div className="setting-control setting-toggle">
-            <div className="setting-control-header">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={confirmations.confirmSessionClose}
-                  onChange={(e) => updateSetting('confirmSessionClose', e.target.checked)}
-                  className="toggle-input"
-                />
-                <span className="toggle-switch" />
-                <span className="setting-label">Confirm session close</span>
-              </label>
-            </div>
-            <p className="setting-description">
-              Show a confirmation dialog when closing entire sessions (all panes in a workspace)
-            </p>
-          </div>
-        </div>
-      </div>
+        <SettingToggle
+          label="Confirm session close"
+          description="Show a confirmation dialog when closing entire sessions (all panes in a workspace)"
+          checked={confirmations.confirmSessionClose}
+          onChange={(checked) => updateSetting('confirmSessionClose', checked)}
+        />
+      </SettingsSection>
     </div>
   )
 }
