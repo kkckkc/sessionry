@@ -4,5 +4,6 @@
 @import './Toggle/Toggle.css';
 @import './Toolbar/Toolbar.css';
 @import './Dialog/Dialog.css';
+@import './ConfirmationDialog/ConfirmationDialog.css';
 @import './Section/Section.css';
 @import './PaneTitle/PaneTitle.css';

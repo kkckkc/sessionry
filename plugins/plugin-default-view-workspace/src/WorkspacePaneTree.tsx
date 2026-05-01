@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState, type CSSProperties, ty
 
 import { TbLayoutColumns, TbLayoutRows, TbLayoutNavbar } from 'react-icons/tb'
 import { Tabs } from '@base-ui-components/react/tabs'
-import { PaneTitle } from '@sessionry/components'
+import { PaneTitle, ConfirmationDialog } from '@sessionry/components'
 import {
   resolveActiveView,
   type Pane,
@@ -362,6 +362,12 @@ export const WorkspacePaneTree = ({
   clearSignal
 }: WorkspaceViewProps) => {
   const [, setRefreshKey] = useState(0)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+  } | null>(null)
 
   useEffect(() => workspace.subscribeAll(() => setRefreshKey((k) => k + 1)), [workspace])
 
@@ -393,7 +399,28 @@ export const WorkspacePaneTree = ({
     }
   }
 
-  const handleRemovePaneNode = (node: PaneGroupChild) => {
+  const handleRemovePaneNode = async (node: PaneGroupChild) => {
+    // Check if confirmation is needed for panes
+    if (node.kind === 'pane') {
+      const settings = await window.terminalApp.settings.read()
+      
+      if (settings.confirmations.confirmPaneClose) {
+        const pane = paneById.get(node.paneId)
+        const title = pane ? getPaneTitle(pane) : 'Pane'
+        
+        setConfirmDialog({
+          open: true,
+          title: 'Close Pane',
+          message: `Are you sure you want to close "${title}"?`,
+          onConfirm: () => {
+            void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node)
+            setConfirmDialog(null)
+          }
+        })
+        return
+      }
+    }
+    
     void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node)
   }
 
@@ -403,7 +430,26 @@ export const WorkspacePaneTree = ({
     void workspace.getPane(paneId)?.split(direction)
   }
 
-  const handleRemovePaneGroup = (paneGroupId: string) => {
+  const handleRemovePaneGroup = async (paneGroupId: string) => {
+    const settings = await window.terminalApp.settings.read()
+    
+    if (settings.confirmations.confirmPaneGroupClose) {
+      const paneGroup = groupById.get(paneGroupId)
+      const title = paneGroup ? getGroupTitle(paneGroup) : 'Pane Group'
+      const childCount = paneGroup?.children.length ?? 0
+      
+      setConfirmDialog({
+        open: true,
+        title: 'Close Pane Group',
+        message: `Are you sure you want to close "${title}"? This will close ${childCount} ${childCount === 1 ? 'pane' : 'panes'}.`,
+        onConfirm: () => {
+          void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode({ kind: 'group', paneGroupId })
+          setConfirmDialog(null)
+        }
+      })
+      return
+    }
+    
     void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode({ kind: 'group', paneGroupId })
   }
 
@@ -654,6 +700,17 @@ export const WorkspacePaneTree = ({
   }
 
   return (
-    <div className="workspace-tree">{renderGroup(groupById.get(activeSession.rootPaneGroupId))}</div>
+    <>
+      <div className="workspace-tree">{renderGroup(groupById.get(activeSession.rootPaneGroupId))}</div>
+      {confirmDialog && (
+        <ConfirmationDialog
+          open={confirmDialog.open}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={() => setConfirmDialog(null)}
+        />
+      )}
+    </>
   )
 }

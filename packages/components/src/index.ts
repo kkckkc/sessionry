@@ -8,6 +8,9 @@
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
 
+export { ConfirmationDialog } from './ConfirmationDialog'
+export type { ConfirmationDialogProps } from './ConfirmationDialog'
+
 export { Toggle } from './Toggle'
 export type { ToggleProps } from './Toggle'
 

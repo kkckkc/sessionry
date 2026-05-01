@@ -160,9 +160,11 @@
     grid-template-rows: 1fr;
     transition: grid-template-rows 200ms ease;
     overflow: hidden;
+    margin-bottom: 0.5rem;
 
     &.is-collapsed {
       grid-template-rows: 0fr;
+      margin-bottom: 0;
     }
   }
 
@@ -177,7 +179,7 @@
     padding: 0;
     list-style: none;
     min-height: 0;
-    margin: 0 0 0.5rem;
+    margin: 0;
   }
 
   /* ── Session row ── */

@@ -9,6 +9,11 @@ export type { AppSettings }
 const DEFAULTS: AppSettings = {
   version: 1,
   statusBarVisible: true,
+  confirmations: {
+    confirmPaneClose: true,
+    confirmPaneGroupClose: true,
+    confirmSessionClose: true
+  },
   plugins: {
     'plugin-default-view-terminal': {
       tmux: {

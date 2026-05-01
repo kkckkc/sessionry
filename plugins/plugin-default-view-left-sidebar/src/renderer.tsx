@@ -3,6 +3,7 @@ import './sessions.css'
 import { useState, useEffect, type FormEvent } from 'react'
 import { Menu } from '@base-ui-components/react/menu'
 import { Dialog } from '@base-ui-components/react/dialog'
+import { ConfirmationDialog } from '@sessionry/components'
 import type { RendererAppPlugin, SidebarViewProps, Project } from '@sessionry/plugin-api'
 
 import { projectSessionsSidebarPlugin } from '.'
@@ -218,6 +219,12 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
   const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set())
   const [colorPicker, setColorPicker] = useState<ColorPickerState | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+  } | null>(null)
 
   useEffect(() => workspace.subscribeAll(() => setRefreshKey((k) => k + 1)), [workspace])
 
@@ -285,7 +292,25 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
     setRenameState(null)
   }
 
-  const handleRemoveSession = (sessionId: string) => {
+  const handleRemoveSession = async (sessionId: string) => {
+    const settings = await window.terminalApp.settings.read()
+    
+    if (settings.confirmations.confirmSessionClose) {
+      const session = workspace.snapshot.sessions.find(s => s.id === sessionId)
+      const sessionName = session?.name ?? 'Session'
+      
+      setConfirmDialog({
+        open: true,
+        title: 'Close Session',
+        message: `Are you sure you want to close "${sessionName}"? All panes in this session will be closed.`,
+        onConfirm: () => {
+          void workspace.getSession(sessionId)?.remove()
+          setConfirmDialog(null)
+        }
+      })
+      return
+    }
+    
     void workspace.getSession(sessionId)?.remove()
   }
 
@@ -448,6 +473,15 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
           onColorSelect={handleColorSelect}
           onClose={() => setColorPicker(null)}
           anchorElement={colorPicker.anchorElement}
+        />
+      )}
+      {confirmDialog && (
+        <ConfirmationDialog
+          open={confirmDialog.open}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={() => setConfirmDialog(null)}
         />
       )}
     </>
