@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "react": "latest"
+    "react": "19.2.5"
   },
   "devDependencies": {
     "@types/node": "latest",

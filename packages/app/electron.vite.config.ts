@@ -22,12 +22,12 @@ export default defineConfig({
     resolve: {
       alias: [
         {
-          find: '@sessionry/components/style.css',
-          replacement: path.resolve(rootDir, '../components/src/style.css')
+          find: /^@sessionry\/components$/,
+          replacement: path.resolve(rootDir, '../components/src/index.ts')
         },
         {
-          find: '@sessionry/components',
-          replacement: path.resolve(rootDir, '../components/src/index.ts')
+          find: /^@sessionry\/components\/style\.css$/,
+          replacement: path.resolve(rootDir, '../components/src/style.css')
         },
         {
           find: '@sessionry/plugin-default-view-terminal/renderer',
@@ -118,7 +118,11 @@ export default defineConfig({
     resolve: {
       alias: [
         {
-          find: '@sessionry/components/style.css',
+          find: /^@sessionry\/components$/,
+          replacement: path.resolve(rootDir, '../components/src/index.ts')
+        },
+        {
+          find: /^@sessionry\/components\/style\.css$/,
           replacement: path.resolve(rootDir, '../components/src/style.css')
         },
         {

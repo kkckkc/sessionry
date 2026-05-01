@@ -12,7 +12,7 @@
     "@sessionry/plugin-api": "workspace:*",
     "@types/node": "latest",
     "@types/react": "latest",
-    "react": "latest",
+    "react": "19.2.5",
     "typescript": "latest",
     "vite": "latest"
   }
