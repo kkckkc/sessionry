@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState, type CSSProperties, ty
 
 import { TbLayoutColumns, TbLayoutRows, TbLayoutNavbar } from 'react-icons/tb'
 import { Tabs } from '@base-ui-components/react/tabs'
-import { PaneTitle, ConfirmationDialog } from '@sessionry/components'
+import { ConfirmationDialog } from '@sessionry/components'
+import { PaneTitle } from './components/PaneTitle'
 import {
   resolveActiveView,
   type Pane,

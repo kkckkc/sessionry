@@ -1,4 +1,5 @@
 import type { RendererAppPlugin } from '@sessionry/plugin-api'
+import './components/PaneTitle/PaneTitle.css'
 
 import { defaultWorkspacePanePlugin } from '.'
 import { WorkspacePaneTree, getActiveVisibleTerminalPaneId } from './WorkspacePaneTree'
