@@ -10,7 +10,7 @@
   font-size: var(--caption-font-size);
   font-weight: var(--caption-font-weight);
   line-height: 1.4;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 0;
   padding: 0;
   white-space: pre;

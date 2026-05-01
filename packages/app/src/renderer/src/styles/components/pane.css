@@ -46,7 +46,7 @@
     gap: 1rem;
     padding: 0.7rem 0.9rem;
     border-bottom: 1px solid var(--border-subtle);
-    color: var(--text-primary);
+    color: var(--text);
     background: var(--chrome-bg);
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
@@ -72,7 +72,7 @@
   border-radius: 4px;
   padding: 0;
   background: transparent;
-  color: var(--text-tertiary);
+  color: var(--text-dim);
   cursor: pointer;
   font-size: var(--title-font-size);
   line-height: 1;
@@ -81,7 +81,7 @@
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    color: var(--text);
     opacity: 1;
   }
 }
@@ -125,7 +125,7 @@
       bottom: 0;
       left: 4px;
       width: 1px;
-      background: var(--border-color);
+      background: var(--border);
       transition: background 0.15s;
     }
   }
@@ -142,20 +142,20 @@
       right: 0;
       top: 4px;
       height: 1px;
-      background: var(--border-color);
+      background: var(--border);
       transition: background 0.15s;
     }
   }
 
   &:hover::after {
-    background: var(--text-tertiary);
+    background: var(--text-dim);
   }
 }
 
 .workspace-title-balance {
   flex-shrink: 0;
   height: 37px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
   background: var(--chrome-bg);
 
   &.is-nested-stacked-pane-group {
@@ -231,7 +231,7 @@
       display: block;
       margin-top: 0.15rem;
       font-weight: var(--title-font-weight);
-      color: var(--text-primary);
+      color: var(--text);
       font-size: var(--body-font-size);
     }
 
@@ -241,7 +241,7 @@
       font-weight: var(--overline-font-weight);
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--text-tertiary);
+      color: var(--text-dim);
     }
 
     > .meta {
@@ -250,7 +250,7 @@
       gap: 0.15rem;
       font-size: var(--body-sm-font-size);
       font-weight: var(--body-sm-font-weight);
-      color: var(--text-secondary);
+      color: var(--text-muted);
     }
   }
 
@@ -290,7 +290,7 @@
   height: 100%;
   padding: 1.4rem;
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 
   p {
     margin: 0;
@@ -299,6 +299,6 @@
   span {
     font-size: var(--body-sm-font-size);
     font-weight: var(--body-sm-font-weight);
-    color: var(--text-tertiary);
+    color: var(--text-dim);
   }
 }

@@ -1,43 +1,46 @@
 :root {
-  /* Raw palette */
-  --window-bg: #1a1a1c;
-  --chrome-bg: #242426;
+  /* Public semantic color contract */
+  --bg: #1a1a1c;
+  --surface: #242426;
+  --surface-high: #2c2c2e;
+  --term-bg: #0c0c0e;
+
+  --text: rgba(255, 255, 255, 0.85);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-dim: rgba(255, 255, 255, 0.22);
+
+  --accent: #3b82f6;
+  --accent-bg: rgba(59, 130, 246, 0.16);
+
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.14);
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.14);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-active: rgba(59, 130, 246, 0.3);
+
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --border-input: rgba(255, 255, 255, 0.1);
+
+  --hover: rgba(255, 255, 255, 0.05);
+
+  /* Structural/contextual surfaces retained as first-class tokens */
+  --window-bg: var(--bg);
+  --chrome-bg: var(--surface);
   --surface-high: #2c2c2e;
   --sidebar-bg: #1e1e20;
-  --workspace-bg: #0c0c0e;
+  --workspace-bg: var(--term-bg);
   --workspace-bg2: #181818;
   --canvas-bg: #141416;
 
   --panel-bg: #1c1c1e;
   --panel-bg-soft: #202124;
   --panel-bg-strong: #111214;
-
-  /* Borders */
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --border-subtle: rgba(255, 255, 255, 0.05);
-
-  /* Text */
-  --text-primary: rgba(255, 255, 255, 0.85);
-  --text-secondary: rgba(255, 255, 255, 0.4);
-  --text-tertiary: rgba(255, 255, 255, 0.22);
-
-  /* Accent */
-  --accent: #3b82f6;
-  --accent-bg: rgba(59, 130, 246, 0.16);
-  --accent-border: rgba(59, 130, 246, 0.3);
-
-  /* Status / Semantic */
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.14);
-  --success: #34d399;
-  --success-bg: rgba(52, 211, 153, 0.14);
-  --warning: #fbbf24;
-  --warning-bg: rgba(251, 191, 36, 0.14);
-
-  /* Input */
-  --input-bg: rgba(255, 255, 255, 0.06);
-  --input-border: rgba(255, 255, 255, 0.1);
 
   /* Badge */
   --badge-bg: rgba(255, 255, 255, 0.1);
@@ -49,7 +52,6 @@
 
   /* Interactive */
   --button-bg: transparent;
-  --button-bg-hover: rgba(255, 255, 255, 0.05);
 
   /* Shadow scale */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -107,21 +109,49 @@
   /* Context tokens — defaults match chrome context */
   --ctx-bg: var(--chrome-bg);
   --ctx-btn-bg: var(--button-bg);
-  --ctx-btn-hover: var(--button-bg-hover);
+  --ctx-btn-hover: var(--hover);
   --ctx-tab-bg: var(--workspace-bg);
   --ctx-tab-hover-bg: var(--workspace-bg2);
-  --ctx-border: var(--border-color);
+  --ctx-border: var(--border);
 }
 
 @media (prefers-color-scheme: light) {
   :root {
     color-scheme: light;
 
-    --window-bg: #f5f5f7;
-    --chrome-bg: #ebebed;
+    --bg: #f5f5f7;
+    --surface: #ebebed;
     --surface-high: #e2e2e4;
+    --term-bg: #fafafa;
+
+    --text: rgba(0, 0, 0, 0.82);
+    --text-muted: rgba(0, 0, 0, 0.45);
+    --text-dim: rgba(0, 0, 0, 0.25);
+
+    --accent: #2563eb;
+    --accent-bg: rgba(37, 99, 235, 0.1);
+
+    --success: #059669;
+    --success-bg: rgba(5, 150, 105, 0.1);
+    --warning: #d97706;
+    --warning-bg: rgba(217, 119, 6, 0.1);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.14);
+    --border-subtle: rgba(0, 0, 0, 0.05);
+    --border-active: rgba(37, 99, 235, 0.2);
+
+    --input-bg: rgba(0, 0, 0, 0.04);
+    --border-input: rgba(0, 0, 0, 0.1);
+
+    --hover: rgba(0, 0, 0, 0.04);
+
+    --window-bg: var(--bg);
+    --chrome-bg: var(--surface);
     --sidebar-bg: #ededed;
-    --workspace-bg: #fafafa;
+    --workspace-bg: var(--term-bg);
     --workspace-bg2: #f0f0f0;
     --canvas-bg: #e8e8ea;
 
@@ -129,35 +159,11 @@
     --panel-bg-soft: rgba(0, 0, 0, 0.04);
     --panel-bg-strong: #e0e0e2;
 
-    --border-color: rgba(0, 0, 0, 0.08);
-    --border-strong: rgba(0, 0, 0, 0.14);
-    --border-subtle: rgba(0, 0, 0, 0.05);
-
-    --text-primary: rgba(0, 0, 0, 0.82);
-    --text-secondary: rgba(0, 0, 0, 0.45);
-    --text-tertiary: rgba(0, 0, 0, 0.25);
-
-    --accent: #2563eb;
-    --accent-bg: rgba(37, 99, 235, 0.1);
-    --accent-border: rgba(37, 99, 235, 0.2);
-
-    --danger: #dc2626;
-    --danger-bg: rgba(220, 38, 38, 0.1);
-    --success: #059669;
-    --success-bg: rgba(5, 150, 105, 0.1);
-    --warning: #d97706;
-    --warning-bg: rgba(217, 119, 6, 0.1);
-
-    --input-bg: rgba(0, 0, 0, 0.04);
-    --input-border: rgba(0, 0, 0, 0.1);
-
     --badge-bg: rgba(0, 0, 0, 0.08);
     --badge-text: rgba(0, 0, 0, 0.4);
 
     --term-prompt: #7c3aed;
     --term-path: #1d4ed8;
-
-    --button-bg-hover: rgba(0, 0, 0, 0.04);
 
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.14);

@@ -9,7 +9,7 @@
   font-family:
     'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', sans-serif;
   background: var(--window-bg);
-  color: var(--text-primary);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   font-size: var(--body-lg-font-size);
 }

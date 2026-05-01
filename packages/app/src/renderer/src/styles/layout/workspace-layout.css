@@ -24,7 +24,7 @@
   .sidebar--right {
     grid-column: 1 / -1;
     border-left: 0;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border);
   }
 }
 
@@ -41,6 +41,6 @@
 
   .sidebar--left {
     border-right: 0;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border);
   }
 }

@@ -11,7 +11,7 @@
   font-weight: var(--overline-font-weight);
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--text-tertiary);
+  color: var(--text-dim);
   margin-top: 20px;
   margin-bottom: 2px;
 }
@@ -30,7 +30,7 @@
   font-weight: var(--body-sm-font-weight);
   letter-spacing: normal;
   text-transform: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 

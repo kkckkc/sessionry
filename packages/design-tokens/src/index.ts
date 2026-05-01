@@ -18,56 +18,63 @@ export const base = './base.css'
 
 // Type definitions for design tokens (for future programmatic access)
 export interface ColorTokens {
-  // Raw palette
+  // Public semantic contract
+  bg: string
+  surface: string
+  surfaceHigh: string
+  termBg: string
+
+  text: string
+  textMuted: string
+  textDim: string
+
+  accent: string
+  accentBg: string
+
+  success: string
+  successBg: string
+  warning: string
+  warningBg: string
+  danger: string
+  dangerBg: string
+
+  border: string
+  borderStrong: string
+  borderSubtle: string
+  borderActive: string
+
+  inputBg: string
+  borderInput: string
+
+  hover: string
+
+  // Structural/contextual surfaces retained for now
   windowBg: string
   chromeBg: string
-  surfaceHigh: string
   sidebarBg: string
   workspaceBg: string
   workspaceBg2: string
   canvasBg: string
 
-  // Panel backgrounds
   panelBg: string
   panelBgSoft: string
   panelBgStrong: string
 
-  // Borders
+  // Compatibility / internal aliases retained for migration
   borderColor: string
-  borderStrong: string
-  borderSubtle: string
-
-  // Text
   textPrimary: string
   textSecondary: string
   textTertiary: string
-
-  // Accent
-  accent: string
-  accentBg: string
   accentBorder: string
-
-  // Status / Semantic
-  danger: string
-  dangerBg: string
-  success: string
-  successBg: string
-  warning: string
-  warningBg: string
-
-  // Input
-  inputBg: string
   inputBorder: string
-
-  // Badge
-  badgeBg: string
-  badgeText: string
 
   // Terminal
   termPrompt: string
   termPath: string
 
-  // Interactive
+  // Supporting UI colors
+  badgeBg: string
+  badgeText: string
   buttonBg: string
   buttonBgHover: string
 }

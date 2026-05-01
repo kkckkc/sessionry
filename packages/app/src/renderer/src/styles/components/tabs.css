@@ -1,7 +1,7 @@
 .tab-bar-row {
   display: flex;
   background: var(--chrome-bg);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
 
   &.is-nested-stacked-pane-group {
     background: var(--workspace-bg);
@@ -28,15 +28,15 @@
     border: none;
     border-radius: 5px;
     background: transparent;
-    color: var(--text-tertiary);
+    color: var(--text-dim);
     cursor: pointer;
     transition: background-color 120ms ease, color 120ms ease;
     flex-shrink: 0;
     margin-left: 0;
 
     &:hover {
-      background: var(--button-bg-hover);
-      color: var(--text-primary);
+      background: var(--hover);
+      color: var(--text);
     }
   }
 
@@ -58,13 +58,13 @@
       border: none;
       border-radius: 5px;
       background: transparent;
-      color: var(--text-tertiary);
+      color: var(--text-dim);
       cursor: pointer;
       transition: background-color 120ms ease, color 120ms ease;
 
       &:hover {
-        background: var(--button-bg-hover);
-        color: var(--text-primary);
+        background: var(--hover);
+        color: var(--text);
       }
     }
   }
@@ -93,7 +93,7 @@
     background: transparent;
     padding: 0 10px;
     height: 28px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     cursor: pointer;
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
@@ -105,14 +105,14 @@
       border-color 120ms ease;
 
     &:hover {
-      background: var(--button-bg-hover);
-      color: var(--text-primary);
+      background: var(--hover);
+      color: var(--text);
     }
 
     &[data-selected] {
       background: var(--accent-bg);
       color: var(--accent);
-      border-color: var(--accent-border);
+      border-color: var(--border-active);
     }
 
     > .tab-close {

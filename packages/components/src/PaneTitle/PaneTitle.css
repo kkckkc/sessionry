@@ -17,7 +17,7 @@
 .pane-title-text {
   font-size: var(--body-font-size);
   font-weight: var(--caption-font-weight);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -25,7 +25,7 @@
 }
 
 .pane:focus-within .pane-title-text {
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .pane-title-actions {
@@ -45,7 +45,7 @@
   border-radius: 4px;
   padding: 0;
   background: transparent;
-  color: var(--text-tertiary);
+  color: var(--text-dim);
   cursor: pointer;
   font-size: var(--title-font-size);
   line-height: 1;
@@ -54,5 +54,5 @@
 
 .pane-title-actions > button:hover {
   background: var(--border-strong);
-  color: var(--text-primary);
+  color: var(--text);
 }

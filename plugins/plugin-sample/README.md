@@ -70,6 +70,6 @@ Use that wrapper to scope plugin CSS and token overrides safely:
 }
 
 [data-plugin-id='sample-plugin'] .my-widget {
-  color: var(--text-primary);
+  color: var(--text);
 }
 ```

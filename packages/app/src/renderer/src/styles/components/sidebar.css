@@ -8,7 +8,7 @@
   background: var(--sidebar-bg);
 
   &.sidebar--right {
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid var(--border);
     background: var(--sidebar-bg);
   }
 }
@@ -34,7 +34,7 @@
 
   &:hover::after,
   &:active::after {
-    background: var(--text-tertiary);
+    background: var(--text-dim);
   }
 }
 

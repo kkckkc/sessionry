@@ -17,7 +17,7 @@
 /* ── Nav Sidebar ── */
 .settings-modal-nav {
   width: 168px;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--border);
   padding: 10px 8px;
   flex-shrink: 0;
   display: flex;
@@ -38,13 +38,13 @@
   letter-spacing: -0.01em;
   text-align: left;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   transition: background 0.12s, color 0.12s;
   width: 100%;
 
   &:hover {
-    background: var(--button-bg-hover);
-    color: var(--text-primary);
+    background: var(--hover);
+    color: var(--text);
   }
 
   &.is-active {
@@ -64,14 +64,14 @@
 .settings-modal-section-title {
   font-size: var(--title-font-size);
   font-weight: var(--title-font-weight);
-  color: var(--text-primary);
+  color: var(--text);
   letter-spacing: -0.03em;
   margin-bottom: 16px;
 }
 
 .settings-modal-loading,
 .settings-modal-empty {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: var(--body-font-size);
   font-weight: var(--body-font-weight);
   padding: 8px 0;

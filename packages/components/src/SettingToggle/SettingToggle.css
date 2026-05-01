@@ -1,6 +1,6 @@
 .sr-setting-toggle {
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
 }
 
 .sr-setting-toggle:last-child {
@@ -26,7 +26,7 @@
 
 .sr-setting-toggle-control .toggle-label {
   font-size: var(--body-font-size);
-  color: var(--text-primary);
+  color: var(--text);
   font-weight: var(--body-font-weight);
   letter-spacing: -0.01em;
   flex: 1;
@@ -35,7 +35,7 @@
 .sr-setting-toggle-description {
   font-size: var(--body-sm-font-size);
   font-weight: var(--body-sm-font-weight);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   margin: 3px 0 0;
   line-height: 1.4;
   max-width: 80%;

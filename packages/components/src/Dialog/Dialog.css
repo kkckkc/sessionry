@@ -12,7 +12,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(480px, calc(100% - 3rem));
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--panel-bg);
   box-shadow: var(--shadow);
@@ -24,7 +24,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 14px 18px 12px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
 }
 
 .dialog > .header h2 {
@@ -45,13 +45,13 @@
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 .dialog > .header .dialog-close:hover {
-  background: var(--button-bg-hover);
-  color: var(--text-primary);
+  background: var(--hover);
+  color: var(--text);
 }
 
 .dialog > .content {
@@ -74,7 +74,7 @@
 .dialog form .field {
   display: grid;
   gap: 0.35rem;
-  color: var(--text-primary);
+  color: var(--text);
   font-size: var(--body-font-size);
   font-weight: var(--body-font-weight);
 }
@@ -82,15 +82,15 @@
 .dialog form .field input,
 .dialog form .field select {
   width: 100%;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.65rem 0.75rem;
   background: var(--button-bg);
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .dialog form .field small {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: var(--body-sm-font-size);
   font-weight: var(--body-sm-font-weight);
 }

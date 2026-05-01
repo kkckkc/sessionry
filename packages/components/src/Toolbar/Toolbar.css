@@ -5,7 +5,7 @@
   gap: 0.5rem;
   height: 38px;
   padding: 0 0.625rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
   background: var(--chrome-bg);
   backdrop-filter: blur(24px) saturate(1.1);
 }
@@ -14,7 +14,7 @@
   min-width: 0;
   font-size: var(--body-font-size);
   font-weight: var(--body-font-weight);
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .toolbar > .actions {
@@ -33,7 +33,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }

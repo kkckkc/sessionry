@@ -3,8 +3,8 @@
 .sidebar--left {
   --ctx-bg: var(--chrome-bg);
   --ctx-btn-bg: var(--button-bg);
-  --ctx-btn-hover: var(--button-bg-hover);
-  --ctx-border: var(--border-color);
+  --ctx-btn-hover: var(--hover);
+  --ctx-border: var(--border);
 }
 
 /* Workspace context — project/session zone (workspace content + right sidebar) */
@@ -12,7 +12,7 @@
 .sidebar--right {
   --ctx-bg: var(--workspace-bg);
   --ctx-btn-bg: transparent;
-  --ctx-btn-hover: var(--button-bg-hover);
+  --ctx-btn-hover: var(--hover);
   --ctx-tab-bg: var(--workspace-bg);
   --ctx-tab-hover-bg: var(--workspace-bg2);
   --ctx-border: var(--border-subtle);

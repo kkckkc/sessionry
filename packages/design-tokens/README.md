@@ -39,48 +39,50 @@ These CSS custom properties are the supported public token surface for consumers
 ### Semantic color and surface tokens
 
 ```css
---window-bg
---chrome-bg
+--bg
+--surface
 --surface-high
---sidebar-bg
---workspace-bg
---workspace-bg2
---canvas-bg
+--term-bg
 
---panel-bg
---panel-bg-soft
---panel-bg-strong
-
---border-color
---border-strong
---border-subtle
-
---text-primary
---text-secondary
---text-tertiary
+--text
+--text-muted
+--text-dim
 
 --accent
 --accent-bg
---accent-border
 
---danger
---danger-bg
 --success
 --success-bg
 --warning
 --warning-bg
+--danger
+--danger-bg
+
+--border
+--border-strong
+--border-subtle
+--border-active
 
 --input-bg
---input-border
+--border-input
 
---badge-bg
---badge-text
+--hover
+```
 
---term-prompt
---term-path
+### Structural/contextual surface tokens
 
---button-bg
---button-bg-hover
+These are still supported and intentionally retained because the app uses them to distinguish specific host surfaces:
+
+```css
+--window-bg
+--chrome-bg
+--sidebar-bg
+--workspace-bg
+--workspace-bg2
+--canvas-bg
+--panel-bg
+--panel-bg-soft
+--panel-bg-strong
 ```
 
 ### Shadow tokens

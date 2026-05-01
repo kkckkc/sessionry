@@ -2,11 +2,11 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  border: 1px solid var(--ctx-border, var(--border-color));
+  border: 1px solid var(--ctx-border, var(--border));
   border-radius: var(--radius-3);
   padding: 4px 10px;
   background: var(--ctx-btn-bg, var(--button-bg));
-  color: var(--text-primary);
+  color: var(--text);
   cursor: pointer;
   font-weight: var(--caption-font-weight);
   font-size: var(--caption-font-size);
@@ -17,7 +17,7 @@
     color 120ms ease;
 
   &:hover {
-    background: var(--ctx-btn-hover, var(--button-bg-hover));
+    background: var(--ctx-btn-hover, var(--hover));
     border-color: var(--border-strong);
   }
 
@@ -29,9 +29,9 @@
 
 
 .btn.is-secondary {
-  border-color: var(--border-color);
+  border-color: var(--border);
   background: var(--surface-high);
-  color: var(--text-primary);
+  color: var(--text);
 
   &:hover {
     background: var(--panel-bg-soft);
@@ -53,10 +53,10 @@
 .btn.is-ghost {
   border-color: transparent;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text);
 
   &:hover {
-    background: var(--ctx-btn-hover, var(--button-bg-hover));
+    background: var(--ctx-btn-hover, var(--hover));
     border-color: transparent;
   }
 }
@@ -74,10 +74,10 @@
 
 .tooltip {
   padding: 4px 8px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
   border-radius: var(--radius-2);
   background: var(--panel-bg-strong);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: var(--caption-font-size);
   font-weight: var(--caption-font-weight);
   white-space: nowrap;

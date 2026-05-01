@@ -8,7 +8,7 @@
 }
 
 .select-label {
-  color: var(--text-primary);
+  color: var(--text);
   font-size: var(--body-font-size);
   font-weight: var(--caption-font-weight);
 }
@@ -24,10 +24,10 @@
   width: 100%;
   min-height: 38px;
   padding: 0.65rem 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--button-bg);
-  color: var(--text-primary);
+  color: var(--text);
   font-size: var(--body-lg-font-size);
   font-weight: var(--body-lg-font-weight);
   cursor: pointer;
@@ -35,7 +35,7 @@
 }
 
 .select-trigger:hover:not([data-disabled]) {
-  border-color: var(--border-hover-color, var(--border-color));
+  border-color: var(--border-hover-color, var(--border));
 }
 
 .select-trigger:focus-visible {
@@ -49,13 +49,13 @@
 }
 
 .select-trigger[data-placeholder] {
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .select-icon {
   margin-left: 0.5rem;
   font-size: var(--body-sm-font-size);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   transition: transform 0.2s ease;
 }
 
@@ -71,7 +71,7 @@
   min-width: var(--anchor-width);
   max-height: 300px;
   overflow: auto;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel-bg);
   box-shadow: var(--shadow);
@@ -84,7 +84,7 @@
   justify-content: space-between;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  color: var(--text-primary);
+  color: var(--text);
   font-size: var(--body-lg-font-size);
   font-weight: var(--body-lg-font-weight);
   cursor: pointer;
@@ -126,7 +126,7 @@
 }
 
 .select-description {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: var(--body-sm-font-size);
   font-weight: var(--body-sm-font-weight);
 }

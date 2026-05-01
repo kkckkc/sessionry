@@ -113,7 +113,7 @@ export const InContexts: Story = {
   render: () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '300px' }}>
       <div className="ctx-chrome" style={{ padding: '1rem', background: 'var(--chrome-bg)' }}>
-        <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+        <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
           Chrome Context
         </h4>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -123,7 +123,7 @@ export const InContexts: Story = {
       </div>
       
       <div className="ctx-workspace" style={{ padding: '1rem', background: 'var(--workspace-bg)' }}>
-        <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+        <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
           Workspace Context
         </h4>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
