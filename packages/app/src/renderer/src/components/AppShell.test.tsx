@@ -99,6 +99,10 @@ describe('AppShell', () => {
     )
 
     expect(screen.getByTestId('sidebar-view-renderer')).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-view-renderer').closest('[data-plugin-id="nav"]')).toHaveAttribute(
+      'data-plugin-surface',
+      'sidebar'
+    )
   })
 
   it('renders no sidebar content when a visible side has no registered view', () => {

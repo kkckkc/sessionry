@@ -582,14 +582,22 @@ export const WorkspacePaneTree = ({
         />
         <div className="body">
           {PaneRenderer ? (
-            <PaneRenderer
-              plugins={plugins}
-              workspace={workspace}
-              resolveRendererView={resolveRendererView}
-              pane={pane}
-              clearSignal={clearSignal}
-              visible={isVisible}
-            />
+            <div
+              className="plugin-surface"
+              data-plugin-id={paneView?.pluginId}
+              data-plugin-surface="pane"
+              data-plugin-slot={paneView?.slot}
+              data-plugin-view-id={paneView?.id}
+            >
+              <PaneRenderer
+                plugins={plugins}
+                workspace={workspace}
+                resolveRendererView={resolveRendererView}
+                pane={pane}
+                clearSignal={clearSignal}
+                visible={isVisible}
+              />
+            </div>
           ) : (
             <div className="placeholder">
               <p>{description ?? 'Workspace content preview'}</p>

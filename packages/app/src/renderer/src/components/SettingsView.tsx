@@ -13,6 +13,7 @@ import {
 } from '@sessionry/components'
 import type { AppSettings } from '@sessionry/plugin-api'
 import type { RendererViewRegistration } from '@sessionry/plugin-api'
+import { PluginSurface } from './PluginSurface'
 
 interface ConfirmationsSettings {
   confirmPaneClose: boolean
@@ -182,7 +183,16 @@ interface PluginSettingsContentProps {
 const PluginSettingsContent = ({ plugin, settings, onUpdate, resolveRendererView }: PluginSettingsContentProps) => {
   // Handle built-in confirmations settings
   if (plugin.id === 'app-confirmations') {
-    return <ConfirmationsSettingsView settings={settings as ConfirmationsSettings} onUpdate={onUpdate} />
+    return (
+      <PluginSurface
+        pluginId={plugin.id}
+        surface="settings"
+        slot="settings"
+        viewId={plugin.settingsView.id}
+      >
+        <ConfirmationsSettingsView settings={settings as ConfirmationsSettings} onUpdate={onUpdate} />
+      </PluginSurface>
+    )
   }
 
   const registration = resolveRendererView(plugin.settingsView.id)
@@ -192,7 +202,16 @@ const PluginSettingsContent = ({ plugin, settings, onUpdate, resolveRendererView
   }
 
   const Component = registration.component
-  return <Component pluginId={plugin.id} settings={settings} onUpdate={onUpdate} />
+  return (
+    <PluginSurface
+      pluginId={plugin.id}
+      surface="settings"
+      slot="settings"
+      viewId={plugin.settingsView.id}
+    >
+      <Component pluginId={plugin.id} settings={settings} onUpdate={onUpdate} />
+    </PluginSurface>
+  )
 }
 
 interface ConfirmationsSettingsViewProps {

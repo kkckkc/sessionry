@@ -7,6 +7,7 @@
 @import './components/tabs.css';
 @import './components/sidebar.css';
 @import './components/pane.css';
+@import './components/plugin-surface.css';
 @import './components/menu.css';
 @import './components/status-bar.css';
 @import './singletons/terminal.css';

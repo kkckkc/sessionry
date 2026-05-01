@@ -60,6 +60,7 @@ describe('SettingsView', () => {
     )
 
     const toggle = await screen.findByRole('switch', { name: 'Confirm pane close' })
+    expect(toggle.closest('[data-plugin-id="app-confirmations"]')).toHaveAttribute('data-plugin-surface', 'settings')
     expect(toggle).toHaveAttribute('aria-checked', 'true')
 
     fireEvent.click(toggle)

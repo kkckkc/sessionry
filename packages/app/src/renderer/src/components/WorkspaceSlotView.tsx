@@ -1,5 +1,6 @@
 import type { WorkspaceViewProps } from '@sessionry/plugin-api'
 import { resolveActiveView } from '@sessionry/plugin-api'
+import { PluginSurface } from './PluginSurface'
 
 interface WorkspaceSlotViewProps extends WorkspaceViewProps {
   selectedViewId?: string
@@ -23,5 +24,14 @@ export const WorkspaceSlotView = ({
   }
 
   const Component = registration.component
-  return <Component {...viewProps} plugins={plugins} />
+  return (
+    <PluginSurface
+      pluginId={activeView.pluginId}
+      surface="workspace"
+      slot={activeView.slot}
+      viewId={activeView.id}
+    >
+      <Component {...viewProps} plugins={plugins} />
+    </PluginSurface>
+  )
 }

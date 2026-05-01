@@ -11,6 +11,7 @@ import type { RendererViewRegistration } from '@sessionry/plugin-api'
 import type { WorkspaceApi } from '@sessionry/plugin-api'
 
 import { resolveStatusValue } from '../lib/pluginPanels'
+import { PluginSurface } from './PluginSurface'
 
 interface AppShellProps {
   plugins: PluginViewModel
@@ -40,15 +41,26 @@ const resolveSidebarRegistration = ({
 }) => {
   const slotId = `sidebar:${side}`
   const activeView = resolveActiveView(plugins, slotId)
-  return activeView ? resolveRendererView(activeView.id) : null
+  if (!activeView) return null
+
+  return {
+    activeView,
+    registration: resolveRendererView(activeView.id)
+  }
 }
 
 const SidebarView = ({
+  pluginId,
+  slot,
+  viewId,
   registration,
   plugins,
   workspace,
   resolveRendererView
 }: SidebarViewProps & {
+  pluginId: string
+  slot: string
+  viewId: string
   registration: RendererViewRegistration | null
 }) => {
   if (!registration) return null
@@ -56,11 +68,13 @@ const SidebarView = ({
   const Component = registration.component
 
   return (
-    <Component
-      plugins={plugins}
-      workspace={workspace}
-      resolveRendererView={resolveRendererView}
-    />
+    <PluginSurface pluginId={pluginId} surface="sidebar" slot={slot} viewId={viewId}>
+      <Component
+        plugins={plugins}
+        workspace={workspace}
+        resolveRendererView={resolveRendererView}
+      />
+    </PluginSurface>
   )
 }
 
@@ -109,8 +123,10 @@ export const AppShell = ({
   const [leftWidth, setLeftWidth] = useState(280)
   const [rightWidth, setRightWidth] = useState(300)
 
-  const leftRegistration = resolveSidebarRegistration({ side: 'left', plugins, resolveRendererView })
-  const rightRegistration = resolveSidebarRegistration({ side: 'right', plugins, resolveRendererView })
+  const leftSidebarView = resolveSidebarRegistration({ side: 'left', plugins, resolveRendererView })
+  const rightSidebarView = resolveSidebarRegistration({ side: 'right', plugins, resolveRendererView })
+  const leftRegistration = leftSidebarView?.registration ?? null
+  const rightRegistration = rightSidebarView?.registration ?? null
   const showLeftSidebar = leftVisible
   const showRightSidebar = rightVisible && rightRegistration !== null
 
@@ -151,6 +167,9 @@ export const AppShell = ({
         {showLeftSidebar ? (
           <aside className="sidebar sidebar--left">
             <SidebarView
+              pluginId={leftSidebarView?.activeView.pluginId ?? 'unknown-plugin'}
+              slot={leftSidebarView?.activeView.slot ?? 'sidebar:left'}
+              viewId={leftSidebarView?.activeView.id ?? 'unknown-view'}
               registration={leftRegistration}
               plugins={plugins}
               workspace={workspace}
@@ -172,6 +191,9 @@ export const AppShell = ({
               onMouseDown={(e) => startSidebarResize('right', rightWidth, setRightWidth, e)}
             />
             <SidebarView
+              pluginId={rightSidebarView?.activeView.pluginId ?? 'unknown-plugin'}
+              slot={rightSidebarView?.activeView.slot ?? 'sidebar:right'}
+              viewId={rightSidebarView?.activeView.id ?? 'unknown-view'}
               registration={rightRegistration}
               plugins={plugins}
               workspace={workspace}

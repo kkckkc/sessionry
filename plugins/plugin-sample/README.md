@@ -44,3 +44,32 @@ Sessionry loads plugins from `~/sessionry/plugins/`. Each plugin directory must 
 2. Change the view `title` and `slot` in `src/index.ts` as needed.
 3. Replace the `SampleView` component in `src/renderer.tsx` with your UI.
 4. Run `pnpm deploy` to rebuild and install.
+
+## Scoped theming
+
+Sessionry renders each plugin view inside a host wrapper with stable data attributes:
+
+```html
+<div
+  class="plugin-surface"
+  data-plugin-id="sample-plugin"
+  data-plugin-surface="workspace"
+  data-plugin-slot="workspace"
+  data-plugin-view-id="sample-plugin.view"
+>
+  ...
+</div>
+```
+
+Use that wrapper to scope plugin CSS and token overrides safely:
+
+```css
+[data-plugin-id='sample-plugin'] {
+  --accent: #ff6b6b;
+  --panel-bg: #101418;
+}
+
+[data-plugin-id='sample-plugin'] .my-widget {
+  color: var(--text-primary);
+}
+```
