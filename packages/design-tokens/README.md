@@ -10,81 +10,136 @@ pnpm add @sessionry/design-tokens
 
 ## Usage
 
-### In CSS/SCSS
+### Preferred entrypoint
 
-Import the token files in your stylesheets:
+Import the canonical theme entrypoint in app, Storybook, or plugin CSS:
+
+```css
+@import '@sessionry/design-tokens/theme.css';
+```
+
+```typescript
+import '@sessionry/design-tokens/theme.css'
+```
+
+### Advanced usage
+
+The individual files are still exported when you need explicit control over load order:
 
 ```css
 @import '@sessionry/design-tokens/tokens.css';
-@import '@sessionry/design-tokens/context.css';
 @import '@sessionry/design-tokens/base.css';
+@import '@sessionry/design-tokens/context.css';
 ```
 
-### In JavaScript/TypeScript
+## Supported Token Contract
 
-```typescript
-import '@sessionry/design-tokens/tokens.css'
-import '@sessionry/design-tokens/context.css'
-import '@sessionry/design-tokens/base.css'
-```
+These CSS custom properties are the supported public token surface for consumers.
 
-### In Storybook
-
-Add to `.storybook/preview.ts`:
-
-```typescript
-import '@sessionry/design-tokens/tokens.css'
-import '@sessionry/design-tokens/context.css'
-import '@sessionry/design-tokens/base.css'
-
-export const preview = {
-  // ... your config
-}
-```
-
-## Available Tokens
-
-### Color Tokens
+### Semantic color and surface tokens
 
 ```css
---window-bg: #1a1a1c;
---chrome-bg: #242426;
---sidebar-bg: #1e1e20;
---workspace-bg: #0c0c0e;
---workspace-bg2: #181818;
+--window-bg
+--chrome-bg
+--surface-high
+--sidebar-bg
+--workspace-bg
+--workspace-bg2
+--canvas-bg
 
---panel-bg: #1c1c1e;
---panel-bg-soft: #202124;
---panel-bg-strong: #111214;
+--panel-bg
+--panel-bg-soft
+--panel-bg-strong
 
---border-color: rgba(255, 255, 255, 0.07);
---border-subtle: rgba(255, 255, 255, 0.05);
+--border-color
+--border-strong
+--border-subtle
 
---text-primary: rgba(255, 255, 255, 0.85);
---text-secondary: rgba(255, 255, 255, 0.4);
---text-tertiary: rgba(255, 255, 255, 0.25);
+--text-primary
+--text-secondary
+--text-tertiary
 
---accent: #3b82f6;
---accent-bg: rgba(59, 130, 246, 0.18);
---accent-border: rgba(59, 130, 246, 0.3);
+--accent
+--accent-bg
+--accent-border
 
---button-bg: transparent;
---button-bg-hover: rgba(255, 255, 255, 0.05);
+--danger
+--danger-bg
+--success
+--success-bg
+--warning
+--warning-bg
 
---shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+--input-bg
+--input-border
+
+--badge-bg
+--badge-text
+
+--term-prompt
+--term-path
+
+--button-bg
+--button-bg-hover
 ```
 
-### Context Tokens
-
-Context tokens allow components to adapt to their container context (chrome, workspace, etc.):
+### Shadow tokens
 
 ```css
---ctx-bg: var(--chrome-bg);
---ctx-btn-bg: var(--button-bg);
---ctx-btn-hover: var(--button-bg-hover);
---ctx-tab-bg: var(--workspace-bg);
---ctx-tab-hover-bg: var(--workspace-bg2);
---ctx-border: var(--border-color);
+--shadow-sm
+--shadow-md
+--shadow-lg
+--shadow-xl
+--shadow
+```
+
+### Spacing tokens
+
+```css
+--space-1
+--space-2
+--space-3
+--space-4
+--space-5
+--space-6
+--space-7
+--space-8
+--space-9
+```
+
+### Radius tokens
+
+```css
+--radius-1
+--radius-2
+--radius-3
+--radius-4
+--radius-5
+--radius-6
+--radius-7
+--radius-8
+```
+
+### Context tokens
+
+Context tokens allow components to adapt to their container context:
+
+```css
+--ctx-bg
+--ctx-btn-bg
+--ctx-btn-hover
+--ctx-tab-bg
+--ctx-tab-hover-bg
+--ctx-border
+```
+
+## Invalid token names
+
+These names are not part of the supported contract and should not be used:
+
+```css
+--color-surface-primary
+--color-text-primary
 ```
 
 ## Context-Based Theming
@@ -120,8 +175,7 @@ pluginManager.registerTheme({
   id: 'my-theme',
   name: 'My Custom Theme',
   tokens: {
-    accent: '#ff6b6b',
-    // ... other overrides
+    accent: '#ff6b6b'
   }
 })
 ```
