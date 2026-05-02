@@ -60,4 +60,7 @@ export type {
 export { SegmentedControl } from './SegmentedControl'
 export type { SegmentedControlProps, SegmentedControlItem } from './SegmentedControl'
 
+export { TabBar } from './TabBar'
+export type { TabBarProps, TabBarItem } from './TabBar'
+
 export const version = '0.1.0'
