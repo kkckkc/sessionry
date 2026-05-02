@@ -1,0 +1,69 @@
+.file-browser {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.file-browser-empty {
+  padding: 12px;
+  font-size: var(--body-sm-font-size);
+  font-weight: var(--body-sm-font-weight);
+  color: var(--text-muted);
+}
+
+.file-tree-node {
+  display: block;
+}
+
+.file-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 0;
+  /* padding-left is set inline based on depth */
+  margin: 0 4px;
+  border-radius: 4px;
+  font-size: var(--body-sm-font-size);
+  font-weight: var(--body-sm-font-weight);
+  color: var(--text);
+  cursor: default;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.1s;
+}
+
+.file-tree-row:hover {
+  background: var(--hover);
+}
+
+.file-tree-chevron {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.file-tree-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.file-tree-icon--file {
+  color: var(--text-dim);
+}
+
+.file-tree-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-tree-name--dir {
+  opacity: 0.7;
+}

@@ -15,7 +15,7 @@ export default defineConfig({
           '@sessionry/plugin-default-view-workspace',
           '@sessionry/plugin-default-view-terminal',
           '@sessionry/plugin-default-view-left-sidebar',
-          '@sessionry/plugin-debug-view-pane-hierarchy'
+          '@sessionry/plugin-default-view-files'
         ]
       })
     ],
@@ -54,12 +54,12 @@ export default defineConfig({
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-left-sidebar/src/index.ts')
         },
         {
-          find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
-          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx')
+          find: '@sessionry/plugin-default-view-files/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-files/src/renderer.tsx')
         },
         {
-          find: '@sessionry/plugin-debug-view-pane-hierarchy',
-          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/index.ts')
+          find: '@sessionry/plugin-default-view-files',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-files/src/index.ts')
         },
         {
           find: '@sessionry/plugin-api',
@@ -80,7 +80,7 @@ export default defineConfig({
           '@sessionry/plugin-default-view-workspace',
           '@sessionry/plugin-default-view-terminal',
           '@sessionry/plugin-default-view-left-sidebar',
-          '@sessionry/plugin-debug-view-pane-hierarchy'
+          '@sessionry/plugin-default-view-files'
         ]
       })
     ],
@@ -150,12 +150,12 @@ export default defineConfig({
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-left-sidebar/src/index.ts')
         },
         {
-          find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
-          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx')
+          find: '@sessionry/plugin-default-view-files/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-files/src/renderer.tsx')
         },
         {
-          find: '@sessionry/plugin-debug-view-pane-hierarchy',
-          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/index.ts')
+          find: '@sessionry/plugin-default-view-files',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-files/src/index.ts')
         },
         {
           find: '@sessionry/plugin-api',

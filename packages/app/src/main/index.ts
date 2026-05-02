@@ -1,4 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol } from 'electron'
+import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
@@ -144,6 +145,10 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.showFolderDialog, () =>
     dialog.showOpenDialog(mainWindow!, { properties: ['openDirectory', 'createDirectory'] })
   )
+  ipcMain.handle(IPC_CHANNELS.readDirectory, (_event, dirPath: string) => {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true })
+    return entries.map((e) => ({ name: e.name, isDirectory: e.isDirectory() }))
+  })
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read())
   ipcMain.on(IPC_CHANNELS.settingsRead, (event) => {
     event.returnValue = settingsStore.read()

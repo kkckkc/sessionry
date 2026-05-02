@@ -14,5 +14,6 @@ export const IPC_CHANNELS = {
   workspaceEvent: 'workspace:event',
   showFolderDialog: 'dialog:show-folder',
   settingsRead: 'settings:read',
-  settingsUpdate: 'settings:update'
+  settingsUpdate: 'settings:update',
+  readDirectory: 'fs:read-directory'
 } as const

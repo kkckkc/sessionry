@@ -24,6 +24,7 @@ export interface UserPluginRendererInfo {
 
 export interface TerminalAppBridge {
   showFolderDialog: () => Promise<{ canceled: boolean; filePaths: string[] }>
+  readDirectory: (dirPath: string) => Promise<{ name: string; isDirectory: boolean }[]>
   createTerminalSession: (input: CreateTerminalSessionInput) => Promise<TerminalSessionInfo>
   sendTerminalInput: (payload: TerminalInputPayload) => void
   resizeTerminal: (payload: TerminalResizePayload) => void

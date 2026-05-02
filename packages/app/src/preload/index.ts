@@ -54,6 +54,8 @@ const api = {
   },
   showFolderDialog: (): Promise<{ canceled: boolean; filePaths: string[] }> =>
     ipcRenderer.invoke(IPC_CHANNELS.showFolderDialog),
+  readDirectory: (dirPath: string): Promise<{ name: string; isDirectory: boolean }[]> =>
+    ipcRenderer.invoke(IPC_CHANNELS.readDirectory, dirPath),
   settings: {
     read: (): Promise<AppSettings> => ipcRenderer.invoke(IPC_CHANNELS.settingsRead),
     readSync: (): AppSettings => ipcRenderer.sendSync(IPC_CHANNELS.settingsRead) as AppSettings,
