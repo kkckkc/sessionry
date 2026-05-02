@@ -1,7 +1,19 @@
 import type { Meta, StoryObj } from '@storybook/react'
+import type { ComponentProps } from 'react'
 import { useState } from 'react'
 import { Tabs } from '@base-ui/react/tabs'
+import { FiFileText, FiFolder, FiSearch } from 'react-icons/fi'
 import { TabBar } from './TabBar'
+
+const renderWithSelectedTab = (args: ComponentProps<typeof TabBar>) => {
+  const selectedValue = args.items[1]?.value ?? args.items[0]?.value ?? ''
+
+  return (
+    <Tabs.Root value={selectedValue}>
+      <TabBar {...args} />
+    </Tabs.Root>
+  )
+}
 
 const meta: Meta<typeof TabBar> = {
   title: 'Components/TabBar',
@@ -9,17 +21,7 @@ const meta: Meta<typeof TabBar> = {
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen'
-  },
-  decorators: [
-    (Story, ctx) => {
-      const [value, setValue] = useState(ctx.args.items?.[0]?.value ?? '')
-      return (
-        <Tabs.Root value={value} onValueChange={setValue}>
-          <Story />
-        </Tabs.Root>
-      )
-    }
-  ]
+  }
 }
 
 export default meta
@@ -28,7 +30,8 @@ type Story = StoryObj<typeof TabBar>
 /**
  * Two tabs — the minimum meaningful use case.
  */
-export const Default: Story = {
+export const Primary: Story = {
+  render: renderWithSelectedTab,
   args: {
     variant: 'primary',
     ariaLabel: 'Terminal tabs',
@@ -40,12 +43,44 @@ export const Default: Story = {
 }
 
 /**
+ * Secondary variant with sidebar background and borderless selected tab.
+ */
+export const Secondary: Story = {
+  render: renderWithSelectedTab,
+  args: {
+    variant: 'secondary',
+    ariaLabel: 'Sidebar tabs',
+    items: [
+      { label: 'Explorer', value: 'explorer' },
+      { label: 'Search', value: 'search' },
+      { label: 'Source Control', value: 'source-control' },
+    ]
+  }
+}
+
+/**
+ * Tabs can show icons before their labels.
+ */
+export const WithIcons: Story = {
+  render: renderWithSelectedTab,
+  args: {
+    variant: 'primary',
+    ariaLabel: 'Workspace tabs',
+    items: [
+      { label: 'Files', value: 'files', icon: <FiFolder /> },
+      { label: 'Search', value: 'search', icon: <FiSearch /> },
+      { label: 'Notes', value: 'notes', icon: <FiFileText /> },
+    ]
+  }
+}
+
+/**
  * Tabs with close buttons on each tab.
  */
 export const WithCloseButtons: Story = {
   render: (args) => {
     const [items, setItems] = useState(args.items)
-    const [value, setValue] = useState(args.items[0]?.value ?? '')
+    const [value, setValue] = useState(args.items[1]?.value ?? args.items[0]?.value ?? '')
 
     const handleClose = (valueToRemove: string) => {
       const next = items.filter((item) => item.value !== valueToRemove)
@@ -58,8 +93,8 @@ export const WithCloseButtons: Story = {
     return (
       <Tabs.Root value={value} onValueChange={setValue}>
         <TabBar
-          variant="primary"
-          ariaLabel="Terminal tabs"
+          variant={args.variant}
+          ariaLabel={args.ariaLabel}
           items={items.map((item) => ({
             ...item,
             onClose: () => handleClose(item.value)
@@ -70,6 +105,7 @@ export const WithCloseButtons: Story = {
   },
   args: {
     variant: 'primary',
+    ariaLabel: 'Terminal tabs',
     items: [
       { label: 'Terminal 1', value: 'term-1' },
       { label: 'Terminal 2', value: 'term-2' },
@@ -82,6 +118,7 @@ export const WithCloseButtons: Story = {
  * Many tabs — shows how the bar handles overflow with flex-shrink.
  */
 export const ManyTabs: Story = {
+  render: renderWithSelectedTab,
   args: {
     variant: 'primary',
     ariaLabel: 'File tabs',
@@ -96,6 +133,7 @@ export const ManyTabs: Story = {
  * Single tab — edge case where there is only one pane in the group.
  */
 export const SingleTab: Story = {
+  render: renderWithSelectedTab,
   args: {
     variant: 'primary',
     ariaLabel: 'Terminal tabs',

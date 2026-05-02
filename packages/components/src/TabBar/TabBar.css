@@ -32,10 +32,18 @@
       color: var(--text);
     }
 
-    &[data-selected] {
+    &[data-active] {
       background: var(--accent-bg);
       color: var(--accent);
       border-color: var(--border-active);
+    }
+
+    > .tab-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: inherit;
+      flex-shrink: 0;
     }
 
     > .tab-close {
@@ -63,13 +71,21 @@
     }
 
     &:hover > .tab-close,
-    &[data-selected] > .tab-close {
+    &[data-active] > .tab-close {
       opacity: 0.6;
     }
 
     &:hover > .tab-close:hover,
-    &[data-selected] > .tab-close:hover {
+    &[data-active] > .tab-close:hover {
       opacity: 1;
     }
+  }
+}
+
+.tab-bar--secondary {
+  background: var(--sidebar-bg);
+
+  > .tab[data-active] {
+    border-color: transparent;
   }
 }

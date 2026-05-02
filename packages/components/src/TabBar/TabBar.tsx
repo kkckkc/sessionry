@@ -1,7 +1,9 @@
+import { type ReactNode } from 'react'
 import { Tabs } from '@base-ui/react/tabs'
 import './TabBar.css'
 
 export interface TabBarItem {
+  icon?: ReactNode
   label: string
   value: string
   onClose?: () => void
@@ -16,7 +18,7 @@ export interface TabBarProps {
   /**
    * Visual variant of the tab bar.
    */
-  variant: 'primary'
+  variant: 'primary' | 'secondary'
 
   /**
    * Accessible label for the tab list.
@@ -49,6 +51,7 @@ export const TabBar = ({ items, variant, ariaLabel }: TabBarProps) => {
     <Tabs.List className={`tab-bar tab-bar--${variant}`} aria-label={ariaLabel}>
       {items.map((item) => (
         <Tabs.Tab key={item.value} value={item.value} className="tab">
+          {item.icon && <span className="tab-icon">{item.icon}</span>}
           <span>{item.label}</span>
           {item.onClose && (
             <span
