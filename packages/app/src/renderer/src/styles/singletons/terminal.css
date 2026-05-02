@@ -29,4 +29,22 @@
       display: none;
     }
   }
+
+  .xterm .scrollbar.vertical {
+    width: 8px !important;
+  }
+
+  .xterm .scrollbar.vertical .slider {
+    width: 8px !important;
+    border-radius: 999px;
+  }
+
+  .xterm .scrollbar.horizontal {
+    height: 8px !important;
+  }
+
+  .xterm .scrollbar.horizontal .slider {
+    height: 8px !important;
+    border-radius: 999px;
+  }
 }
