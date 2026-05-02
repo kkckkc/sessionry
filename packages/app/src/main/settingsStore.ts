@@ -9,6 +9,9 @@ export type { AppSettings }
 const DEFAULTS: AppSettings = {
   version: 1,
   theme: 'system',
+  terminalTheme: 'default',
+  terminalBgOverride: false,
+  terminalBgColor: '#000000',
   statusBarVisible: true,
   confirmations: {
     confirmPaneClose: true,

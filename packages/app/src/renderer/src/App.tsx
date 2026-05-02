@@ -17,7 +17,7 @@ import { SettingsView } from './components/SettingsView'
 import { WorkspaceSlotView } from './components/WorkspaceSlotView'
 import { readWorkspaceSnapshot, workspace } from './lib/workspace'
 import { getRendererView, loadUserPluginRenderers } from './plugins'
-import { applyTheme, watchSystemTheme } from './lib/theme'
+import { applyTheme, applyTerminalTheme, watchSystemTheme } from './lib/theme'
 
 const emptyPlugins: PluginViewModel = {
   actions: [],
@@ -61,6 +61,7 @@ export const App = () => {
       setStatusBarVisible(settings.statusBarVisible)
       themeRef.current = settings.theme ?? 'system'
       applyTheme(themeRef.current)
+      applyTerminalTheme(settings.terminalTheme ?? 'default', settings.terminalBgOverride ?? false, settings.terminalBgColor ?? '#000000')
     })
     setWorkspaceSnapshot(readWorkspaceSnapshot())
 
@@ -68,6 +69,7 @@ export const App = () => {
       setStatusBarVisible(settings.statusBarVisible)
       themeRef.current = settings.theme ?? 'system'
       applyTheme(themeRef.current)
+      applyTerminalTheme(settings.terminalTheme ?? 'default', settings.terminalBgOverride ?? false, settings.terminalBgColor ?? '#000000')
     })
 
     const unsubscribeSystemTheme = watchSystemTheme(() => themeRef.current)

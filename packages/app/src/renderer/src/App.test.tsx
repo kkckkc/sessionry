@@ -140,6 +140,10 @@ describe('App', () => {
   const settings = {
     read: vi.fn(async () => ({
       version: 1 as const,
+      theme: 'system' as const,
+      terminalTheme: 'default' as const,
+      terminalBgOverride: false,
+      terminalBgColor: '#000000',
       statusBarVisible: true,
       confirmations: {
         confirmPaneClose: true,

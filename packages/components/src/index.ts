@@ -32,6 +32,9 @@ export type { SettingToggleProps } from './SettingToggle'
 export { SettingSelect } from './SettingSelect'
 export type { SettingSelectProps } from './SettingSelect'
 
+export { SettingColorInput } from './SettingColorInput/SettingColorInput'
+export type { SettingColorInputProps } from './SettingColorInput/SettingColorInput'
+
 export { Toolbar, ToolbarButton } from './Toolbar'
 export type { ToolbarProps, ToolbarButtonProps } from './Toolbar'
 
