@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import type { ITheme } from '@xterm/xterm'
 
 const MIN_COLS = 55
 const MIN_ROWS = 25
@@ -10,6 +11,66 @@ import { Terminal } from '@xterm/xterm'
 import type { PaneViewProps } from '@sessionry/plugin-api'
 
 import '@xterm/xterm/css/xterm.css'
+
+const terminalThemeVariables = {
+  background: '--workspace-bg',
+  foreground: '--term-fg',
+  cursor: '--term-cursor',
+  selectionBackground: '--term-selection',
+  black: '--term-black',
+  brightBlack: '--term-bright-black',
+  red: '--term-red',
+  brightRed: '--term-bright-red',
+  green: '--term-green',
+  brightGreen: '--term-bright-green',
+  yellow: '--term-yellow',
+  brightYellow: '--term-bright-yellow',
+  blue: '--term-blue',
+  brightBlue: '--term-bright-blue',
+  magenta: '--term-magenta',
+  brightMagenta: '--term-bright-magenta',
+  cyan: '--term-cyan',
+  brightCyan: '--term-bright-cyan',
+  white: '--term-white',
+  brightWhite: '--term-bright-white'
+}
+
+const fallbackTerminalTheme = {
+  background: '#0c0c0e',
+  foreground: '#d6e1ff',
+  cursor: '#ffcb6b',
+  selectionBackground: 'rgba(122, 176, 255, 0.24)',
+  black: '#2b3144',
+  brightBlack: '#66708f',
+  red: '#ff7b72',
+  brightRed: '#ffa198',
+  green: '#97e98b',
+  brightGreen: '#bef5b8',
+  yellow: '#ffd866',
+  brightYellow: '#ffe38f',
+  blue: '#7ab0ff',
+  brightBlue: '#a4c8ff',
+  magenta: '#d2a8ff',
+  brightMagenta: '#e4c7ff',
+  cyan: '#7ee7ff',
+  brightCyan: '#b4f2ff',
+  white: '#d6e1ff',
+  brightWhite: '#ffffff'
+}
+
+type ManagedTerminalTheme = typeof fallbackTerminalTheme
+
+const getTerminalTheme = (element: HTMLElement): ITheme => {
+  const styles = getComputedStyle(element)
+  const managedTheme = Object.fromEntries(
+    Object.entries(terminalThemeVariables).map(([key, variable]) => {
+      const themeKey = key as keyof ManagedTerminalTheme
+      const value = styles.getPropertyValue(variable).trim()
+      return [key, value || fallbackTerminalTheme[themeKey]]
+    })
+  ) as ManagedTerminalTheme
+  return managedTheme as ITheme
+}
 
 export const TerminalPaneView = ({
   workspace,
@@ -30,7 +91,6 @@ export const TerminalPaneView = ({
     if (!containerRef.current || terminalRef.current) return
 
     const fitAddon = new FitAddon()
-    const terminalBg = getComputedStyle(containerRef.current).getPropertyValue('--workspace-bg').trim()
     const terminal = new Terminal({
       cursorBlink: true,
       convertEol: true,
@@ -39,32 +99,17 @@ export const TerminalPaneView = ({
       fontSize: 11,
       lineHeight: 1.15,
       customGlyphs: true,
-      theme: {
-        background: terminalBg || '#121212',
-        foreground: '#d6e1ff',
-        cursor: '#ffcb6b',
-        black: '#2b3144',
-        brightBlack: '#66708f',
-        red: '#ff7b72',
-        brightRed: '#ffa198',
-        green: '#97e98b',
-        brightGreen: '#bef5b8',
-        yellow: '#ffd866',
-        brightYellow: '#ffe38f',
-        blue: '#7ab0ff',
-        brightBlue: '#a4c8ff',
-        magenta: '#d2a8ff',
-        brightMagenta: '#e4c7ff',
-        cyan: '#7ee7ff',
-        brightCyan: '#b4f2ff',
-        white: '#d6e1ff',
-        brightWhite: '#ffffff'
-      }
+      theme: getTerminalTheme(containerRef.current)
     })
 
     terminal.loadAddon(fitAddon)
     terminal.open(containerRef.current)
     terminal.loadAddon(new WebglAddon())
+    const applyTerminalTheme = () => {
+      if (!containerRef.current) return
+      terminal.options.theme = getTerminalTheme(containerRef.current)
+      terminal.refresh(0, terminal.rows - 1)
+    }
 
     const currentSession = pane.id
     const resizeTerminal = () => {
@@ -80,6 +125,15 @@ export const TerminalPaneView = ({
 
     const resizeObserver = new ResizeObserver(resizeTerminal)
     resizeObserver.observe(containerRef.current)
+    const themeObserver = new MutationObserver((mutations) => {
+      if (mutations.some((mutation) => mutation.attributeName === 'class')) {
+        applyTerminalTheme()
+      }
+    })
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
 
 
     // Buffer live data while the historical snapshot is loading to avoid
@@ -118,6 +172,7 @@ export const TerminalPaneView = ({
     })
 
     resizeTerminal()
+    applyTerminalTheme()
 
     // Load the historical buffer, then drain any real-time data that arrived
     // while we were waiting. Real-time chunks appended to the buffer after the
@@ -144,6 +199,7 @@ export const TerminalPaneView = ({
       unsubscribeData()
       terminalInputSubscription.dispose()
       resizeObserver.disconnect()
+      themeObserver.disconnect()
       terminal.dispose()
       fitAddon.dispose()
       terminalRef.current = null

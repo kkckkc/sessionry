@@ -7,6 +7,9 @@ const fitMock = vi.fn()
 const clearMock = vi.fn()
 const writeMock = vi.fn()
 const disposeMock = vi.fn()
+const refreshMock = vi.fn()
+const terminalInstances: Array<{ options: { theme?: unknown } }> = []
+const mutationObserverInstances: MutationObserverMock[] = []
 
 const onDataCallbacks: Array<(data: string) => void> = []
 const onTerminalDataCallbacks: Array<(event: { sessionId: string; data: string }) => void> = []
@@ -22,12 +25,18 @@ vi.mock('@xterm/xterm', () => ({
   Terminal: class {
     cols = 80
     rows = 24
+    options: { theme?: unknown }
     loadAddon = vi.fn()
     open = vi.fn()
     write = writeMock
     clear = clearMock
     dispose = disposeMock
+    refresh = refreshMock
     resize = vi.fn()
+    constructor(options: { theme?: unknown }) {
+      this.options = options
+      terminalInstances.push(this)
+    }
     onData(callback: (data: string) => void) {
       onDataCallbacks.push(callback)
       return { dispose: vi.fn() }
@@ -43,6 +52,16 @@ class ResizeObserverMock {
   callback: () => void
   constructor(callback: () => void) {
     this.callback = callback
+  }
+}
+
+class MutationObserverMock {
+  observe = vi.fn()
+  disconnect = vi.fn()
+  callback: MutationCallback
+  constructor(callback: MutationCallback) {
+    this.callback = callback
+    mutationObserverInstances.push(this)
   }
 }
 
@@ -116,7 +135,17 @@ describe('TerminalPaneView', () => {
     clearMock.mockClear()
     writeMock.mockClear()
     disposeMock.mockClear()
+    refreshMock.mockClear()
+    terminalInstances.length = 0
+    mutationObserverInstances.length = 0
     vi.stubGlobal('ResizeObserver', ResizeObserverMock)
+    vi.stubGlobal('MutationObserver', MutationObserverMock)
+    document.documentElement.className = 'theme-dark'
+    document.documentElement.style.setProperty('--workspace-bg', '#0c0c0e')
+    document.documentElement.style.setProperty('--term-fg', '#d6e1ff')
+    document.documentElement.style.setProperty('--term-cursor', '#ffcb6b')
+    document.documentElement.style.setProperty('--term-selection', 'rgba(122, 176, 255, 0.24)')
+    document.documentElement.style.setProperty('--term-blue', '#7ab0ff')
     window.terminalApp = {
       showFolderDialog: vi.fn(),
       createTerminalSession: vi.fn().mockResolvedValue(makeSession('hello')),
@@ -219,5 +248,32 @@ describe('TerminalPaneView', () => {
     onTerminalDataCallbacks[0]?.({ sessionId: 'other-pane', data: 'noise' })
 
     expect(writeMock).not.toHaveBeenCalled()
+  })
+
+  it('updates the mounted terminal theme when the app theme class changes', async () => {
+    render(<TerminalPaneView {...baseProps} visible />)
+    await act(async () => {})
+
+    const terminal = terminalInstances[0]
+    expect(terminal?.options.theme).toMatchObject({
+      background: '#0c0c0e',
+      foreground: '#d6e1ff'
+    })
+
+    document.documentElement.classList.remove('theme-dark')
+    document.documentElement.classList.add('theme-light')
+    document.documentElement.style.setProperty('--workspace-bg', '#fafafa')
+    document.documentElement.style.setProperty('--term-fg', '#1f2937')
+    document.documentElement.style.setProperty('--term-blue', '#1d4ed8')
+
+    const observer = mutationObserverInstances[0]
+    observer.callback([{ attributeName: 'class' } as MutationRecord], observer as unknown as MutationObserver)
+
+    expect(terminal?.options.theme).toMatchObject({
+      background: '#fafafa',
+      foreground: '#1f2937',
+      blue: '#1d4ed8'
+    })
+    expect(refreshMock).toHaveBeenCalledWith(0, 23)
   })
 })
