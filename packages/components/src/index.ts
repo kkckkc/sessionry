@@ -57,4 +57,7 @@ export type {
   DialogFooterProps 
 } from './Dialog'
 
+export { SegmentedControl } from './SegmentedControl'
+export type { SegmentedControlProps, SegmentedControlItem } from './SegmentedControl'
+
 export const version = '0.1.0'
