@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import type { PaneGroupChild, WorkspaceApi } from '@sessionry/plugin-api'
+import type { PaneGroupChild, RendererAppPlugin, WorkspaceApi } from '@sessionry/plugin-api'
 import './styles.css'
+import { plugin as paneHierarchyDebugPlugin } from '.'
 
 interface PaneHierarchyViewProps {
   workspace: WorkspaceApi
@@ -109,3 +110,22 @@ export const PaneHierarchyView: React.FC<PaneHierarchyViewProps> = ({ workspace 
     </div>
   )
 }
+
+const paneHierarchyView = paneHierarchyDebugPlugin.views?.[0]
+
+if (!paneHierarchyView) {
+  throw new Error('paneHierarchyDebugPlugin must register a sidebar view.')
+}
+
+export const debugPaneHierarchyRendererPlugin: RendererAppPlugin = {
+  id: paneHierarchyDebugPlugin.id,
+  name: paneHierarchyDebugPlugin.name,
+  views: [
+    {
+      ...paneHierarchyView,
+      component: PaneHierarchyView
+    }
+  ]
+}
+
+export default debugPaneHierarchyRendererPlugin

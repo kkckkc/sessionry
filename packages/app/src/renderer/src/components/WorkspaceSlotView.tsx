@@ -1,5 +1,5 @@
 import type { WorkspaceViewProps } from '@sessionry/plugin-api'
-import { resolveActiveView } from '@sessionry/plugin-api'
+import { getChildViewsForSlot, resolveActiveView } from '@sessionry/plugin-api'
 import { PluginSurface } from './PluginSurface'
 
 interface WorkspaceSlotViewProps extends WorkspaceViewProps {
@@ -13,7 +13,8 @@ export const WorkspaceSlotView = ({
   preferredViewId,
   ...viewProps
 }: WorkspaceSlotViewProps) => {
-  const activeView = resolveActiveView(plugins, 'workspace', selectedViewId, preferredViewId)
+  const slot = 'workspace'
+  const activeView = resolveActiveView(plugins, slot, selectedViewId, preferredViewId)
   if (!activeView) {
     return <section className="workspace-empty">No workspace view registered.</section>
   }
@@ -31,7 +32,14 @@ export const WorkspaceSlotView = ({
       slot={activeView.slot}
       viewId={activeView.id}
     >
-      <Component {...viewProps} plugins={plugins} />
+      <Component
+        {...viewProps}
+        plugins={plugins}
+        slot={slot}
+        childViews={getChildViewsForSlot(plugins, slot)}
+        selectedViewId={selectedViewId}
+        preferredViewId={preferredViewId}
+      />
     </PluginSurface>
   )
 }

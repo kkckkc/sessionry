@@ -54,12 +54,15 @@ Views are declared with:
 - `title`: UI label
 - `isDefault`: optional default selection within a slot
 
+Plugins can also set `viewMode: 'multi-view'` to claim a slot as a container view. If multiple plugins target the same slot and one or more of them use `multi-view`, the first such plugin in registration order wins that slot and renders the switching UI for the ordinary child views in the slot.
+
 Useful slot IDs:
 
 - `pane:<type>` e.g. `pane:terminal`
 - `sidebar:left` or `sidebar:right`
 
 The host groups views by slot and resolves the active view with `resolveActiveView(...)`.
+Use `getChildViewsForSlot(...)` or `resolveChildViewForSlot(...)` when a multi-view host needs the ordinary child views for a slot.
 Sidebar surfaces are also just slot views, typically attached to `sidebar:left` or `sidebar:right`.
 
 ### Actions

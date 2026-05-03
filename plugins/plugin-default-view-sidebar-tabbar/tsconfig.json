@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "paths": {
+      "@sessionry/components": ["../../packages/components/src/index.ts"],
+      "@sessionry/plugin-api": ["../../packages/plugin-api/src/index.ts"]
+    },
+    "types": ["node"]
+  },
+  "include": ["src/**/*"]
+}

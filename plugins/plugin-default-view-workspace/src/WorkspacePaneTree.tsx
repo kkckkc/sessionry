@@ -5,6 +5,7 @@ import { Tabs } from '@base-ui-components/react/tabs'
 import { ConfirmationDialog } from '@sessionry/components'
 import { PaneTitle } from './components/PaneTitle'
 import {
+  getChildViewsForSlot,
   resolveActiveView,
   type Pane,
   type PaneGroup,
@@ -488,7 +489,8 @@ export const WorkspacePaneTree = ({
     const title = getPaneTitle(pane)
     const description = getPaneDescription(pane)
     const isLiveTerminal = pane.type === 'terminal' && pane.id === activeTerminalPaneId
-    const paneView = resolveActiveView(plugins, `pane:${pane.type}`)
+    const slot = `pane:${pane.type}`
+    const paneView = resolveActiveView(plugins, slot)
     const paneRenderer = paneView ? resolveRendererView(paneView.id) : null
     const PaneRenderer = paneRenderer?.component
 
@@ -594,6 +596,8 @@ export const WorkspacePaneTree = ({
                 plugins={plugins}
                 workspace={workspace}
                 resolveRendererView={resolveRendererView}
+                slot={slot}
+                childViews={getChildViewsForSlot(plugins, slot)}
                 pane={pane}
                 clearSignal={clearSignal}
                 visible={isVisible}

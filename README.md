@@ -101,10 +101,13 @@ Plugins register views into slot IDs. Common slot IDs include:
 
 Multiple plugins can contribute to the same slot. The host picks the active view by:
 
-1. selected view id
-2. preferred view id
-3. first contribution marked `isDefault`
-4. first contribution in the slot
+1. first plugin in the slot with `viewMode: 'multi-view'`
+2. selected view id
+3. preferred view id
+4. first contribution marked `isDefault`
+5. first contribution in the slot
+
+When a `multi-view` plugin wins a slot, it renders the slot container and is responsible for switching between the ordinary child views contributed to that slot.
 
 ### Actions
 

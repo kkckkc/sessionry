@@ -59,6 +59,37 @@ vi.mock('@sessionry/plugin-default-view-left-sidebar/renderer', () => ({
   }
 }))
 
+vi.mock('@sessionry/plugin-default-view-sidebar-tabbar/renderer', () => ({
+  sidebarTabBarRendererPlugin: {
+    id: 'plugin-default-view-sidebar-tabbar',
+    name: 'Sidebar Tab Bar',
+    viewMode: 'multi-view',
+    views: [
+      {
+        id: 'sidebar.right.tabbar',
+        title: 'Sidebar Tabs',
+        slot: 'sidebar:right',
+        component: () => <div data-testid="sidebar-tabbar-view">sidebar tabs</div>
+      }
+    ]
+  }
+}))
+
+vi.mock('@sessionry/plugin-debug-view-pane-hierarchy/renderer', () => ({
+  debugPaneHierarchyRendererPlugin: {
+    id: 'debug-view-pane-hierarchy',
+    name: 'Pane Hierarchy Debug View',
+    views: [
+      {
+        id: 'pane-hierarchy',
+        title: 'Pane Hierarchy',
+        slot: 'sidebar:right',
+        component: () => <div data-testid="pane-hierarchy-view">pane hierarchy</div>
+      }
+    ]
+  }
+}))
+
 const pluginModel: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
@@ -70,6 +101,7 @@ const pluginModel: PluginViewModel = {
         title: 'Terminal',
         slot: 'pane:terminal',
         pluginId: 'plugin-default-view-terminal',
+        viewMode: 'single-view',
         isDefault: true
       }
     ],
@@ -79,13 +111,15 @@ const pluginModel: PluginViewModel = {
         title: 'Workspace',
         slot: 'workspace',
         pluginId: 'plugin-default-view-workspace',
+        viewMode: 'single-view',
         isDefault: true
       },
       {
         id: 'workspace.alt',
         title: 'Alternate Workspace',
         slot: 'workspace',
-        pluginId: 'alt.plugin'
+        pluginId: 'alt.plugin',
+        viewMode: 'single-view'
       }
     ]
   }
@@ -166,6 +200,7 @@ describe('App', () => {
       createTerminalSession: vi.fn(async () => terminalSession),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
+      readDirectory: vi.fn(async () => []),
       getPluginModel: vi.fn(async () => pluginModel),
       getUserPluginRenderers: vi.fn(async () => []),
       actions: {
@@ -206,6 +241,7 @@ describe('App', () => {
       createTerminalSession: vi.fn(async () => terminalSession),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
+      readDirectory: vi.fn(async () => []),
       getPluginModel: vi.fn(async (): Promise<PluginViewModel> => ({
         ...pluginModel,
         viewsBySlot: {
@@ -216,6 +252,7 @@ describe('App', () => {
               title: 'Projects',
               slot: 'sidebar:left',
               pluginId: 'nav',
+              viewMode: 'single-view',
               isDefault: true
             }
           ]
@@ -255,6 +292,7 @@ describe('App', () => {
       createTerminalSession: vi.fn(async () => terminalSession),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
+      readDirectory: vi.fn(async () => []),
       getPluginModel: vi.fn(
         async (): Promise<PluginViewModel> => ({
           ...pluginModel,

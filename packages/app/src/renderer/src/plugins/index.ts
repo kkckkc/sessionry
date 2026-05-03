@@ -1,29 +1,20 @@
 import type { RendererAppPlugin, RendererViewRegistration } from '@sessionry/plugin-api'
+import { debugPaneHierarchyRendererPlugin } from '@sessionry/plugin-debug-view-pane-hierarchy/renderer'
 import { defaultWorkspacePaneRendererPlugin } from '@sessionry/plugin-default-view-workspace/renderer'
 import { projectSessionsSidebarRendererPlugin } from '@sessionry/plugin-default-view-left-sidebar/renderer'
+import { sidebarTabBarRendererPlugin } from '@sessionry/plugin-default-view-sidebar-tabbar/renderer'
 import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-terminal/renderer'
-import { FileBrowserView } from '@sessionry/plugin-default-view-files/renderer'
+import { fileBrowserRendererPlugin } from '@sessionry/plugin-default-view-files/renderer'
 import { coreRendererPlugin } from './coreRendererPlugin'
-
-const fileBrowserRendererPlugin: RendererAppPlugin = {
-  id: 'default-view-files',
-  name: 'File Browser',
-  views: [
-    {
-      id: 'file-browser',
-      slot: 'sidebar:right',
-      title: 'Files',
-      component: FileBrowserView
-    }
-  ]
-}
 
 const builtInRendererPlugins = [
   coreRendererPlugin,
   terminalPaneRendererPlugin,
   defaultWorkspacePaneRendererPlugin,
   projectSessionsSidebarRendererPlugin,
-  fileBrowserRendererPlugin
+  sidebarTabBarRendererPlugin,
+  fileBrowserRendererPlugin,
+  debugPaneHierarchyRendererPlugin
 ]
 
 const rendererViews = builtInRendererPlugins.flatMap((plugin) =>

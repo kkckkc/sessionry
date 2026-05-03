@@ -21,6 +21,7 @@ const plugins: PluginViewModel = {
         title: 'Terminal',
         slot: 'pane:terminal',
         pluginId: 'plugin-default-view-terminal',
+        viewMode: 'single-view',
         isDefault: true
       }
     ]

@@ -6,6 +6,7 @@ import { Toolbar, ToolbarButton } from '@sessionry/components'
 
 import type { ActionDescriptor, PluginViewModel, SidebarViewProps } from '@sessionry/plugin-api'
 import type { TerminalSessionInfo } from '@sessionry/plugin-api'
+import { getChildViewsForSlot } from '@sessionry/plugin-api'
 import { resolveActiveView } from '@sessionry/plugin-api'
 import type { RendererViewRegistration } from '@sessionry/plugin-api'
 import type { WorkspaceApi } from '@sessionry/plugin-api'
@@ -73,6 +74,8 @@ const SidebarView = ({
         plugins={plugins}
         workspace={workspace}
         resolveRendererView={resolveRendererView}
+        slot={slot}
+        childViews={getChildViewsForSlot(plugins, slot)}
       />
     </PluginSurface>
   )

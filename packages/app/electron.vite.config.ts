@@ -12,6 +12,8 @@ export default defineConfig({
       externalizeDepsPlugin({
         exclude: [
           '@sessionry/plugin-api',
+          '@sessionry/plugin-debug-view-pane-hierarchy',
+          '@sessionry/plugin-default-view-sidebar-tabbar',
           '@sessionry/plugin-default-view-workspace',
           '@sessionry/plugin-default-view-terminal',
           '@sessionry/plugin-default-view-left-sidebar',
@@ -30,12 +32,28 @@ export default defineConfig({
           replacement: path.resolve(rootDir, '../components/src/style.css')
         },
         {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/index.ts')
+        },
+        {
           find: '@sessionry/plugin-default-view-terminal/renderer',
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-terminal/src/renderer.tsx')
         },
         {
           find: '@sessionry/plugin-default-view-terminal',
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-terminal/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-view-sidebar-tabbar/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-sidebar-tabbar/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-default-view-sidebar-tabbar',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-sidebar-tabbar/src/index.ts')
         },
         {
           find: '@sessionry/plugin-default-view-workspace/renderer',
@@ -77,6 +95,8 @@ export default defineConfig({
       externalizeDepsPlugin({
         exclude: [
           '@sessionry/plugin-api',
+          '@sessionry/plugin-debug-view-pane-hierarchy',
+          '@sessionry/plugin-default-view-sidebar-tabbar',
           '@sessionry/plugin-default-view-workspace',
           '@sessionry/plugin-default-view-terminal',
           '@sessionry/plugin-default-view-left-sidebar',
@@ -89,6 +109,14 @@ export default defineConfig({
         {
           find: '@sessionry/plugin-api',
           replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-view-sidebar-tabbar',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-sidebar-tabbar/src/index.ts')
         },
         {
           find: '@sessionry/plugin-default-view-left-sidebar',
@@ -126,12 +154,28 @@ export default defineConfig({
           replacement: path.resolve(rootDir, '../components/src/style.css')
         },
         {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-debug-view-pane-hierarchy',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/index.ts')
+        },
+        {
           find: '@sessionry/plugin-default-view-terminal/renderer',
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-terminal/src/renderer.tsx')
         },
         {
           find: '@sessionry/plugin-default-view-terminal',
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-terminal/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-view-sidebar-tabbar/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-sidebar-tabbar/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-default-view-sidebar-tabbar',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-sidebar-tabbar/src/index.ts')
         },
         {
           find: '@sessionry/plugin-default-view-workspace/renderer',

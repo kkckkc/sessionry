@@ -6,6 +6,7 @@ import type { Pane, WorkspaceApi } from './workspace'
 
 export type SidebarSide = 'left' | 'right'
 export type PluginViewSlotId = string;
+export type PluginViewMode = 'single-view' | 'multi-view'
 
 export interface PluginViewDefinition {
   id: string
@@ -16,6 +17,7 @@ export interface PluginViewDefinition {
 
 export interface PluginViewContribution extends PluginViewDefinition {
   pluginId: string
+  viewMode: PluginViewMode
 }
 
 export interface ViewProps {
@@ -28,6 +30,13 @@ export interface SidebarViewProps extends ViewProps {}
 
 export interface WorkspaceViewProps extends ViewProps {
   clearSignal: number
+}
+
+export interface MultiViewProps extends ViewProps {
+  slot: PluginViewSlotId
+  childViews: PluginViewContribution[]
+  selectedViewId?: string
+  preferredViewId?: string
 }
 
 export interface StatusItemContribution {
@@ -74,6 +83,7 @@ export interface RendererViewRegistration {
 export interface AppPlugin {
   id: string
   name: string
+  viewMode?: PluginViewMode
   actions?: ActionContribution[]
   statusItems?: StatusItemContribution[]
   views?: PluginViewDefinition[]
@@ -116,5 +126,4 @@ export interface RendererPluginContext {
     onChange: (listener: (settings: AppSettings) => void) => () => void
   }
 }
-
 

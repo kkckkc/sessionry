@@ -83,7 +83,8 @@
 }
 
 .tab-bar--secondary {
-  background: var(--sidebar-bg);
+  background: var(--sidebar-bg) !important;
+  height: 37px !important;
 
   > .tab[data-active] {
     border-color: transparent;

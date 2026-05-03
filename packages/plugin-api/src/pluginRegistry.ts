@@ -14,7 +14,8 @@ export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
   const views = plugins.flatMap((plugin) =>
     (plugin.views ?? []).map<PluginViewContribution>((view: PluginViewDefinition) => ({
       ...view,
-      pluginId: plugin.id
+      pluginId: plugin.id,
+      viewMode: plugin.viewMode ?? 'single-view'
     }))
   )
 
@@ -40,13 +41,11 @@ export const getViewsForSlot = (
   slot: PluginViewSlotId
 ): PluginViewContribution[] => plugins.viewsBySlot[slot] ?? []
 
-export const resolveActiveView = (
-  plugins: PluginViewModel,
-  slot: PluginViewSlotId,
+const resolveViewFromCandidates = (
+  views: PluginViewContribution[],
   selectedViewId?: string,
   preferredViewId?: string
 ): PluginViewContribution | null => {
-  const views = getViewsForSlot(plugins, slot)
   if (views.length === 0) return null
 
   const viewById = new Map(views.map((view) => [view.id, view]))
@@ -60,4 +59,30 @@ export const resolveActiveView = (
   }
 
   return views.find((view) => view.isDefault) ?? views[0] ?? null
+}
+
+export const getChildViewsForSlot = (
+  plugins: PluginViewModel,
+  slot: PluginViewSlotId
+): PluginViewContribution[] => getViewsForSlot(plugins, slot).filter((view) => view.viewMode !== 'multi-view')
+
+export const resolveChildViewForSlot = (
+  plugins: PluginViewModel,
+  slot: PluginViewSlotId,
+  selectedViewId?: string,
+  preferredViewId?: string
+): PluginViewContribution | null =>
+  resolveViewFromCandidates(getChildViewsForSlot(plugins, slot), selectedViewId, preferredViewId)
+
+export const resolveActiveView = (
+  plugins: PluginViewModel,
+  slot: PluginViewSlotId,
+  selectedViewId?: string,
+  preferredViewId?: string
+): PluginViewContribution | null => {
+  const views = getViewsForSlot(plugins, slot)
+  const multiViewHost = views.find((view) => view.viewMode === 'multi-view')
+  if (multiViewHost) return multiViewHost
+
+  return resolveViewFromCandidates(views, selectedViewId, preferredViewId)
 }

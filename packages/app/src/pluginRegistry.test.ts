@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
+import { getChildViewsForSlot, normalizePlugins, resolveActiveView } from '@sessionry/plugin-api'
 
 describe('normalizePlugins', () => {
   it('collects action, status, and slot view contributions into a renderer model', () => {
@@ -90,5 +90,32 @@ describe('normalizePlugins', () => {
   it('builds stable slot ids for sidebar renderers', () => {
     expect('sidebar:left').toBe('sidebar:left')
     expect('sidebar:right').toBe('sidebar:right')
+  })
+
+  it('prefers the first multi-view plugin for a slot and keeps ordinary children available', () => {
+    const plugins = normalizePlugins([
+      {
+        id: 'sidebar.host',
+        name: 'Sidebar Host',
+        viewMode: 'multi-view',
+        views: [{ id: 'sidebar.host.view', title: 'Host', slot: 'sidebar:right' }]
+      },
+      {
+        id: 'files',
+        name: 'Files',
+        views: [{ id: 'files.view', title: 'Files', slot: 'sidebar:right', isDefault: true }]
+      },
+      {
+        id: 'debug',
+        name: 'Debug',
+        views: [{ id: 'debug.view', title: 'Debug', slot: 'sidebar:right' }]
+      }
+    ])
+
+    expect(resolveActiveView(plugins, 'sidebar:right', 'debug.view')?.id).toBe('sidebar.host.view')
+    expect(getChildViewsForSlot(plugins, 'sidebar:right').map((view) => view.id)).toEqual([
+      'files.view',
+      'debug.view'
+    ])
   })
 })

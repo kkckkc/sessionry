@@ -1,0 +1,25 @@
+{
+  "name": "@sessionry/plugin-default-view-sidebar-tabbar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./renderer": "./src/renderer.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.4.1",
+    "@sessionry/components": "workspace:*",
+    "@sessionry/plugin-api": "workspace:*",
+    "react": "19.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}

@@ -4,8 +4,12 @@
     "baseUrl": ".",
     "paths": {
       "@sessionry/components": ["../components/src/index.ts"],
+      "@sessionry/plugin-debug-view-pane-hierarchy/renderer": ["../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx"],
+      "@sessionry/plugin-debug-view-pane-hierarchy": ["../../plugins/plugin-debug-view-pane-hierarchy/src/index.ts"],
       "@sessionry/plugin-default-view-left-sidebar/renderer": ["../../plugins/plugin-default-view-left-sidebar/src/renderer.tsx"],
       "@sessionry/plugin-default-view-left-sidebar": ["../../plugins/plugin-default-view-left-sidebar/src/index.ts"],
+      "@sessionry/plugin-default-view-sidebar-tabbar/renderer": ["../../plugins/plugin-default-view-sidebar-tabbar/src/renderer.tsx"],
+      "@sessionry/plugin-default-view-sidebar-tabbar": ["../../plugins/plugin-default-view-sidebar-tabbar/src/index.ts"],
       "@sessionry/plugin-default-view-terminal/renderer": ["../../plugins/plugin-default-view-terminal/src/renderer.tsx"],
       "@sessionry/plugin-default-view-terminal": ["../../plugins/plugin-default-view-terminal/src/index.ts"],
       "@sessionry/plugin-default-view-workspace/renderer": ["../../plugins/plugin-default-view-workspace/src/renderer.tsx"],

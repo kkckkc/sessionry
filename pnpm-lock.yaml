@@ -29,9 +29,15 @@ importers:
       '@sessionry/plugin-debug-view-pane-hierarchy':
         specifier: workspace:*
         version: link:../../plugins/plugin-debug-view-pane-hierarchy
+      '@sessionry/plugin-default-view-files':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-default-view-files
       '@sessionry/plugin-default-view-left-sidebar':
         specifier: workspace:*
         version: link:../../plugins/plugin-default-view-left-sidebar
+      '@sessionry/plugin-default-view-sidebar-tabbar':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-default-view-sidebar-tabbar
       '@sessionry/plugin-default-view-terminal':
         specifier: workspace:*
         version: link:../../plugins/plugin-default-view-terminal
@@ -289,6 +295,34 @@ importers:
       vitest:
         specifier: latest
         version: 4.1.4(@types/node@25.6.0)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(yaml@2.8.3))
+
+  plugins/plugin-default-view-sidebar-tabbar:
+    dependencies:
+      '@base-ui/react':
+        specifier: 1.4.1
+        version: 1.4.1(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@sessionry/components':
+        specifier: workspace:*
+        version: link:../../packages/components
+      '@sessionry/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+      react:
+        specifier: 19.2.5
+        version: 19.2.5
+    devDependencies:
+      '@types/node':
+        specifier: latest
+        version: 25.6.0
+      '@types/react':
+        specifier: latest
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: latest
+        version: 19.2.3(@types/react@19.2.14)
+      typescript:
+        specifier: latest
+        version: 6.0.3
 
   plugins/plugin-default-view-terminal:
     dependencies:

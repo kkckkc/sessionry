@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { TbChevronDown, TbChevronRight, TbFile } from 'react-icons/tb'
-import type { WorkspaceApi } from '@sessionry/plugin-api'
+import type { RendererAppPlugin, WorkspaceApi } from '@sessionry/plugin-api'
 import './styles.css'
+import { fileBrowserPlugin } from '.'
 
 interface FileEntry {
   name: string
@@ -125,3 +126,22 @@ export const FileBrowserView: React.FC<FileBrowserViewProps> = ({ workspace }) =
     </div>
   )
 }
+
+const fileBrowserView = fileBrowserPlugin.views?.[0]
+
+if (!fileBrowserView) {
+  throw new Error('fileBrowserPlugin must register a sidebar view.')
+}
+
+export const fileBrowserRendererPlugin: RendererAppPlugin = {
+  id: fileBrowserPlugin.id,
+  name: fileBrowserPlugin.name,
+  views: [
+    {
+      ...fileBrowserView,
+      component: FileBrowserView
+    }
+  ]
+}
+
+export default fileBrowserRendererPlugin
