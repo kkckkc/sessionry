@@ -207,6 +207,7 @@ describe('FileBrowserView', () => {
         return []
       }),
       readFile: vi.fn(),
+      writeFile: vi.fn(),
       getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => {
         if (targetPath === '/tmp/project/My File.ts') return "'My File.ts'"

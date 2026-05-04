@@ -16,5 +16,6 @@ export const IPC_CHANNELS = {
   settingsRead: 'settings:read',
   settingsUpdate: 'settings:update',
   readDirectory: 'fs:read-directory',
-  readFile: 'fs:read-file'
+  readFile: 'fs:read-file',
+  writeFile: 'fs:write-file'
 } as const

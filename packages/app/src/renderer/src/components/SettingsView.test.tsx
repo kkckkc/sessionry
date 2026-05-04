@@ -37,6 +37,7 @@ describe('SettingsView', () => {
       formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
       readDirectory: vi.fn(),
       readFile: vi.fn(),
+      writeFile: vi.fn(),
       createTerminalSession: vi.fn(),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),

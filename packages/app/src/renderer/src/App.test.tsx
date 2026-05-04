@@ -204,6 +204,7 @@ describe('App', () => {
       resizeTerminal: vi.fn(),
       readDirectory: vi.fn(async () => []),
       readFile: vi.fn(),
+      writeFile: vi.fn(),
       getPluginModel: vi.fn(async () => pluginModel),
       getUserPluginRenderers: vi.fn(async () => []),
       actions: {
@@ -248,6 +249,7 @@ describe('App', () => {
       resizeTerminal: vi.fn(),
       readDirectory: vi.fn(async () => []),
       readFile: vi.fn(),
+      writeFile: vi.fn(),
       getPluginModel: vi.fn(async (): Promise<PluginViewModel> => ({
         ...pluginModel,
         viewsBySlot: {
@@ -303,6 +305,7 @@ describe('App', () => {
       resizeTerminal: vi.fn(),
       readDirectory: vi.fn(async () => []),
       readFile: vi.fn(),
+      writeFile: vi.fn(),
       getPluginModel: vi.fn(
         async (): Promise<PluginViewModel> => ({
           ...pluginModel,

@@ -150,6 +150,9 @@ app.whenReady().then(async () => {
     return entries.map((e) => ({ name: e.name, isDirectory: e.isDirectory() }))
   })
   ipcMain.handle(IPC_CHANNELS.readFile, (_event, filePath: string) => fs.readFileSync(filePath, 'utf-8'))
+  ipcMain.handle(IPC_CHANNELS.writeFile, (_event, filePath: string, content: string) =>
+    fs.writeFileSync(filePath, content, 'utf-8')
+  )
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read())
   ipcMain.on(IPC_CHANNELS.settingsRead, (event) => {
     event.returnValue = settingsStore.read()

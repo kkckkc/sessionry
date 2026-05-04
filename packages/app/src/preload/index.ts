@@ -77,6 +77,8 @@ const api = {
     ipcRenderer.invoke(IPC_CHANNELS.readDirectory, dirPath),
   readFile: (filePath: string): Promise<string> =>
     ipcRenderer.invoke(IPC_CHANNELS.readFile, filePath),
+  writeFile: (filePath: string, content: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.writeFile, filePath, content),
   getPathForDroppedFile: (file: File): string => webUtils.getPathForFile(file),
   formatPathForTerminal,
   settings: {

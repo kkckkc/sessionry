@@ -26,6 +26,7 @@ export interface TerminalAppBridge {
   showFolderDialog: () => Promise<{ canceled: boolean; filePaths: string[] }>
   readDirectory: (dirPath: string) => Promise<{ name: string; isDirectory: boolean }[]>
   readFile: (filePath: string) => Promise<string>
+  writeFile: (filePath: string, content: string) => Promise<void>
   getPathForDroppedFile: (file: File) => string
   formatPathForTerminal: (targetPath: string, sessionRoot?: string) => string
   createTerminalSession: (input: CreateTerminalSessionInput) => Promise<TerminalSessionInfo>

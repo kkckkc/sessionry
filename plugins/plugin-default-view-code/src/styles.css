@@ -8,7 +8,7 @@
 }
 
 .code-pane-status {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   color: var(--text-secondary, rgba(214, 225, 255, 0.7));
 }
 
@@ -16,13 +16,57 @@
   color: #ff8b8b;
 }
 
-.code-pane-content {
+.code-pane-editor {
   flex: 1;
   min-height: 0;
-  margin: 0;
-  padding: 1rem;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+}
+
+.code-pane-editor .cm-editor {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  color: inherit;
   font: 12px/1.5 "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+}
+
+.code-pane-editor .cm-scroller {
+  overflow: auto;
+  font-family: inherit;
+  width: 100%;
+}
+
+.code-pane-editor .cm-content,
+.code-pane-editor .cm-gutters {
+  min-height: 100%;
+}
+
+.code-pane-editor .cm-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.code-pane-editor .cm-gutters {
+  background: rgba(255, 255, 255, 0.03);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.code-pane-editor .cm-activeLine,
+.code-pane-editor .cm-activeLineGutter {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.code-pane-editor .cm-focused {
+  outline: none;
+}
+
+.code-pane-editor .cm-selectionBackground {
+  background: rgba(122, 176, 255, 0.28) !important;
+}
+
+.code-pane-editor .cm-cursor {
+  border-left-color: #ffcb6b !important;
 }

@@ -35,6 +35,7 @@ describe('preload workspace bridge', () => {
     api.workspace.read()
     await api.workspace.executeCommand({ type: 'project.remove', projectId: 'project-1' })
     await api.readFile('/tmp/project/src/index.ts')
+    await api.writeFile('/tmp/project/src/index.ts', 'export {}')
 
     expect(invoke).toHaveBeenCalledWith('actions:list')
     expect(invoke).toHaveBeenCalledWith('actions:execute', {
@@ -47,6 +48,7 @@ describe('preload workspace bridge', () => {
       projectId: 'project-1'
     })
     expect(invoke).toHaveBeenCalledWith('fs:read-file', '/tmp/project/src/index.ts')
+    expect(invoke).toHaveBeenCalledWith('fs:write-file', '/tmp/project/src/index.ts', 'export {}')
     expect(api.getPathForDroppedFile({ name: 'My File.txt' } as File)).toBe('/tmp/My File.txt')
     expect(getPathForFile).toHaveBeenCalledWith({ name: 'My File.txt' })
     expect(api.formatPathForTerminal('/tmp/project/src/My File.ts', '/tmp/project')).toBe("'src/My File.ts'")
