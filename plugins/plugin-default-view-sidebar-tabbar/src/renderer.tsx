@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Tabs } from '@base-ui/react/tabs'
+import type { IconType } from 'react-icons'
+import * as TbIcons from 'react-icons/tb'
 import { TabBar } from '@sessionry/components'
 import {
   resolveChildViewForSlot,
@@ -9,6 +11,13 @@ import {
 import './styles.css'
 
 import { sidebarTabBarPlugin } from '.'
+
+const resolveIcon = (name?: string): IconType | null => {
+  if (!name) return null
+
+  const icon = TbIcons[name as keyof typeof TbIcons]
+  return icon ? (icon as IconType) : null
+}
 
 const resolveActiveChildViewId = ({
   plugins,
@@ -54,6 +63,10 @@ const SidebarTabBarView = ({
           variant="secondary"
           ariaLabel="Sidebar views"
           items={childViews.map((view) => ({
+            icon: (() => {
+              const Icon = resolveIcon(view.icon ?? view.pluginIcon)
+              return Icon ? <Icon size={14} /> : undefined
+            })(),
             label: view.title,
             value: view.id
           }))}

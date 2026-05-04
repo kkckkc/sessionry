@@ -109,6 +109,8 @@ Multiple plugins can contribute to the same slot. The host picks the active view
 
 When a `multi-view` plugin wins a slot, it renders the slot container and is responsible for switching between the ordinary child views contributed to that slot.
 
+Views can also declare an optional `icon`, and plugins can declare a top-level `icon`. When a view does not set its own icon, hosts can fall back to the plugin icon.
+
 ### Actions
 
 Actions are declared with metadata plus a `run(...)` handler. The host strips the handler when building the renderer-facing model, then executes the real handler in the main process through the action registry.

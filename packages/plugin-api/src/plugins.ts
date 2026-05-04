@@ -12,12 +12,14 @@ export interface PluginViewDefinition {
   id: string
   slot: PluginViewSlotId
   title: string
+  icon?: string
   isDefault?: boolean
 }
 
 export interface PluginViewContribution extends PluginViewDefinition {
   pluginId: string
   viewMode: PluginViewMode
+  pluginIcon?: string
 }
 
 export interface ViewProps {
@@ -83,6 +85,7 @@ export interface RendererViewRegistration {
 export interface AppPlugin {
   id: string
   name: string
+  icon?: string
   viewMode?: PluginViewMode
   actions?: ActionContribution[]
   statusItems?: StatusItemContribution[]
@@ -126,4 +129,3 @@ export interface RendererPluginContext {
     onChange: (listener: (settings: AppSettings) => void) => () => void
   }
 }
-

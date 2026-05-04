@@ -52,9 +52,11 @@ Views are declared with:
 - `id`: stable view identifier
 - `slot`: host-defined placement target
 - `title`: UI label
+- `icon`: optional icon name such as `TbFolder`
 - `isDefault`: optional default selection within a slot
 
 Plugins can also set `viewMode: 'multi-view'` to claim a slot as a container view. If multiple plugins target the same slot and one or more of them use `multi-view`, the first such plugin in registration order wins that slot and renders the switching UI for the ordinary child views in the slot.
+Plugins may also set a top-level `icon`. Hosts should treat the resolved view icon as `view.icon ?? plugin.icon`.
 
 Useful slot IDs:
 

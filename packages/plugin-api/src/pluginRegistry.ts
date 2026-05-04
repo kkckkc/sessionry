@@ -14,7 +14,9 @@ export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
   const views = plugins.flatMap((plugin) =>
     (plugin.views ?? []).map<PluginViewContribution>((view: PluginViewDefinition) => ({
       ...view,
+      icon: view.icon ?? plugin.icon,
       pluginId: plugin.id,
+      pluginIcon: plugin.icon,
       viewMode: plugin.viewMode ?? 'single-view'
     }))
   )

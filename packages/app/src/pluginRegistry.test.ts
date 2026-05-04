@@ -8,6 +8,7 @@ describe('normalizePlugins', () => {
       {
         id: 'one',
         name: 'One',
+        icon: 'TbFolder',
         actions: [
           {
             id: 'terminal:clear',
@@ -23,6 +24,7 @@ describe('normalizePlugins', () => {
             id: 'workspace.alpha',
             title: 'Alpha View',
             slot: 'workspace',
+            icon: 'TbStar',
             isDefault: true
           }
         ]
@@ -38,6 +40,10 @@ describe('normalizePlugins', () => {
     expect(result.toolbarActionIds).toEqual(['terminal:clear'])
     expect(result.statusItems).toHaveLength(1)
     expect(result.viewsBySlot.workspace.map((view) => view.title)).toEqual(['Alpha View', 'Beta View'])
+    expect(result.viewsBySlot.workspace[0]).toMatchObject({
+      icon: 'TbStar',
+      pluginIcon: 'TbFolder'
+    })
   })
 
   it('resolves the active view using project selection, defaults, and fallbacks', () => {
@@ -117,5 +123,21 @@ describe('normalizePlugins', () => {
       'files.view',
       'debug.view'
     ])
+  })
+
+  it('falls back to the plugin icon when a view icon is not set', () => {
+    const plugins = normalizePlugins([
+      {
+        id: 'files',
+        name: 'Files',
+        icon: 'TbFolders',
+        views: [{ id: 'files.view', title: 'Files', slot: 'sidebar:right' }]
+      }
+    ])
+
+    expect(plugins.viewsBySlot['sidebar:right'][0]).toMatchObject({
+      icon: 'TbFolders',
+      pluginIcon: 'TbFolders'
+    })
   })
 })
