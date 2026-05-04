@@ -8,6 +8,9 @@ import { vi } from 'vitest'
 // Mock Electron IPC
 global.window = global.window || {}
 global.window.terminalApp = {
+  vcs: {
+    getStatus: vi.fn()
+  },
   plugins: {
     search: vi.fn(),
     install: vi.fn(),

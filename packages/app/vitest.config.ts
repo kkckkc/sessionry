@@ -73,6 +73,10 @@ export default defineConfig({
         replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-left-sidebar/src/index.ts')
       },
       {
+        find: '@sessionry/plugin-default-vcs-git',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-vcs-git/src/index.ts')
+      },
+      {
         find: '@sessionry/plugin-api',
         replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
       },

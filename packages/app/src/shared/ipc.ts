@@ -27,6 +27,7 @@ export const IPC_CHANNELS = {
   readDirectory: 'fs:read-directory',
   readFile: 'fs:read-file',
   writeFile: 'fs:write-file',
+  vcsStatus: 'vcs:status',
 
   // Themes
   themesList: 'themes:list',

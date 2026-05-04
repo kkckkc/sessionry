@@ -33,7 +33,28 @@ const snapshot: WorkspaceStateSnapshot = {
 }
 
 describe('ProjectSessionsSidebarView', () => {
-  it('renders project sessions and activates the clicked session', () => {
+  it('renders project sessions, shows git diff stats, and activates the clicked session', async () => {
+    window.terminalApp = {
+      vcs: {
+        getStatus: vi.fn(async (folder: string) =>
+          folder === '/tmp/alpha'
+            ? {
+                providerId: 'git',
+                providerName: 'Git',
+                stats: { filesChanged: 1, insertions: 12, deletions: 3 }
+              }
+            : null
+        )
+      },
+      settings: {
+        read: vi.fn(async () => ({
+          confirmations: {
+            confirmSessionClose: true
+          }
+        }))
+      }
+    } as never
+
     const activate = vi.fn(async () => {})
     const getSession = vi.fn((id: string) =>
       id === 'session-1' || id === 'session-2'
@@ -85,10 +106,13 @@ describe('ProjectSessionsSidebarView', () => {
     )
 
     expect(screen.getByRole('button', { name: 'Second' })).toHaveAttribute('aria-pressed', 'true')
+    expect(await screen.findAllByText('+12')).toHaveLength(2)
+    expect(screen.getAllByText('-3')).toHaveLength(2)
 
     fireEvent.click(screen.getByRole('button', { name: 'First' }))
 
     expect(getSession).toHaveBeenCalledWith('session-1')
     expect(activate).toHaveBeenCalled()
+    expect(window.terminalApp.vcs.getStatus).toHaveBeenCalledWith('/tmp/alpha')
   })
 })

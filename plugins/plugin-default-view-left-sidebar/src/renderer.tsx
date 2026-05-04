@@ -11,7 +11,12 @@ import {
   DialogPortal,
   DialogRoot
 } from '@sessionry/components'
-import type { RendererAppPlugin, SidebarViewProps, Project } from '@sessionry/plugin-api'
+import type {
+  RendererAppPlugin,
+  ResolvedVcsStatus,
+  SidebarViewProps,
+  Project
+} from '@sessionry/plugin-api'
 
 import { projectSessionsSidebarPlugin } from '.'
 
@@ -225,6 +230,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
   const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set())
   const [colorPicker, setColorPicker] = useState<ColorPickerState | null>(null)
+  const [vcsStatuses, setVcsStatuses] = useState<Record<string, ResolvedVcsStatus | null>>({})
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
     title: string
@@ -234,6 +240,37 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
   } | null>(null)
 
   useEffect(() => workspace.subscribeAll(() => setRefreshKey((k) => k + 1)), [workspace])
+
+  const sessionSignature = workspace.snapshot.sessions
+    .map((session) => `${session.id}:${session.folder}`)
+    .join('|')
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadVcsStatuses = async () => {
+      const nextEntries = await Promise.all(
+        workspace.snapshot.sessions.map(async (session) => [
+          session.id,
+          await window.terminalApp.vcs.getStatus(session.folder)
+        ] as const)
+      )
+
+      if (!cancelled) {
+        setVcsStatuses(Object.fromEntries(nextEntries))
+      }
+    }
+
+    void loadVcsStatuses()
+    const intervalId = window.setInterval(() => {
+      void loadVcsStatuses()
+    }, 60_000)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(intervalId)
+    }
+  }, [workspace, sessionSignature])
 
   const toggleCollapsed = (projectId: string) => {
     setCollapsedProjects((prev) => {
@@ -380,6 +417,8 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                     {sessions.map((session) => {
                       const isActive = session.id === workspace.snapshot.activeSessionId
                       const terminalPaneCount = countTerminalPanesInSession(workspace, session.id)
+                      const vcsStatus = vcsStatuses[session.id]
+                      const gitDiff = vcsStatus?.stats
 
                       return (
                         <li key={session.id} className={isActive ? 'session-item is-active' : 'session-item'}>
@@ -392,7 +431,18 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                             }}
                             onContextMenu={(e) => openContextMenu(e, 'session', session.id, session.name)}
                           >
-                            {session.name}
+                            <span className="session-name">{session.name}</span>
+                            {gitDiff ? (
+                              <span
+                                className="session-git-diff"
+                                aria-hidden="true"
+                                title={`${gitDiff.insertions} lines added or modified, ${gitDiff.deletions} lines removed`}
+                              >
+                                <span className="session-git-diff-add">+{gitDiff.insertions}</span>
+                                <span className="session-git-diff-separator">/</span>
+                                <span className="session-git-diff-remove">-{gitDiff.deletions}</span>
+                              </span>
+                            ) : null}
                           </button>
                           <div className="session-slot">
                             <span

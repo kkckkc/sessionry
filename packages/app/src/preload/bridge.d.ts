@@ -16,7 +16,8 @@ import type {
   TerminalInputPayload,
   TerminalResizePayload,
   TerminalSessionInfo,
-  TerminalStateEvent
+  TerminalStateEvent,
+  ResolvedVcsStatus
 } from '@sessionry/plugin-api'
 
 type Unsubscribe = () => void
@@ -40,6 +41,9 @@ export interface TerminalAppBridge {
   readDirectory: (dirPath: string) => Promise<{ name: string; isDirectory: boolean }[]>
   readFile: (filePath: string) => Promise<string>
   writeFile: (filePath: string, content: string) => Promise<void>
+  vcs: {
+    getStatus: (dirPath: string) => Promise<ResolvedVcsStatus | null>
+  }
   getPathForDroppedFile: (file: File) => string
   formatPathForTerminal: (targetPath: string, sessionRoot?: string) => string
   settings: {

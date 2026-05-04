@@ -3,6 +3,7 @@ import type { ComponentType } from 'react'
 import type { ActionContribution, ActionDescriptor } from './actions'
 import type { AppSettings } from './settings'
 import type { ThemeDefinition } from './themes'
+import type { VcsRegistryApi } from './vcs'
 import type { Pane, WorkspaceApi } from './workspace'
 
 export type SidebarSide = 'left' | 'right'
@@ -119,6 +120,7 @@ export interface PluginIpcApi {
 export interface MainPluginContext {
   workspace: WorkspaceApi
   ipc: PluginIpcApi
+  vcs: VcsRegistryApi
   settings: AppSettings
   onBeforeQuit: (handler: () => void) => void
 }

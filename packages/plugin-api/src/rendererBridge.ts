@@ -2,6 +2,7 @@ import type { ActionDescriptor, ActionExecutionRequest, ActionExecutionResult } 
 import type { PluginViewModel } from './plugins'
 import type { AppSettings } from './settings'
 import type { ThemeDefinition } from './themes'
+import type { ResolvedVcsStatus } from './vcs'
 import type {
   WorkspaceCommand,
   WorkspaceCommandResult,
@@ -28,6 +29,9 @@ export interface TerminalAppBridge {
   readDirectory: (dirPath: string) => Promise<{ name: string; isDirectory: boolean }[]>
   readFile: (filePath: string) => Promise<string>
   writeFile: (filePath: string, content: string) => Promise<void>
+  vcs: {
+    getStatus: (dirPath: string) => Promise<ResolvedVcsStatus | null>
+  }
   getPathForDroppedFile: (file: File) => string
   formatPathForTerminal: (targetPath: string, sessionRoot?: string) => string
   createTerminalSession: (input: CreateTerminalSessionInput) => Promise<TerminalSessionInfo>

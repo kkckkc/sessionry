@@ -7,12 +7,14 @@ import { defaultWorkspacePanePlugin } from '@sessionry/plugin-default-view-works
 import { fileBrowserPlugin } from '@sessionry/plugin-default-view-files'
 import paneHierarchyDebugPlugin from '@sessionry/plugin-debug-view-pane-hierarchy'
 import { defaultThemesPlugin } from '@sessionry/plugin-default-themes'
+import { gitVcsPlugin } from '@sessionry/plugin-default-vcs-git'
 
 import { corePlugin } from './corePlugin'
 
 export const builtInPlugins: AppPlugin[] = [
   corePlugin,
   defaultThemesPlugin,
+  gitVcsPlugin,
   codePanePlugin,
   terminalPanePlugin,
   defaultWorkspacePanePlugin,

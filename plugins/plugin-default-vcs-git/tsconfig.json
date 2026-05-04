@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@sessionry/plugin-api": ["../../packages/plugin-api/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"]
+}

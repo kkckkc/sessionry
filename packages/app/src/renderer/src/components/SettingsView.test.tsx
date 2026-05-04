@@ -38,6 +38,9 @@ describe('SettingsView', () => {
       readDirectory: vi.fn(),
       readFile: vi.fn(),
       writeFile: vi.fn(),
+      vcs: {
+        getStatus: vi.fn(async () => null)
+      },
       createTerminalSession: vi.fn(),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
@@ -53,6 +56,23 @@ describe('SettingsView', () => {
         onEvent: vi.fn()
       },
       settings,
+      themes: {
+        getTheme: vi.fn(),
+        getAllThemes: vi.fn(),
+        getThemeIds: vi.fn()
+      },
+      plugins: {
+        search: vi.fn(),
+        install: vi.fn(),
+        uninstall: vi.fn(),
+        update: vi.fn(),
+        list: vi.fn(),
+        enable: vi.fn(),
+        disable: vi.fn(),
+        checkUpdates: vi.fn(),
+        onInstallProgress: vi.fn(() => () => {}),
+        onUpdateProgress: vi.fn(() => () => {})
+      },
       onTerminalData: vi.fn(),
       onTerminalState: vi.fn(),
       onTerminalExit: vi.fn()

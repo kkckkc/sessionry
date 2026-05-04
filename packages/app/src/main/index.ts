@@ -20,6 +20,7 @@ import { registerThemeHandlers } from './ipc/themeHandlers'
 import { registerPluginManagerHandlers } from './ipc/pluginManagerHandlers'
 import { PluginConfigStore } from './pluginConfigStore'
 import { syncPluginConfiguration } from './pluginDiscovery'
+import { createVcsService } from './vcsService'
 
 const BUILTIN_CORE_PLUGIN_ID = 'core'
 
@@ -150,6 +151,7 @@ app.whenReady().then(async () => {
     executeCommand: (command: WorkspaceCommand) => workspaceStore.executeCommand(command),
     subscribeAll: (listener) => workspaceStore.subscribeAll(listener)
   })
+  const vcsService = createVcsService()
   const allPlugins = [...enabledBuiltInPlugins, ...userPlugins.map((p) => p.plugin)]
   const actionRegistry = new ActionRegistry(allPlugins, workspaceApi, () => workspaceStore.read())
 
@@ -166,6 +168,9 @@ app.whenReady().then(async () => {
     {
       workspace: workspaceApi,
       ipc: ipcApi,
+      vcs: {
+        registerProvider: (provider) => vcsService.registerProvider(provider)
+      },
       settings: settingsStore.read(),
       onBeforeQuit: (handler) => app.on('before-quit', handler)
     },
@@ -205,6 +210,7 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.writeFile, (_event, filePath: string, content: string) =>
     fs.writeFileSync(filePath, content, 'utf-8')
   )
+  ipcMain.handle(IPC_CHANNELS.vcsStatus, (_event, dirPath: string) => vcsService.getStatus(dirPath))
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read())
   ipcMain.on(IPC_CHANNELS.settingsRead, (event) => {
     event.returnValue = settingsStore.read()

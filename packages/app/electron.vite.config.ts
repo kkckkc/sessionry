@@ -19,7 +19,8 @@ export default defineConfig({
           '@sessionry/plugin-default-view-terminal',
           '@sessionry/plugin-default-view-left-sidebar',
           '@sessionry/plugin-default-view-files',
-          '@sessionry/plugin-default-themes'
+          '@sessionry/plugin-default-themes',
+          '@sessionry/plugin-default-vcs-git'
         ]
       })
     ],
@@ -114,6 +115,10 @@ export default defineConfig({
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-themes/src/index.ts')
         },
         {
+          find: '@sessionry/plugin-default-vcs-git',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-vcs-git/src/index.ts')
+        },
+        {
           find: '@sessionry/plugin-api',
           replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
         },
@@ -136,7 +141,8 @@ export default defineConfig({
           '@sessionry/plugin-default-view-terminal',
           '@sessionry/plugin-default-view-left-sidebar',
           '@sessionry/plugin-default-view-files',
-          '@sessionry/plugin-default-themes'
+          '@sessionry/plugin-default-themes',
+          '@sessionry/plugin-default-vcs-git'
         ]
       })
     ],
@@ -165,6 +171,10 @@ export default defineConfig({
         {
           find: '@sessionry/plugin-default-themes',
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-themes/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-vcs-git',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-vcs-git/src/index.ts')
         },
         {
           find: '@app-shared',

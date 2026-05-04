@@ -217,6 +217,9 @@ describe('App', () => {
       readDirectory: vi.fn(async () => []),
       readFile: vi.fn(),
       writeFile: vi.fn(),
+      vcs: {
+        getStatus: vi.fn(async () => null)
+      },
       getPluginModel: vi.fn(async () => pluginModel),
       getUserPluginRenderers: vi.fn(async () => []),
       actions: {
@@ -268,6 +271,9 @@ describe('App', () => {
       readDirectory: vi.fn(async () => []),
       readFile: vi.fn(),
       writeFile: vi.fn(),
+      vcs: {
+        getStatus: vi.fn(async () => null)
+      },
       getPluginModel: vi.fn(async (): Promise<PluginViewModel> => ({
         ...pluginModel,
         viewsBySlot: {
@@ -330,6 +336,9 @@ describe('App', () => {
       readDirectory: vi.fn(async () => []),
       readFile: vi.fn(),
       writeFile: vi.fn(),
+      vcs: {
+        getStatus: vi.fn(async () => null)
+      },
       getPluginModel: vi.fn(
         async (): Promise<PluginViewModel> => ({
           ...pluginModel,

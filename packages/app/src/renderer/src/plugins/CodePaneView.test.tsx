@@ -111,6 +111,9 @@ describe('CodePaneView', () => {
       readDirectory: vi.fn(),
       readFile: vi.fn().mockResolvedValue('export const value = 1\n'),
       writeFile: vi.fn().mockResolvedValue(undefined),
+      vcs: {
+        getStatus: vi.fn(async () => null)
+      },
       getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
       createTerminalSession: vi.fn(),
@@ -131,6 +134,23 @@ describe('CodePaneView', () => {
         read: vi.fn(),
         update: vi.fn(),
         onChange: vi.fn(() => () => {})
+      },
+      themes: {
+        getTheme: vi.fn(async () => undefined),
+        getAllThemes: vi.fn(async () => []),
+        getThemeIds: vi.fn(async () => [])
+      },
+      plugins: {
+        search: vi.fn(),
+        install: vi.fn(),
+        uninstall: vi.fn(),
+        update: vi.fn(),
+        list: vi.fn(),
+        enable: vi.fn(),
+        disable: vi.fn(),
+        checkUpdates: vi.fn(),
+        onInstallProgress: vi.fn(() => () => {}),
+        onUpdateProgress: vi.fn(() => () => {})
       },
       onTerminalData: vi.fn(),
       onTerminalState: vi.fn(),
