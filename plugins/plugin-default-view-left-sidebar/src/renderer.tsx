@@ -432,7 +432,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                             onContextMenu={(e) => openContextMenu(e, 'session', session.id, session.name)}
                           >
                             <span className="session-name">{session.name}</span>
-                            {gitDiff ? (
+                            {gitDiff && (gitDiff.insertions > 0 || gitDiff.deletions > 0) ? (
                               <span
                                 className="session-git-diff"
                                 aria-hidden="true"
