@@ -35,6 +35,9 @@ export interface ButtonProps {
    * Whether the button is disabled
    */
   disabled?: boolean
+  title?: string
+  className?: string
+  size?: 'small' | 'medium'
   
   /**
    * Whether the button should remain focusable when disabled
@@ -67,16 +70,21 @@ export const Button = ({
   onClick,
   type = 'button',
   disabled = false,
+  title,
+  className: customClassName,
+  size,
   focusableWhenDisabled = false,
   tooltipDelay = 600,
   ...props
 }: ButtonProps) => {
   const className = [
     'btn',
+    size === 'small' && 'is-small',
     variant === 'secondary' && 'is-secondary',
     variant === 'ghost' && 'is-ghost',
     variant === 'primary' && 'is-primary',
     variant === 'danger' && 'is-danger',
+    customClassName
   ].filter(Boolean).join(' ')
   
   // If no tooltip, return button directly
@@ -86,6 +94,7 @@ export const Button = ({
         className={className}
         type={type}
         disabled={disabled}
+        title={title}
         focusableWhenDisabled={focusableWhenDisabled}
         onClick={onClick}
         {...props}
@@ -106,6 +115,7 @@ export const Button = ({
               className={className}
               type={type}
               disabled={disabled}
+              title={title}
               focusableWhenDisabled={focusableWhenDisabled}
               onClick={onClick}
               {...props}

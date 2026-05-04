@@ -1,0 +1,110 @@
+/**
+ * Plugin Manager Dialog Styles
+ */
+
+.plugin-manager-dialog {
+  --dialog-width: 900px;
+  --dialog-height: 700px;
+}
+
+.plugin-manager-dialog__content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: var(--space-7);
+}
+
+.plugin-manager-settings {
+  min-height: 0;
+}
+
+.plugin-manager-dialog__status {
+  flex-shrink: 0;
+}
+
+.plugin-manager-dialog__tabs {
+  flex-shrink: 0;
+  margin: 0 calc(var(--space-7) * -1);
+}
+
+.plugin-manager-dialog__search {
+  flex-shrink: 0;
+}
+
+.plugin-manager-dialog__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-3) 0;
+}
+
+.plugin-manager-dialog__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.plugin-manager-dialog__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-9) var(--space-7);
+  text-align: center;
+  min-height: 300px;
+}
+
+.plugin-manager-dialog__empty-icon {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: var(--space-7);
+  opacity: 0.5;
+}
+
+.plugin-manager-dialog__empty-text {
+  font-size: var(--body-lg-font-size);
+  font-weight: var(--caption-font-weight);
+  color: var(--text);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.plugin-manager-dialog__empty-hint {
+  font-size: var(--body-sm-font-size);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Scrollbar styling */
+.plugin-manager-dialog__list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.plugin-manager-dialog__list::-webkit-scrollbar-track {
+  background: var(--panel-bg);
+  border-radius: var(--radius-3);
+}
+
+.plugin-manager-dialog__list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-3);
+}
+
+.plugin-manager-dialog__list::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .plugin-manager-dialog {
+    --dialog-width: 100%;
+    --dialog-height: 100%;
+  }
+  
+  .plugin-manager-dialog__content {
+    gap: var(--space-4);
+  }
+  
+  .plugin-manager-dialog__tabs {
+    margin: 0 calc(var(--space-4) * -1);
+  }
+}

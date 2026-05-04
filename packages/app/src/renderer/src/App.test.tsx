@@ -189,6 +189,18 @@ describe('App', () => {
     update: vi.fn(async () => {}),
     onChange: vi.fn(() => () => {})
   }
+  const pluginsBridge = {
+    search: vi.fn(async () => []),
+    install: vi.fn(async () => ({ success: true })),
+    uninstall: vi.fn(async () => true),
+    update: vi.fn(async () => ({ success: true })),
+    list: vi.fn(async () => []),
+    enable: vi.fn(async () => ({ success: true })),
+    disable: vi.fn(async () => ({ success: true })),
+    checkUpdates: vi.fn(async () => []),
+    onInstallProgress: vi.fn(() => () => {}),
+    onUpdateProgress: vi.fn(() => () => {})
+  }
 
   beforeEach(() => {
     vi.resetModules()
@@ -222,6 +234,7 @@ describe('App', () => {
         getAllThemes: vi.fn(),
         getThemeIds: vi.fn()
       },
+      plugins: pluginsBridge,
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
@@ -287,6 +300,7 @@ describe('App', () => {
         getAllThemes: vi.fn(),
         getThemeIds: vi.fn()
       },
+      plugins: pluginsBridge,
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
@@ -392,6 +406,7 @@ describe('App', () => {
         getAllThemes: vi.fn(),
         getThemeIds: vi.fn()
       },
+      plugins: pluginsBridge,
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})

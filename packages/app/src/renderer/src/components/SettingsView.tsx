@@ -8,6 +8,7 @@ import {
   DialogBackdrop,
   DialogPopup,
   DialogHeader,
+  ConfirmationDialog,
   SettingsSection,
   SettingToggle,
   SettingSelect,
@@ -17,6 +18,13 @@ import type { AppSettings, AppTheme, ThemeId } from '@sessionry/plugin-api'
 import type { RendererViewRegistration } from '@sessionry/plugin-api'
 import { PluginSurface } from './PluginSurface'
 import { applyTheme, applyColorTheme } from '../lib/theme'
+import { 
+  usePluginManager,
+  PluginCard,
+  SearchBar,
+  TabNavigation,
+  StatusBar
+} from '../../components/PluginManager'
 
 interface ConfirmationsSettings {
   confirmPaneClose: boolean
@@ -80,6 +88,16 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
         title: 'Confirmations',
         description: 'Configure confirmation dialogs for destructive actions',
         icon: 'TbAlertCircle'
+      }
+    },
+    {
+      id: 'app-plugins',
+      name: 'Plugins',
+      settingsView: {
+        id: 'settings.plugins',
+        title: 'Plugins',
+        description: 'Manage installed plugins and discover new ones',
+        icon: 'TbPuzzle'
       }
     },
     {
@@ -240,6 +258,20 @@ const PluginSettingsContent = ({ plugin, settings, onUpdate, resolveRendererView
     )
   }
 
+  // Handle built-in plugin manager
+  if (plugin.id === 'app-plugins') {
+    return (
+      <PluginSurface
+        pluginId={plugin.id}
+        surface="settings"
+        slot="settings"
+        viewId={plugin.settingsView.id}
+      >
+        <PluginManagerSettingsView />
+      </PluginSurface>
+    )
+  }
+
   const registration = resolveRendererView(plugin.settingsView.id)
 
   if (!registration) {
@@ -279,7 +311,12 @@ const AppearanceSettingsView = ({ settings, onUpdate }: AppearanceSettingsViewPr
   const terminalBgColor = settings?.terminalBgColor ?? '#000000'
 
   useEffect(() => {
-    void window.terminalApp.themes.getAllThemes().then((themes) => {
+    const themeApi = window.terminalApp.themes
+    if (!themeApi?.getAllThemes) {
+      return
+    }
+
+    void themeApi.getAllThemes().then((themes) => {
       const options = themes.map((t) => ({
         value: t.id,
         label: t.name
@@ -370,5 +407,196 @@ const ConfirmationsSettingsView = ({ settings, onUpdate }: ConfirmationsSettings
         />
       </SettingsSection>
     </div>
+  )
+}
+
+
+const PluginManagerSettingsView = () => {
+  const {
+    installedPlugins,
+    availablePlugins,
+    updatesAvailable,
+    activeTab,
+    searchQuery,
+    operation,
+    setActiveTab,
+    setSearchQuery,
+    searchPlugins,
+    installPlugin,
+    uninstallPlugin,
+    updatePlugin,
+    checkForUpdates,
+    refreshInstalledPlugins,
+    clearError,
+    isOperationInProgress
+  } = usePluginManager()
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  })
+
+  useEffect(() => {
+    checkForUpdates()
+  }, [checkForUpdates])
+
+  const handleInstall = (packageName: string) => {
+    installPlugin(packageName)
+  }
+
+  const handleUninstall = (pluginId: string) => {
+    const plugin = installedPlugins.find(p => p.id === pluginId)
+    if (!plugin) return
+
+    setConfirmDialog({
+      open: true,
+      title: 'Uninstall Plugin',
+      message: `Are you sure you want to uninstall "${plugin.name}"? This action cannot be undone.`,
+      onConfirm: () => {
+        uninstallPlugin(pluginId)
+        setConfirmDialog(prev => ({ ...prev, open: false }))
+      }
+    })
+  }
+
+  const handleUpdate = (pluginId: string, packageName: string) => {
+    updatePlugin(pluginId, packageName)
+  }
+
+  const handleEnable = async (pluginId: string) => {
+    try {
+      await window.terminalApp.plugins.enable(pluginId)
+      await refreshInstalledPlugins()
+    } catch (error) {
+      console.error('Failed to enable plugin:', error)
+    }
+  }
+
+  const handleDisable = async (pluginId: string) => {
+    try {
+      await window.terminalApp.plugins.disable(pluginId)
+      await refreshInstalledPlugins()
+    } catch (error) {
+      console.error('Failed to disable plugin:', error)
+    }
+  }
+
+  const getPluginsForTab = () => {
+    switch (activeTab) {
+      case 'installed':
+        return installedPlugins
+      case 'available':
+        return availablePlugins
+      case 'updates':
+        return updatesAvailable.map(update => {
+          const plugin = installedPlugins.find(p => p.id === update.pluginId)
+          return plugin ? {
+            ...plugin,
+            updateAvailable: true,
+            latestVersion: update.latestVersion
+          } : null
+        }).filter(Boolean)
+      default:
+        return []
+    }
+  }
+
+  const plugins = getPluginsForTab()
+  const isLoading = isOperationInProgress()
+
+  return (
+    <>
+      <div className="plugin-manager-settings plugin-manager-dialog__content">
+        {operation.status !== 'idle' && (
+          <div className="plugin-manager-dialog__status">
+            <StatusBar operation={operation} onDismiss={clearError} />
+          </div>
+        )}
+
+        <div className="plugin-manager-dialog__tabs">
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            installedCount={installedPlugins.length}
+            updatesCount={updatesAvailable.length}
+            disabled={isLoading}
+          />
+        </div>
+
+        {activeTab === 'available' && (
+          <div className="plugin-manager-dialog__search">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSearch={searchPlugins}
+              disabled={isLoading}
+            />
+          </div>
+        )}
+
+        <div className="plugin-manager-dialog__list" role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+          {plugins.length === 0 ? (
+            <div className="plugin-manager-dialog__empty">
+              {activeTab === 'installed' && (
+                <>
+                  <span className="plugin-manager-dialog__empty-icon">📦</span>
+                  <p className="plugin-manager-dialog__empty-text">No plugins installed yet</p>
+                  <p className="plugin-manager-dialog__empty-hint">Browse available plugins to get started</p>
+                </>
+              )}
+              {activeTab === 'available' && (
+                <>
+                  <p className="plugin-manager-dialog__empty-text">
+                    {searchQuery ? 'No plugins found' : 'Search for plugins'}
+                  </p>
+                  <p className="plugin-manager-dialog__empty-hint">
+                    Try searching for "sessionry-plugin" or specific functionality
+                  </p>
+                </>
+              )}
+              {activeTab === 'updates' && (
+                <>
+                  <p className="plugin-manager-dialog__empty-text">All plugins are up to date</p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="plugin-manager-dialog__cards">
+              {plugins.map((plugin: any) => (
+                <PluginCard
+                  key={plugin.id || plugin.package?.name}
+                  plugin={plugin}
+                  variant={activeTab === 'updates' ? 'update' : activeTab}
+                  onInstall={handleInstall}
+                  onUninstall={handleUninstall}
+                  onUpdate={handleUpdate}
+                  onEnable={handleEnable}
+                  onDisable={handleDisable}
+                  disabled={isLoading}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <ConfirmationDialog
+        open={confirmDialog.open}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmLabel="Uninstall"
+        cancelLabel="Cancel"
+        intent="danger"
+      />
+    </>
   )
 }

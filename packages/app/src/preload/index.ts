@@ -101,6 +101,34 @@ const api = {
     getThemeIds: (): Promise<string[]> =>
       ipcRenderer.invoke('themes:getIds')
   },
+  plugins: {
+    search: (query: string, options?: { size?: number }): Promise<any> =>
+      ipcRenderer.invoke('plugin:search', { query, ...options }),
+    install: (packageName: string, version?: string): Promise<any> =>
+      ipcRenderer.invoke('plugin:install', { packageName, version }),
+    uninstall: (pluginId: string): Promise<any> =>
+      ipcRenderer.invoke('plugin:uninstall', { pluginId }),
+    update: (pluginId: string, packageName: string): Promise<any> =>
+      ipcRenderer.invoke('plugin:update', { pluginId, packageName }),
+    list: (): Promise<any> =>
+      ipcRenderer.invoke('plugin:list'),
+    enable: (pluginId: string): Promise<any> =>
+      ipcRenderer.invoke('plugin:enable', { pluginId }),
+    disable: (pluginId: string): Promise<any> =>
+      ipcRenderer.invoke('plugin:disable', { pluginId }),
+    checkUpdates: (): Promise<any> =>
+      ipcRenderer.invoke('plugin:check-updates'),
+    onInstallProgress: (listener: (data: { downloaded: number; total: number }) => void): Unsubscribe => {
+      const wrapped = (_event: Electron.IpcRendererEvent, payload: { downloaded: number; total: number }) => listener(payload)
+      ipcRenderer.on('plugin:install:progress', wrapped)
+      return () => ipcRenderer.removeListener('plugin:install:progress', wrapped)
+    },
+    onUpdateProgress: (listener: (data: { downloaded: number; total: number }) => void): Unsubscribe => {
+      const wrapped = (_event: Electron.IpcRendererEvent, payload: { downloaded: number; total: number }) => listener(payload)
+      ipcRenderer.on('plugin:update:progress', wrapped)
+      return () => ipcRenderer.removeListener('plugin:update:progress', wrapped)
+    }
+  },
   onTerminalData: (listener: (event: TerminalDataEvent) => void): Unsubscribe => {
     const wrapped = (_event: Electron.IpcRendererEvent, payload: TerminalDataEvent) => listener(payload)
     ipcRenderer.on(IPC_CHANNELS.terminalData, wrapped)

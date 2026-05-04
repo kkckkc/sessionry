@@ -53,6 +53,18 @@ export interface TerminalAppBridge {
     getAllThemes: () => Promise<ThemeDefinition[]>
     getThemeIds: () => Promise<string[]>
   }
+  plugins: {
+    search: (query: string, options?: { size?: number }) => Promise<any[]>
+    install: (packageName: string, version?: string) => Promise<any>
+    uninstall: (pluginId: string) => Promise<boolean>
+    update: (pluginId: string, packageName: string) => Promise<any>
+    list: () => Promise<any[]>
+    enable: (pluginId: string) => Promise<any>
+    disable: (pluginId: string) => Promise<any>
+    checkUpdates: () => Promise<any[]>
+    onInstallProgress: (listener: (data: { downloaded: number; total: number }) => void) => Unsubscribe
+    onUpdateProgress: (listener: (data: { downloaded: number; total: number }) => void) => Unsubscribe
+  }
   onTerminalData: (listener: (event: TerminalDataEvent) => void) => Unsubscribe
   onTerminalState: (listener: (event: TerminalStateEvent) => void) => Unsubscribe
   onTerminalExit: (listener: (event: TerminalExitEvent) => void) => Unsubscribe

@@ -43,6 +43,7 @@ export interface InputProps {
    * Change handler
    */
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onKeyPress?: (event: React.KeyboardEvent<HTMLInputElement>) => void
   
   /**
    * Value change handler (Base UI style)
@@ -63,6 +64,9 @@ export interface InputProps {
    * Name attribute for form submission
    */
   name?: string
+  autoFocus?: boolean
+  className?: string
+  'aria-label'?: string
 }
 
 /**
@@ -84,6 +88,7 @@ export const Input = ({
   value,
   defaultValue,
   onChange,
+  onKeyPress,
   onValueChange,
   disabled = false,
   required = false,
@@ -112,6 +117,7 @@ export const Input = ({
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
+        onKeyPress={onKeyPress}
         onValueChange={onValueChange}
         disabled={disabled}
         required={required}

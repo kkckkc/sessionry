@@ -18,6 +18,7 @@ import { WorkspaceSlotView } from './components/WorkspaceSlotView'
 import { readWorkspaceSnapshot, workspace } from './lib/workspace'
 import { getRendererView, loadUserPluginRenderers } from './plugins'
 import { applyTheme, applyColorTheme, watchSystemTheme } from './lib/theme'
+import { PluginManagerProvider } from '../components/PluginManager'
 
 const emptyPlugins: PluginViewModel = {
   actions: [],
@@ -160,7 +161,7 @@ export const App = () => {
   const closeSettings = () => executeAction('workspace:show-default-view', 'api')
 
   return (
-    <>
+    <PluginManagerProvider>
       <AppShell
         plugins={plugins}
         workspace={workspace}
@@ -185,7 +186,6 @@ export const App = () => {
         onClose={closeSettings}
         resolveRendererView={getRendererView}
       />
-
-    </>
+    </PluginManagerProvider>
   )
 }

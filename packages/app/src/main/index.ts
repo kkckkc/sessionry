@@ -7,6 +7,8 @@ import { pathToFileURL } from 'node:url'
 import { IPC_CHANNELS } from '@app-shared/ipc'
 import { createWorkspaceApi } from '@sessionry/plugin-api'
 import type { PluginIpcApi, WorkspaceCommand, WorkspaceEvent } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api'
+import type { InstalledPlugin } from '@sessionry/plugin-api'
 
 import { WorkspaceStore } from './workspaceStore'
 import { ActionRegistry } from './actionRegistry'
@@ -15,6 +17,31 @@ import { builtInPlugins } from './plugins'
 import { SettingsStore } from './settingsStore'
 import { loadUserPlugins } from './pluginLoader'
 import { registerThemeHandlers } from './ipc/themeHandlers'
+import { registerPluginManagerHandlers } from './ipc/pluginManagerHandlers'
+import { PluginConfigStore } from './pluginConfigStore'
+import { syncPluginConfiguration } from './pluginDiscovery'
+
+const BUILTIN_CORE_PLUGIN_ID = 'core'
+
+const syncBuiltInPluginConfiguration = (
+  currentConfig: InstalledPlugin[],
+  builtInPlugins: AppPlugin[]
+) => {
+  const configMap = new Map(currentConfig.map((plugin) => [plugin.id, plugin]))
+  const synced = [...currentConfig.filter((plugin) => plugin.source !== 'builtin')]
+
+  for (const plugin of builtInPlugins) {
+    const existing = configMap.get(plugin.id)
+    synced.push({
+      id: plugin.id,
+      source: 'builtin',
+      version: '1.0.0',
+      enabled: plugin.id === BUILTIN_CORE_PLUGIN_ID ? true : existing?.enabled ?? true
+    })
+  }
+
+  return synced
+}
 
 // Must be called before app.whenReady().
 protocol.registerSchemesAsPrivileged([
@@ -56,7 +83,33 @@ const createWindow = (): void => {
 }
 
 app.whenReady().then(async () => {
-  const userPlugins = await loadUserPlugins()
+  const settingsStorePath = path.join(app.getPath('userData'), 'settings.yaml')
+  const settingsStore = new SettingsStore(settingsStorePath)
+  
+  // Sync plugin configuration with discovered local plugins
+  const currentPluginManagement = settingsStore.read().pluginManagement ?? {
+    registry: { url: 'https://registry.npmjs.org', scope: '@sessionry' },
+    installed: []
+  }
+  const syncedLocalAndNpmPlugins = syncPluginConfiguration(currentPluginManagement.installed)
+  const syncedPlugins = syncBuiltInPluginConfiguration(syncedLocalAndNpmPlugins, builtInPlugins)
+  const pluginManagement = {
+    ...currentPluginManagement,
+    installed: syncedPlugins
+  }
+  
+  // Save synced configuration
+  if (syncedPlugins.length !== currentPluginManagement.installed.length) {
+    settingsStore.update({ pluginManagement })
+  }
+  
+  // Create plugin config store from synced settings
+  const pluginConfigStore = new PluginConfigStore(pluginManagement)
+  
+  const userPlugins = await loadUserPlugins(pluginConfigStore)
+  const enabledBuiltInPlugins = builtInPlugins.filter(
+    (plugin) => plugin.id === BUILTIN_CORE_PLUGIN_ID || pluginConfigStore.isPluginEnabled(plugin.id)
+  )
 
   // Build an allowlist of dir names for loaded plugins to prevent path traversal.
   const pluginDirMap = new Map(userPlugins.map((p) => [p.dirName, p.pluginDir]))
@@ -90,9 +143,6 @@ app.whenReady().then(async () => {
     return new Response('Not found', { status: 404 })
   })
 
-  const settingsStorePath = path.join(app.getPath('userData'), 'settings.yaml')
-  const settingsStore = new SettingsStore(settingsStorePath)
-
   const workspaceStorePath = path.join(app.getPath('userData'), 'workspace.json')
   const workspaceStore = new WorkspaceStore(workspaceStorePath)
   const workspaceApi = createWorkspaceApi({
@@ -100,7 +150,7 @@ app.whenReady().then(async () => {
     executeCommand: (command: WorkspaceCommand) => workspaceStore.executeCommand(command),
     subscribeAll: (listener) => workspaceStore.subscribeAll(listener)
   })
-  const allPlugins = [...builtInPlugins, ...userPlugins.map((p) => p.plugin)]
+  const allPlugins = [...enabledBuiltInPlugins, ...userPlugins.map((p) => p.plugin)]
   const actionRegistry = new ActionRegistry(allPlugins, workspaceApi, () => workspaceStore.read())
 
   const ipcApi: PluginIpcApi = {
@@ -119,6 +169,7 @@ app.whenReady().then(async () => {
       settings: settingsStore.read(),
       onBeforeQuit: (handler) => app.on('before-quit', handler)
     },
+    enabledBuiltInPlugins,
     userPlugins.map((p) => p.plugin)
   )
 
@@ -163,8 +214,25 @@ app.whenReady().then(async () => {
     mainWindow?.webContents.send('settings:changed', settingsStore.read())
   })
   
+  // Plugin management IPC handlers
+  ipcMain.handle(IPC_CHANNELS.pluginManagementList, () => pluginConfigStore.getInstalledPlugins())
+  ipcMain.handle(IPC_CHANNELS.pluginManagementEnable, async (_event, pluginId: string) => {
+    pluginConfigStore.enablePlugin(pluginId)
+    settingsStore.update({ pluginManagement: pluginConfigStore.getConfig() })
+    return { success: true, requiresRestart: true }
+  })
+  ipcMain.handle(IPC_CHANNELS.pluginManagementDisable, async (_event, pluginId: string) => {
+    pluginConfigStore.disablePlugin(pluginId)
+    settingsStore.update({ pluginManagement: pluginConfigStore.getConfig() })
+    return { success: true, requiresRestart: true }
+  })
+  ipcMain.handle(IPC_CHANNELS.pluginManagementGetConfig, () => pluginConfigStore.getConfig())
+  
   // Register theme IPC handlers
   registerThemeHandlers()
+  
+  // Register plugin manager IPC handlers
+  registerPluginManagerHandlers(pluginConfigStore, settingsStore, mainWindow, builtInPlugins)
 
   const createMenu = () => {
     const settings = settingsStore.read()

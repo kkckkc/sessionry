@@ -1,0 +1,11 @@
+/**
+ * Plugin Manager Styles
+ * 
+ * Import all component styles.
+ */
+
+@import './PluginCard.css';
+@import './SearchBar.css';
+@import './TabNavigation.css';
+@import './StatusBar.css';
+@import './PluginManagerDialog.css';

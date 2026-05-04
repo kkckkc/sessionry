@@ -1,0 +1,69 @@
+/**
+ * Search Bar Styles
+ */
+
+.search-bar {
+  width: 100%;
+}
+
+.search-bar__input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar__icon {
+  position: absolute;
+  left: var(--space-4);
+  color: var(--text-dim);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-bar__input {
+  width: 100%;
+  padding-left: calc(var(--space-4) + 16px + var(--space-3));
+  padding-right: calc(var(--space-4) + 16px + var(--space-3));
+}
+
+.search-bar__clear {
+  position: absolute;
+  right: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-3);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-bar__clear:hover {
+  background: var(--hover);
+  color: var(--text-muted);
+}
+
+.search-bar__clear:active {
+  background: var(--surface-high);
+}
+
+.search-bar__clear:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.search-bar__hints {
+  margin-top: var(--space-3);
+  padding: 0 var(--space-4);
+}
+
+.search-bar__hint {
+  font-size: var(--caption-font-size);
+  color: var(--text-dim);
+  font-style: italic;
+}

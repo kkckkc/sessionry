@@ -233,6 +233,23 @@ describe('FileBrowserView', () => {
         update: vi.fn(),
         onChange: vi.fn()
       },
+      themes: {
+        getTheme: vi.fn(),
+        getAllThemes: vi.fn(),
+        getThemeIds: vi.fn()
+      },
+      plugins: {
+        search: vi.fn(),
+        install: vi.fn(),
+        uninstall: vi.fn(),
+        update: vi.fn(),
+        list: vi.fn(),
+        enable: vi.fn(),
+        disable: vi.fn(),
+        checkUpdates: vi.fn(),
+        onInstallProgress: vi.fn(() => () => {}),
+        onUpdateProgress: vi.fn(() => () => {})
+      },
       onTerminalData: vi.fn(),
       onTerminalState: vi.fn(),
       onTerminalExit: vi.fn()

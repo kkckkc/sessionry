@@ -11,6 +11,33 @@ export type TerminalThemeName = string
  */
 export type ThemeId = string
 
+export type PluginSource = 'local' | 'npm' | 'builtin'
+
+export interface InstalledPlugin {
+  id: string
+  source: PluginSource
+  version: string
+  enabled: boolean
+  
+  // For npm plugins
+  package?: string
+  installedAt?: string
+  updateAvailable?: string
+  
+  // For local plugins
+  path?: string
+}
+
+export interface PluginRegistryConfig {
+  url: string
+  scope?: string
+}
+
+export interface PluginManagementConfig {
+  registry: PluginRegistryConfig
+  installed: InstalledPlugin[]
+}
+
 export interface AppSettings {
   version: 1
   theme: AppTheme
@@ -24,4 +51,5 @@ export interface AppSettings {
     confirmSessionClose: boolean
   }
   plugins: Record<string, unknown>
+  pluginManagement?: PluginManagementConfig
 }

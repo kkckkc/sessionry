@@ -1,10 +1,13 @@
 import type { AppPlugin, MainPluginContext } from '@sessionry/plugin-api'
 import { normalizePlugins } from '@sessionry/plugin-api'
 
-import { builtInPlugins } from './plugins'
 import { themeRegistry } from './themeRegistry'
 
-export const createPluginManager = (context: MainPluginContext, userPlugins: AppPlugin[] = []) => {
+export const createPluginManager = (
+  context: MainPluginContext,
+  builtInPlugins: AppPlugin[] = [],
+  userPlugins: AppPlugin[] = []
+) => {
   const allPlugins = [...builtInPlugins, ...userPlugins]
 
   for (const plugin of allPlugins) {

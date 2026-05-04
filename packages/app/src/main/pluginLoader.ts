@@ -4,6 +4,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 import type { AppPlugin } from '@sessionry/plugin-api'
+import type { PluginConfigStore } from './pluginConfigStore'
 
 export interface PluginManifest {
   id: string
@@ -22,7 +23,9 @@ export interface LoadedUserPlugin {
 
 export const getUserPluginsDir = (): string => path.join(os.homedir(), 'sessionry', 'plugins')
 
-export const loadUserPlugins = async (): Promise<LoadedUserPlugin[]> => {
+export const loadUserPlugins = async (
+  pluginConfigStore?: PluginConfigStore
+): Promise<LoadedUserPlugin[]> => {
   const pluginsDir = getUserPluginsDir()
   if (!fs.existsSync(pluginsDir)) return []
 
@@ -37,6 +40,13 @@ export const loadUserPlugins = async (): Promise<LoadedUserPlugin[]> => {
 
     try {
       const manifest: PluginManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+      
+      // Check if plugin is enabled in configuration
+      if (pluginConfigStore && !pluginConfigStore.isPluginEnabled(manifest.id)) {
+        console.log(`[plugin-loader] ${manifest.id}: disabled in configuration, skipping`)
+        continue
+      }
+      
       const mainPath = path.resolve(pluginDir, manifest.main)
       if (!mainPath.startsWith(pluginDir + path.sep)) {
         console.error(`[plugin-loader] ${manifest.id}: main path escapes plugin directory, skipping`)

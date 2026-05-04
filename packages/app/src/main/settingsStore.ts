@@ -28,6 +28,13 @@ const DEFAULTS: AppSettings = {
         killOnExit: true
       }
     }
+  },
+  pluginManagement: {
+    registry: {
+      url: 'https://registry.npmjs.org',
+      scope: '@sessionry'
+    },
+    installed: []
   }
 }
 
@@ -64,6 +71,10 @@ export class SettingsStore {
         plugins: {
           ...DEFAULTS.plugins,
           ...(raw?.plugins as Record<string, unknown> | undefined)
+        },
+        pluginManagement: {
+          ...DEFAULTS.pluginManagement!,
+          ...(raw?.pluginManagement as Record<string, unknown> | undefined)
         }
       }
     } catch {
