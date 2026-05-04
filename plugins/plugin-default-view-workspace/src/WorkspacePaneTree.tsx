@@ -402,6 +402,11 @@ export const WorkspacePaneTree = ({
     }
   }
 
+  const handlePaneFocus = (paneId: string) => {
+    if (activeSession.focusedPaneId === paneId) return
+    void workspace.getSession(activeSession.id)?.setFocusedPane(paneId)
+  }
+
   const handleRemovePaneNode = async (node: PaneGroupChild) => {
     // Check if confirmation is needed for panes
     if (node.kind === 'pane') {
@@ -514,6 +519,7 @@ export const WorkspacePaneTree = ({
         style={getPreferredSizeStyle(pane.preferredSizePct)}
         aria-label={title}
         data-testid={`pane-${pane.id}`}
+        onFocusCapture={() => handlePaneFocus(pane.id)}
       >
         {withStackedGroupTitleBalance ? (
           <div
@@ -583,7 +589,7 @@ export const WorkspacePaneTree = ({
             )
           }
         />
-        <div className="body">
+        <div className="body" tabIndex={-1}>
           {PaneRenderer ? (
             <div
               className="plugin-surface"

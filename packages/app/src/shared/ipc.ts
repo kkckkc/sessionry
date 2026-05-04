@@ -15,5 +15,6 @@ export const IPC_CHANNELS = {
   showFolderDialog: 'dialog:show-folder',
   settingsRead: 'settings:read',
   settingsUpdate: 'settings:update',
-  readDirectory: 'fs:read-directory'
+  readDirectory: 'fs:read-directory',
+  readFile: 'fs:read-file'
 } as const

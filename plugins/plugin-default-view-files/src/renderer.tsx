@@ -17,10 +17,121 @@ interface TreeNodeProps {
   name: string
   isDirectory: boolean
   fullPath: string
+  sessionRoot: string
   depth: number
+  workspace: WorkspaceApi
 }
 
-const TreeNode: React.FC<TreeNodeProps> = ({ name, isDirectory, fullPath, depth }) => {
+const getActiveSession = (workspace: WorkspaceApi) => {
+  const snapshot = workspace.snapshot
+  return snapshot.activeSessionId
+    ? snapshot.sessions.find((session) => session.id === snapshot.activeSessionId)
+    : snapshot.sessions[0]
+}
+
+const getActivePaneId = (workspace: WorkspaceApi, sessionId: string): string | undefined => {
+  const snapshot = workspace.snapshot
+  const session = snapshot.sessions.find((value) => value.id === sessionId)
+  if (!session) return undefined
+  if (session.focusedPaneId) return session.focusedPaneId
+
+  const groupById = new Map(snapshot.paneGroups.map((paneGroup) => [paneGroup.id, paneGroup]))
+  const visitGroup = (paneGroupId: string): string | undefined => {
+    const paneGroup = groupById.get(paneGroupId)
+    if (!paneGroup) return undefined
+
+    const children =
+      paneGroup.direction === 'stacked'
+        ? paneGroup.children.filter((child) => {
+            const childId = child.kind === 'pane' ? child.paneId : child.paneGroupId
+            return childId === paneGroup.activeChildId
+          }).slice(0, 1)
+        : paneGroup.children
+
+    for (const child of children) {
+      if (child.kind === 'pane') return child.paneId
+
+      const paneId = visitGroup(child.paneGroupId)
+      if (paneId) return paneId
+    }
+
+    return undefined
+  }
+
+  return visitGroup(session.rootPaneGroupId)
+}
+
+const getPaneParentGroup = (workspace: WorkspaceApi, paneId: string) =>
+  workspace.snapshot.paneGroups.find((paneGroup) =>
+    paneGroup.children.some((child) => child.kind === 'pane' && child.paneId === paneId)
+  )
+
+const getFileTitle = (filePath: string) => filePath.split(/[\\/]/).filter(Boolean).pop() ?? filePath
+
+const openFileInCodePane = async (workspace: WorkspaceApi, filePath: string): Promise<void> => {
+  const session = getActiveSession(workspace)
+  if (!session) return
+
+  const focusedPaneId = getActivePaneId(workspace, session.id)
+  if (!focusedPaneId) return
+
+  const focusedPane = workspace.getPane(focusedPaneId)
+  if (!focusedPane) return
+
+  const parentPaneGroup = getPaneParentGroup(workspace, focusedPaneId)
+  if (!parentPaneGroup) return
+
+  let targetPaneGroupId = parentPaneGroup.id
+  let insertIndex = parentPaneGroup.children.findIndex(
+    (child) => child.kind === 'pane' && child.paneId === focusedPaneId
+  ) + 1
+
+  if (parentPaneGroup.direction !== 'stacked') {
+    const paneIndex = parentPaneGroup.children.findIndex(
+      (child) => child.kind === 'pane' && child.paneId === focusedPaneId
+    )
+    if (paneIndex === -1) return
+
+    const stackedGroup = await focusedPane.session.createPaneGroup({
+      name: `${focusedPane.data.state.title ?? getFileTitle(filePath)}`,
+      direction: 'stacked',
+      preferredSizePct: focusedPane.data.preferredSizePct,
+      parentPaneGroupId: parentPaneGroup.id,
+      index: paneIndex
+    })
+    await stackedGroup.moveNode({ kind: 'pane', paneId: focusedPaneId }, 0)
+    targetPaneGroupId = stackedGroup.id
+    insertIndex = 1
+  }
+
+  const targetPaneGroup = workspace.getPaneGroup(targetPaneGroupId)
+  if (!targetPaneGroup) return
+
+  const existingCodePane = targetPaneGroup.data.children
+    .filter((child): child is { kind: 'pane'; paneId: string } => child.kind === 'pane')
+    .map((child) => workspace.getPane(child.paneId)?.data)
+    .find((pane) => pane?.type === 'code' && pane.state.filePath === filePath)
+
+  if (existingCodePane) {
+    await targetPaneGroup.update({ activeChildId: existingCodePane.id })
+    await focusedPane.session.setFocusedPane(existingCodePane.id)
+    return
+  }
+
+  const codePane = await focusedPane.session.createPane({
+    type: 'code',
+    state: {
+      title: getFileTitle(filePath),
+      filePath
+    },
+    parentPaneGroupId: targetPaneGroupId,
+    index: insertIndex
+  })
+  await targetPaneGroup.update({ activeChildId: codePane.id })
+  await focusedPane.session.setFocusedPane(codePane.id)
+}
+
+const TreeNode: React.FC<TreeNodeProps> = ({ name, isDirectory, fullPath, sessionRoot, depth, workspace }) => {
   const [open, setOpen] = useState(false)
   const [children, setChildren] = useState<FileEntry[] | null>(null)
 
@@ -37,6 +148,17 @@ const TreeNode: React.FC<TreeNodeProps> = ({ name, isDirectory, fullPath, depth 
     setOpen((prev) => !prev)
   }, [isDirectory, open, children, fullPath])
 
+  const handleDragStart = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    const dragText = window.terminalApp.formatPathForTerminal(fullPath, sessionRoot)
+    event.dataTransfer.setData('text/plain', dragText)
+    event.dataTransfer.effectAllowed = 'copy'
+  }, [fullPath, sessionRoot])
+
+  const handleDoubleClick = useCallback(() => {
+    if (isDirectory) return
+    void openFileInCodePane(workspace, fullPath)
+  }, [fullPath, isDirectory, workspace])
+
   const paddingLeft = 10 + depth * 14
 
   return (
@@ -44,7 +166,10 @@ const TreeNode: React.FC<TreeNodeProps> = ({ name, isDirectory, fullPath, depth 
       <div
         className="file-tree-row"
         style={{ paddingLeft }}
+        draggable
         onClick={isDirectory ? handleToggle : undefined}
+        onDoubleClick={handleDoubleClick}
+        onDragStart={handleDragStart}
       >
         <span className="file-tree-chevron">
           {isDirectory ? (open ? <TbChevronDown /> : <TbChevronRight />) : null}
@@ -64,7 +189,9 @@ const TreeNode: React.FC<TreeNodeProps> = ({ name, isDirectory, fullPath, depth 
               name={child.name}
               isDirectory={child.isDirectory}
               fullPath={`${fullPath}/${child.name}`}
+              sessionRoot={sessionRoot}
               depth={depth + 1}
+              workspace={workspace}
             />
           ))}
         </div>
@@ -120,7 +247,9 @@ export const FileBrowserView: React.FC<FileBrowserViewProps> = ({ workspace }) =
           name={entry.name}
           isDirectory={entry.isDirectory}
           fullPath={`${folder}/${entry.name}`}
+          sessionRoot={folder}
           depth={0}
+          workspace={workspace}
         />
       ))}
     </div>

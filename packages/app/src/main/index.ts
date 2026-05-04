@@ -149,6 +149,7 @@ app.whenReady().then(async () => {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true })
     return entries.map((e) => ({ name: e.name, isDirectory: e.isDirectory() }))
   })
+  ipcMain.handle(IPC_CHANNELS.readFile, (_event, filePath: string) => fs.readFileSync(filePath, 'utf-8'))
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read())
   ipcMain.on(IPC_CHANNELS.settingsRead, (event) => {
     event.returnValue = settingsStore.read()

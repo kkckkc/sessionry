@@ -35,6 +35,8 @@ describe('SettingsView', () => {
       showFolderDialog: vi.fn(),
       getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
+      readDirectory: vi.fn(),
+      readFile: vi.fn(),
       createTerminalSession: vi.fn(),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
@@ -64,6 +66,8 @@ describe('SettingsView', () => {
         resolveRendererView={(_viewId: string): RendererViewRegistration | null => null}
       />
     )
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirmations' }))
 
     const toggle = await screen.findByRole('switch', { name: 'Confirm pane close' })
     expect(toggle.closest('[data-plugin-id="app-confirmations"]')).toHaveAttribute('data-plugin-surface', 'settings')

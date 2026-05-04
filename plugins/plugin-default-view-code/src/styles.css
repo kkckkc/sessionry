@@ -1,0 +1,28 @@
+.code-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--workspace-bg);
+  color: var(--text-primary, #d6e1ff);
+}
+
+.code-pane-status {
+  padding: 1rem;
+  color: var(--text-secondary, rgba(214, 225, 255, 0.7));
+}
+
+.code-pane-status.is-error {
+  color: #ff8b8b;
+}
+
+.code-pane-content {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 1rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 12px/1.5 "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+}

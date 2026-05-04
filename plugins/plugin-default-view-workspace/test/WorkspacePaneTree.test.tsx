@@ -247,12 +247,10 @@ describe('WorkspacePaneTree', () => {
     expect(tabBarActions).not.toBeNull()
     expect(sideColumnGroup.querySelector(':scope > .header')).toBeNull()
     expect(screen.getByRole('tablist', { name: 'Editors tabs' })).toBeInTheDocument()
-    expect(tabBarActions?.querySelector('.group-menu-trigger')).not.toBeNull()
-    expect(tabBarActions?.querySelector('.group-add')).not.toBeNull()
-    expect(tabBarActions?.querySelector('.group-close')).not.toBeNull()
+    expect(tabBarActions?.querySelector('[aria-label="Close pane group"]')).not.toBeNull()
     expect(
       leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions [aria-label="Split horizontal"]')
-    ).toBeNull()
+    ).not.toBeNull()
 
     fireEvent.click(screen.getByRole('tab', { name: /Terminal/ }))
 
@@ -261,9 +259,6 @@ describe('WorkspacePaneTree', () => {
         leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions [aria-label="Split horizontal"]')
       ).not.toBeNull()
     })
-
-    expect(leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions .group-add')).toBeNull()
-    expect(leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions .group-close')).toBeNull()
   })
 
   it('switches active tab content through the model callback and passes visibility to the pane renderer', () => {
@@ -388,6 +383,47 @@ describe('WorkspacePaneTree', () => {
     })
   })
 
+  it('tracks the focused pane on focus events', async () => {
+    const setFocusedPane = vi.fn(async () => {})
+    const workspace = createWorkspaceStub({
+      getSession: (sessionId) =>
+        sessionId === 'session-1'
+          ? ({
+              id: sessionId,
+              data: snapshot.sessions[0]!,
+              project: null,
+              rootPaneGroup: null,
+              activate: async () => {},
+              update: async () => {},
+              setFocusedPane,
+              remove: async () => {},
+              setRootPaneGroup: async () => {},
+              createPaneGroup: async () => {
+                throw new Error('Not implemented in test')
+              },
+              createPane: async () => {
+                throw new Error('Not implemented in test')
+              }
+            }) as any
+          : null
+    })
+
+    render(
+      <WorkspacePaneTree
+        plugins={plugins}
+        workspace={workspace}
+        resolveRendererView={() => paneRendererRegistration}
+        clearSignal={0}
+      />
+    )
+
+    fireEvent.focus(screen.getByTestId('terminal-focus-target'))
+
+    await waitFor(() => {
+      expect(setFocusedPane).toHaveBeenCalledWith('pane-terminal')
+    })
+  })
+
   it('initializes a new split at 50/50 when splitting the active pane', async () => {
     const split = vi.fn(async () => ({ id: 'group-created' }))
 
@@ -410,7 +446,12 @@ describe('WorkspacePaneTree', () => {
       />
     )
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Split horizontal' })[0]!)
+    const splitButton = screen
+      .getByTestId('pane-pane-terminal')
+      .querySelector('button[aria-label="Split horizontal"]') as HTMLButtonElement | null
+
+    expect(splitButton).not.toBeNull()
+    fireEvent.click(splitButton!)
 
     await waitFor(() => {
       expect(split).toHaveBeenCalledWith('horizontal')

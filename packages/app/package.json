@@ -20,6 +20,7 @@
     "@sessionry/design-tokens": "workspace:*",
     "@sessionry/plugin-api": "workspace:*",
     "@sessionry/plugin-debug-view-pane-hierarchy": "workspace:*",
+    "@sessionry/plugin-default-view-code": "workspace:*",
     "@sessionry/plugin-default-view-files": "workspace:*",
     "@sessionry/plugin-default-view-left-sidebar": "workspace:*",
     "@sessionry/plugin-default-view-sidebar-tabbar": "workspace:*",

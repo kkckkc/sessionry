@@ -23,6 +23,7 @@ const getActivePaneId = (snapshot: WorkspaceStateSnapshot, sessionId?: string): 
     ? snapshot.sessions.find((session) => session.id === sessionId)
     : snapshot.sessions[0]
   if (!activeSession) return undefined
+  if (activeSession.focusedPaneId) return activeSession.focusedPaneId
 
   const groupById = new Map(snapshot.paneGroups.map((paneGroup) => [paneGroup.id, paneGroup]))
 

@@ -127,6 +127,10 @@ export const createWorkspaceApi = (bridge: WorkspaceBridge): WorkspaceApi => {
       await bridge.executeCommand({ type: 'session.update', sessionId: this.id, input })
     }
 
+    async setFocusedPane(paneId?: string): Promise<void> {
+      await bridge.executeCommand({ type: 'session.setFocusedPane', sessionId: this.id, paneId })
+    }
+
     async remove(): Promise<void> {
       await bridge.executeCommand({ type: 'session.remove', sessionId: this.id })
     }

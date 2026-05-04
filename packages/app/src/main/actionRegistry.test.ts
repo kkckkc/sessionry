@@ -174,7 +174,36 @@ describe('ActionRegistry', () => {
   })
 
   it('creates a usable terminal session from the built-in create session action', async () => {
-    const { registry, workspaceStore } = createRegistry([terminalPanePlugin])
+    const { registry, workspaceStore } = createRegistry([
+      terminalPanePlugin,
+      {
+        id: 'sessions',
+        name: 'Sessions',
+        actions: [
+          {
+            id: 'session:create',
+            name: 'Create Session',
+            run: async (context, args) => {
+              const activeProject = context.workspace.getProject(context.activeProjectId!)
+              if (!activeProject) throw new Error('missing project')
+
+              const session = await activeProject.createSession({
+                name: String(args.name),
+                folder: activeProject.data.folder
+              })
+              await session.createPane({
+                type: 'terminal',
+                state: { title: 'Terminal' },
+                parentPaneGroupId: session.data.rootPaneGroupId
+              })
+              await session.activate()
+              return { status: 'completed' }
+            },
+            args: [{ name: 'name', label: 'Session name', type: 'string', required: true }]
+          }
+        ]
+      }
+    ])
 
     const result = await registry.execute({
       actionId: 'session:create',

@@ -20,6 +20,7 @@ export interface Session {
   name: string
   folder: string
   rootPaneGroupId: string
+  focusedPaneId?: string
 }
 
 export interface PaneGroupChildPane {
@@ -198,6 +199,7 @@ export interface UpdateSessionInput {
   name?: string
   folder?: string
   rootPaneGroupId?: string
+  focusedPaneId?: string
 }
 
 export interface CreatePaneGroupInput {
@@ -241,6 +243,7 @@ export type WorkspaceCommand =
   | { type: 'session.create'; input: CreateSessionInput }
   | { type: 'session.activate'; sessionId: string }
   | { type: 'session.update'; sessionId: string; input: UpdateSessionInput }
+  | { type: 'session.setFocusedPane'; sessionId: string; paneId?: string }
   | { type: 'session.remove'; sessionId: string }
   | { type: 'session.setRootPaneGroup'; sessionId: string; rootPaneGroupId: string }
   | { type: 'paneGroup.create'; input: CreatePaneGroupInput }
@@ -292,6 +295,7 @@ export interface SessionHandle {
   readonly rootPaneGroup: PaneGroupHandle
   activate(): Promise<void>
   update(input: UpdateSessionInput): Promise<void>
+  setFocusedPane(paneId?: string): Promise<void>
   remove(): Promise<void>
   setRootPaneGroup(rootPaneGroupId: string): Promise<void>
   createPaneGroup(input: Omit<CreatePaneGroupInput, 'sessionId'>): Promise<PaneGroupHandle>

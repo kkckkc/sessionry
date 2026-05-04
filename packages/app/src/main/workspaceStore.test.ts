@@ -225,6 +225,24 @@ describe('WorkspaceStore', () => {
     expect(service.getPane(firstPane.id)).toMatchObject({ preferredSizePct: 55 })
   })
 
+  it('tracks focused pane per session and falls back when the focused pane is removed', () => {
+    const service = new WorkspaceStore()
+
+    expect(service.getSession('session-primary')).toMatchObject({
+      focusedPaneId: 'pane-terminal-primary'
+    })
+
+    service.setFocusedPane('session-primary', 'pane-activity')
+    expect(service.getSession('session-primary')).toMatchObject({
+      focusedPaneId: 'pane-activity'
+    })
+
+    service.removePane('pane-activity')
+    expect(service.getSession('session-primary')).toMatchObject({
+      focusedPaneId: 'pane-terminal-primary'
+    })
+  })
+
   it('splits a pane into a 50/50 group without losing stacked focus', () => {
     const service = new WorkspaceStore()
 

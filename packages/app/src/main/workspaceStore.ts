@@ -150,6 +150,9 @@ export class WorkspaceStore {
       case 'session.update':
         result = { entityId: this.updateSession(command.sessionId, command.input).id }
         break
+      case 'session.setFocusedPane':
+        result = { entityId: this.setFocusedPane(command.sessionId, command.paneId).id }
+        break
       case 'session.remove':
         this.removeSession(command.sessionId)
         result = { entityId: command.sessionId }
@@ -319,7 +322,8 @@ export class WorkspaceStore {
       projectId: project.id,
       name: input.name,
       folder: input.folder,
-      rootPaneGroupId
+      rootPaneGroupId,
+      focusedPaneId: undefined
     }
 
     this.state.sessions.set(sessionId, session)
@@ -355,6 +359,36 @@ export class WorkspaceStore {
     if (input.rootPaneGroupId !== undefined) {
       session.rootPaneGroupId = input.rootPaneGroupId
     }
+    if (input.focusedPaneId !== undefined) {
+      if (input.focusedPaneId) {
+        const pane = this.getPaneRequired(input.focusedPaneId)
+        this.assertSameSession(pane.sessionId, session.id)
+      }
+      session.focusedPaneId = input.focusedPaneId
+    }
+
+    this.emit({
+      type: 'session.updated',
+      entityType: 'session',
+      entityId: session.id,
+      projectId: session.projectId,
+      sessionId: session.id,
+      before,
+      after: cloneValue(session)
+    })
+    return cloneValue(session)
+  }
+
+  setFocusedPane(sessionId: string, paneId?: string): Session {
+    const session = this.getSessionRequired(sessionId)
+    const before = cloneValue(session)
+
+    if (paneId) {
+      const pane = this.getPaneRequired(paneId)
+      this.assertSameSession(pane.sessionId, session.id)
+    }
+
+    session.focusedPaneId = paneId
 
     this.emit({
       type: 'session.updated',
@@ -619,6 +653,7 @@ export class WorkspaceStore {
   removeNode(node: PaneGroupChild): void {
     const parent = this.findParentOfNode(node)
     if (!parent) throw new Error('Node is not attached to a pane group.')
+    const session = this.getSessionRequired(parent.sessionId)
     
     // Helper to render tree structure
     const renderTree = (child: PaneGroupChild, indent = ''): string => {
@@ -767,11 +802,15 @@ export class WorkspaceStore {
       return
     }
 
+    if (session.focusedPaneId && this.paneGroupContainsPane(node.paneGroupId, session.focusedPaneId)) {
+      session.focusedPaneId = this.getDerivedActivePaneId(session.id)
+    }
+
     this.removePaneGroupRecursive(node.paneGroupId)
   }
 
   createPane(input: CreatePaneInput): Pane {
-    this.getSessionRequired(input.sessionId)
+    const session = this.getSessionRequired(input.sessionId)
     const pane: Pane = {
       id: input.id ?? this.generateId('pane'),
       sessionId: input.sessionId,
@@ -785,6 +824,9 @@ export class WorkspaceStore {
     }
 
     this.state.panes.set(pane.id, pane)
+    if (!session.focusedPaneId) {
+      session.focusedPaneId = pane.id
+    }
     this.emit({
       type: 'pane.created',
       entityType: 'pane',
@@ -1267,6 +1309,7 @@ export class WorkspaceStore {
   removePane(paneId: string): void {
     const pane = this.getPaneRequired(paneId)
     const parent = this.findParentOfNode({ kind: 'pane', paneId })
+    const session = this.getSessionRequired(pane.sessionId)
     
     // Helper to render tree structure
     const renderTree = (node: PaneGroupChild, indent = ''): string => {
@@ -1369,6 +1412,10 @@ export class WorkspaceStore {
         }
         console.log('=== REMOVE PANE OPERATION END ===\n')
       }
+    }
+
+    if (session.focusedPaneId === paneId) {
+      session.focusedPaneId = this.getFallbackFocusedPaneId(session.id, parent)
     }
 
     this.state.panes.delete(paneId)
@@ -1502,6 +1549,32 @@ export class WorkspaceStore {
     return false
   }
 
+  private resolveChildToPaneId(sessionId: string, childId: string): string | undefined {
+    const pane = this.state.panes.get(childId)
+    if (pane?.sessionId === sessionId) return pane.id
+
+    const paneGroup = this.state.paneGroups.get(childId)
+    if (!paneGroup || paneGroup.sessionId !== sessionId) return undefined
+
+    return this.getDerivedActivePaneId(sessionId, paneGroup.id)
+  }
+
+  private paneGroupContainsPane(paneGroupId: string, paneId: string): boolean {
+    const paneGroup = this.state.paneGroups.get(paneGroupId)
+    if (!paneGroup) return false
+
+    for (const child of paneGroup.children) {
+      if (child.kind === 'pane') {
+        if (child.paneId === paneId) return true
+        continue
+      }
+
+      if (this.paneGroupContainsPane(child.paneGroupId, paneId)) return true
+    }
+
+    return false
+  }
+
   private assertSameSession(leftSessionId: string, rightSessionId: string): void {
     if (leftSessionId !== rightSessionId) {
       throw new Error('Pane tree operations cannot cross session boundaries.')
@@ -1520,6 +1593,39 @@ export class WorkspaceStore {
     if (sameProjectSessionId) return sameProjectSessionId
 
     return Array.from(this.state.sessions.values()).find((session) => session.id !== removedSession.id)?.id
+  }
+
+  private getDerivedActivePaneId(sessionId: string, fromPaneGroupId?: string): string | undefined {
+    const session = this.getSessionRequired(sessionId)
+    const visitGroup = (paneGroupId: string): string | undefined => {
+      const paneGroup = this.state.paneGroups.get(paneGroupId)
+      if (!paneGroup) return undefined
+
+      const children =
+        paneGroup.direction === 'stacked'
+          ? paneGroup.children.filter((child) => paneNodeId(child) === paneGroup.activeChildId).slice(0, 1)
+          : paneGroup.children
+
+      for (const child of children) {
+        if (child.kind === 'pane') return child.paneId
+
+        const paneId = visitGroup(child.paneGroupId)
+        if (paneId) return paneId
+      }
+
+      return undefined
+    }
+
+    return visitGroup(fromPaneGroupId ?? session.rootPaneGroupId)
+  }
+
+  private getFallbackFocusedPaneId(sessionId: string, parent: PaneGroup | null): string | undefined {
+    if (parent?.direction === 'stacked' && parent.activeChildId) {
+      const paneId = this.resolveChildToPaneId(sessionId, parent.activeChildId)
+      if (paneId) return paneId
+    }
+
+    return this.getDerivedActivePaneId(sessionId)
   }
 
   private getProjectRequired(projectId: string): Project {
@@ -1716,6 +1822,10 @@ export class WorkspaceStore {
         return { workspace: true, projectId: null }
       case 'session.update':
       case 'session.setRootPaneGroup': {
+        const session = this.state.sessions.get(command.sessionId)
+        return { workspace: false, projectId: session?.projectId ?? null }
+      }
+      case 'session.setFocusedPane': {
         const session = this.state.sessions.get(command.sessionId)
         return { workspace: false, projectId: session?.projectId ?? null }
       }

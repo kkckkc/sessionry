@@ -13,6 +13,26 @@ export default defineConfig({
         replacement: path.resolve(rootDir, '../components/src/index.ts')
       },
       {
+        find: /^react$/,
+        replacement: path.resolve(rootDir, 'node_modules/react/index.js')
+      },
+      {
+        find: /^react\/jsx-runtime$/,
+        replacement: path.resolve(rootDir, 'node_modules/react/jsx-runtime.js')
+      },
+      {
+        find: /^react\/jsx-dev-runtime$/,
+        replacement: path.resolve(rootDir, 'node_modules/react/jsx-dev-runtime.js')
+      },
+      {
+        find: '@sessionry/plugin-default-view-code/renderer',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-code/src/renderer.tsx')
+      },
+      {
+        find: '@sessionry/plugin-default-view-code',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-code/src/index.ts')
+      },
+      {
         find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
         replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx')
       },

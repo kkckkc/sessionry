@@ -5,10 +5,12 @@ const sendSync = vi.fn()
 const on = vi.fn()
 const removeListener = vi.fn()
 const exposeInMainWorld = vi.fn()
+const getPathForFile = vi.fn()
 
 vi.mock('electron', () => ({
   contextBridge: { exposeInMainWorld },
-  ipcRenderer: { invoke, sendSync, on, removeListener, send: vi.fn() }
+  ipcRenderer: { invoke, sendSync, on, removeListener, send: vi.fn() },
+  webUtils: { getPathForFile }
 }))
 
 describe('preload workspace bridge', () => {
@@ -18,10 +20,12 @@ describe('preload workspace bridge', () => {
     on.mockReset()
     removeListener.mockReset()
     exposeInMainWorld.mockReset()
+    getPathForFile.mockReset()
   })
 
   it('exposes sync reads, async commands, and event subscriptions', async () => {
     sendSync.mockReturnValue({ projects: [], sessions: [], paneGroups: [], panes: [] })
+    getPathForFile.mockReturnValue('/tmp/My File.txt')
 
     await import('./index')
 
@@ -30,6 +34,7 @@ describe('preload workspace bridge', () => {
     await api.actions.execute({ actionId: 'terminal:clear', source: 'toolbar' })
     api.workspace.read()
     await api.workspace.executeCommand({ type: 'project.remove', projectId: 'project-1' })
+    await api.readFile('/tmp/project/src/index.ts')
 
     expect(invoke).toHaveBeenCalledWith('actions:list')
     expect(invoke).toHaveBeenCalledWith('actions:execute', {
@@ -41,6 +46,11 @@ describe('preload workspace bridge', () => {
       type: 'project.remove',
       projectId: 'project-1'
     })
+    expect(invoke).toHaveBeenCalledWith('fs:read-file', '/tmp/project/src/index.ts')
+    expect(api.getPathForDroppedFile({ name: 'My File.txt' } as File)).toBe('/tmp/My File.txt')
+    expect(getPathForFile).toHaveBeenCalledWith({ name: 'My File.txt' })
+    expect(api.formatPathForTerminal('/tmp/project/src/My File.ts', '/tmp/project')).toBe("'src/My File.ts'")
+    expect(api.formatPathForTerminal('/tmp/Other File.ts', '/tmp/project')).toBe("'/tmp/Other File.ts'")
 
     const listener = vi.fn()
     const unsubscribe = api.workspace.onEvent(listener)

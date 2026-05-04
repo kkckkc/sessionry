@@ -1,4 +1,6 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import path from 'node:path'
+
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 import { IPC_CHANNELS } from '@app-shared/ipc'
 import type {
@@ -23,6 +25,23 @@ import type {
 } from '@sessionry/plugin-api'
 
 type Unsubscribe = () => void
+
+const shellEscapePath = (value: string): string => {
+  if (value.length === 0) return "''"
+  return /^[A-Za-z0-9_./-]+$/.test(value)
+    ? value
+    : `'${value.replace(/'/g, `'\\''`)}'`
+}
+
+const formatPathForTerminal = (targetPath: string, sessionRoot?: string): string => {
+  if (!sessionRoot) return shellEscapePath(targetPath)
+
+  const relativePath = path.relative(sessionRoot, targetPath)
+  const isWithinRoot =
+    relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath))
+
+  return shellEscapePath(isWithinRoot ? relativePath || '.' : targetPath)
+}
 
 const api = {
   createTerminalSession: (input: CreateTerminalSessionInput): Promise<TerminalSessionInfo> =>
@@ -56,6 +75,10 @@ const api = {
     ipcRenderer.invoke(IPC_CHANNELS.showFolderDialog),
   readDirectory: (dirPath: string): Promise<{ name: string; isDirectory: boolean }[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.readDirectory, dirPath),
+  readFile: (filePath: string): Promise<string> =>
+    ipcRenderer.invoke(IPC_CHANNELS.readFile, filePath),
+  getPathForDroppedFile: (file: File): string => webUtils.getPathForFile(file),
+  formatPathForTerminal,
   settings: {
     read: (): Promise<AppSettings> => ipcRenderer.invoke(IPC_CHANNELS.settingsRead),
     readSync: (): AppSettings => ipcRenderer.sendSync(IPC_CHANNELS.settingsRead) as AppSettings,

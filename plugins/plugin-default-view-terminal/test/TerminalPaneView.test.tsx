@@ -152,6 +152,7 @@ describe('TerminalPaneView', () => {
     window.terminalApp = {
       showFolderDialog: vi.fn(),
       readDirectory: vi.fn(),
+      readFile: vi.fn(),
       getPathForDroppedFile: vi.fn((file: File) => `/tmp/${file.name}`),
       formatPathForTerminal: vi.fn((targetPath: string, sessionRoot?: string) => {
         if (!sessionRoot) return targetPath

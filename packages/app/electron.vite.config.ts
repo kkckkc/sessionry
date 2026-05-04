@@ -12,6 +12,7 @@ export default defineConfig({
       externalizeDepsPlugin({
         exclude: [
           '@sessionry/plugin-api',
+          '@sessionry/plugin-default-view-code',
           '@sessionry/plugin-debug-view-pane-hierarchy',
           '@sessionry/plugin-default-view-sidebar-tabbar',
           '@sessionry/plugin-default-view-workspace',
@@ -28,8 +29,36 @@ export default defineConfig({
           replacement: path.resolve(rootDir, '../components/src/index.ts')
         },
         {
+          find: /^react$/,
+          replacement: path.resolve(rootDir, 'node_modules/react/index.js')
+        },
+        {
+          find: /^react\/jsx-runtime$/,
+          replacement: path.resolve(rootDir, 'node_modules/react/jsx-runtime.js')
+        },
+        {
+          find: /^react\/jsx-dev-runtime$/,
+          replacement: path.resolve(rootDir, 'node_modules/react/jsx-dev-runtime.js')
+        },
+        {
           find: /^@sessionry\/components\/style\.css$/,
           replacement: path.resolve(rootDir, '../components/src/style.css')
+        },
+        {
+          find: '@sessionry/plugin-default-view-code/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-code/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-default-view-code',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-code/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-view-code/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-code/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-default-view-code',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-code/src/index.ts')
         },
         {
           find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
@@ -95,6 +124,7 @@ export default defineConfig({
       externalizeDepsPlugin({
         exclude: [
           '@sessionry/plugin-api',
+          '@sessionry/plugin-default-view-code',
           '@sessionry/plugin-debug-view-pane-hierarchy',
           '@sessionry/plugin-default-view-sidebar-tabbar',
           '@sessionry/plugin-default-view-workspace',
@@ -109,6 +139,10 @@ export default defineConfig({
         {
           find: '@sessionry/plugin-api',
           replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-view-code',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-code/src/index.ts')
         },
         {
           find: '@sessionry/plugin-debug-view-pane-hierarchy',
@@ -148,6 +182,18 @@ export default defineConfig({
         {
           find: /^@sessionry\/components$/,
           replacement: path.resolve(rootDir, '../components/src/index.ts')
+        },
+        {
+          find: /^react$/,
+          replacement: path.resolve(rootDir, 'node_modules/react/index.js')
+        },
+        {
+          find: /^react\/jsx-runtime$/,
+          replacement: path.resolve(rootDir, 'node_modules/react/jsx-runtime.js')
+        },
+        {
+          find: /^react\/jsx-dev-runtime$/,
+          replacement: path.resolve(rootDir, 'node_modules/react/jsx-dev-runtime.js')
         },
         {
           find: /^@sessionry\/components\/style\.css$/,

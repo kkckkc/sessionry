@@ -55,6 +55,7 @@ describe('createWorkspaceApi', () => {
 
     await workspace.projects[0].update({ name: 'Updated', activeViews: { workspace: 'workspace.default' } })
     await workspace.projects[0].sessions[0].activate()
+    await workspace.projects[0].sessions[0].setFocusedPane('pane-1')
     await workspace.projects[0].sessions[0].rootPaneGroup.update({ activeChildId: 'pane-1', preferredSizePct: 80 })
     await workspace.getPane('pane-1')?.split('horizontal')
     await workspace.createProject({ name: 'Two', folder: '/tmp/two' })
@@ -69,16 +70,21 @@ describe('createWorkspaceApi', () => {
       sessionId: 'session-1'
     })
     expect(executeCommand).toHaveBeenNthCalledWith(3, {
+      type: 'session.setFocusedPane',
+      sessionId: 'session-1',
+      paneId: 'pane-1'
+    })
+    expect(executeCommand).toHaveBeenNthCalledWith(4, {
       type: 'paneGroup.update',
       paneGroupId: 'group-1',
       input: { activeChildId: 'pane-1', preferredSizePct: 80 }
     })
-    expect(executeCommand).toHaveBeenNthCalledWith(4, {
+    expect(executeCommand).toHaveBeenNthCalledWith(5, {
       type: 'pane.split',
       paneId: 'pane-1',
       direction: 'horizontal'
     })
-    expect(executeCommand).toHaveBeenNthCalledWith(5, {
+    expect(executeCommand).toHaveBeenNthCalledWith(6, {
       type: 'project.create',
       input: { name: 'Two', folder: '/tmp/two' }
     })

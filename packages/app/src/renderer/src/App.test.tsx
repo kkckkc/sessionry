@@ -203,6 +203,7 @@ describe('App', () => {
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
       readDirectory: vi.fn(async () => []),
+      readFile: vi.fn(),
       getPluginModel: vi.fn(async () => pluginModel),
       getUserPluginRenderers: vi.fn(async () => []),
       actions: {
@@ -246,6 +247,7 @@ describe('App', () => {
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
       readDirectory: vi.fn(async () => []),
+      readFile: vi.fn(),
       getPluginModel: vi.fn(async (): Promise<PluginViewModel> => ({
         ...pluginModel,
         viewsBySlot: {
@@ -291,7 +293,7 @@ describe('App', () => {
     expect(executeCommand).toHaveBeenCalledWith({ type: 'session.activate', sessionId: 'session-1' })
   })
 
-  it('runs toolbar actions through the action bridge and shows the argument collector when needed', async () => {
+  it('runs toolbar actions through the action bridge', async () => {
     window.terminalApp = {
       showFolderDialog: vi.fn(),
       getPathForDroppedFile: vi.fn(),
@@ -300,6 +302,7 @@ describe('App', () => {
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
       readDirectory: vi.fn(async () => []),
+      readFile: vi.fn(),
       getPluginModel: vi.fn(
         async (): Promise<PluginViewModel> => ({
           ...pluginModel,
@@ -387,17 +390,10 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create Session' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument()
-    })
-
-    fireEvent.change(screen.getByLabelText('Session name'), { target: { value: 'Focus' } })
-    fireEvent.submit(screen.getByRole('button', { name: 'Run' }).closest('form') as HTMLFormElement)
-
-    await waitFor(() => {
-      expect(window.terminalApp.actions.execute).toHaveBeenLastCalledWith({
+      expect(window.terminalApp.actions.execute).toHaveBeenCalledWith({
         actionId: 'session:create',
         source: 'toolbar',
-        args: { projectId: 'project-1', name: 'Focus' }
+        args: undefined
       })
     })
   })
