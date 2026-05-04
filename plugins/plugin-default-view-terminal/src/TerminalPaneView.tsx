@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import type { DragEvent } from 'react'
 import type { ITheme } from '@xterm/xterm'
 
 const MIN_COLS = 55
@@ -192,6 +193,35 @@ export const TerminalPaneView = ({
   const sessionFolderRef = useRef(sessionFolder)
   sessionFolderRef.current = sessionFolder
 
+  const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+  }, [])
+
+  const handleDrop = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    const droppedFiles = Array.from(event.dataTransfer.files)
+    const formattedFilePaths = droppedFiles.length > 0
+      ? droppedFiles
+          .map((file) => window.terminalApp.getPathForDroppedFile(file))
+          .filter(Boolean)
+          .map((filePath) =>
+            window.terminalApp.formatPathForTerminal(filePath, sessionFolderRef.current)
+          )
+      : []
+    const dragText = droppedFiles.length === 0 ? event.dataTransfer.getData('text/plain') : ''
+    const input = formattedFilePaths.join(' ') || dragText
+
+    if (!input) return
+
+    terminalRef.current?.focus()
+    window.terminalApp.sendTerminalInput({
+      sessionId: pane.id,
+      data: input
+    })
+  }, [pane.id])
+
   useEffect(() => {
     if (!containerRef.current || terminalRef.current) return
 
@@ -340,7 +370,7 @@ export const TerminalPaneView = ({
   }, [pane.id, visible])
 
   return (
-    <div className="terminal-surface">
+    <div className="terminal-surface" onDragOver={handleDragOver} onDrop={handleDrop}>
       <div ref={containerRef} className="terminal-container" />
     </div>
   )

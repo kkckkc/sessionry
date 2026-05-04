@@ -197,6 +197,8 @@ describe('App', () => {
     settings.onChange.mockClear()
     window.terminalApp = {
       showFolderDialog: vi.fn(),
+      getPathForDroppedFile: vi.fn(),
+      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
       createTerminalSession: vi.fn(async () => terminalSession),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
@@ -238,6 +240,8 @@ describe('App', () => {
 
     window.terminalApp = {
       showFolderDialog: vi.fn(),
+      getPathForDroppedFile: vi.fn(),
+      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
       createTerminalSession: vi.fn(async () => terminalSession),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
@@ -289,6 +293,9 @@ describe('App', () => {
 
   it('runs toolbar actions through the action bridge and shows the argument collector when needed', async () => {
     window.terminalApp = {
+      showFolderDialog: vi.fn(),
+      getPathForDroppedFile: vi.fn(),
+      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
       createTerminalSession: vi.fn(async () => terminalSession),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
@@ -366,8 +373,7 @@ describe('App', () => {
       settings,
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
-      onTerminalExit: vi.fn(() => () => {}),
-      showFolderDialog: vi.fn()
+      onTerminalExit: vi.fn(() => () => {})
     }
 
     const { App } = await import('./App')

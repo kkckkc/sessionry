@@ -33,6 +33,8 @@ describe('SettingsView', () => {
 
     window.terminalApp = {
       showFolderDialog: vi.fn(),
+      getPathForDroppedFile: vi.fn(),
+      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
       createTerminalSession: vi.fn(),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),

@@ -1,4 +1,4 @@
-import { act, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PaneViewProps, TerminalSessionInfo, WorkspaceApi } from '@sessionry/plugin-api'
@@ -8,6 +8,7 @@ const clearMock = vi.fn()
 const writeMock = vi.fn()
 const disposeMock = vi.fn()
 const refreshMock = vi.fn()
+const focusMock = vi.fn()
 const terminalInstances: Array<{ options: { theme?: unknown } }> = []
 const mutationObserverInstances: MutationObserverMock[] = []
 
@@ -30,6 +31,7 @@ vi.mock('@xterm/xterm', () => ({
     open = vi.fn()
     write = writeMock
     clear = clearMock
+    focus = focusMock
     dispose = disposeMock
     refresh = refreshMock
     resize = vi.fn()
@@ -136,6 +138,7 @@ describe('TerminalPaneView', () => {
     writeMock.mockClear()
     disposeMock.mockClear()
     refreshMock.mockClear()
+    focusMock.mockClear()
     terminalInstances.length = 0
     mutationObserverInstances.length = 0
     vi.stubGlobal('ResizeObserver', ResizeObserverMock)
@@ -148,6 +151,14 @@ describe('TerminalPaneView', () => {
     document.documentElement.style.setProperty('--term-blue', '#7ab0ff')
     window.terminalApp = {
       showFolderDialog: vi.fn(),
+      readDirectory: vi.fn(),
+      getPathForDroppedFile: vi.fn((file: File) => `/tmp/${file.name}`),
+      formatPathForTerminal: vi.fn((targetPath: string, sessionRoot?: string) => {
+        if (!sessionRoot) return targetPath
+        return targetPath.startsWith(`${sessionRoot}/`)
+          ? targetPath.slice(sessionRoot.length + 1)
+          : targetPath
+      }),
       createTerminalSession: vi.fn().mockResolvedValue(makeSession('hello')),
       sendTerminalInput: vi.fn(),
       resizeTerminal: vi.fn(),
@@ -248,6 +259,85 @@ describe('TerminalPaneView', () => {
     onTerminalDataCallbacks[0]?.({ sessionId: 'other-pane', data: 'noise' })
 
     expect(writeMock).not.toHaveBeenCalled()
+  })
+
+  it('sends internal dragged text to the terminal input without executing it', async () => {
+    const { container } = render(<TerminalPaneView {...baseProps} visible />)
+    await act(async () => {})
+
+    const surface = container.querySelector('.terminal-surface')
+    expect(surface).not.toBeNull()
+
+    const dataTransfer = {
+      dropEffect: 'none',
+      files: [],
+      getData: vi.fn((type: string) => (type === 'text/plain' ? "'src/My File.ts'" : ''))
+    }
+
+    fireEvent.dragOver(surface!, { dataTransfer })
+    expect(dataTransfer.dropEffect).toBe('copy')
+
+    fireEvent.drop(surface!, { dataTransfer })
+
+    expect(focusMock).toHaveBeenCalled()
+    expect(window.terminalApp.sendTerminalInput).toHaveBeenCalledWith({
+      sessionId: 'pane-terminal',
+      data: "'src/My File.ts'"
+    })
+    expect(window.terminalApp.getPathForDroppedFile).not.toHaveBeenCalled()
+  })
+
+  it('formats external dropped files relative to the session root before sending them to the terminal', async () => {
+    const { container } = render(<TerminalPaneView {...baseProps} visible />)
+    await act(async () => {})
+
+    const surface = container.querySelector('.terminal-surface')
+    expect(surface).not.toBeNull()
+
+    const files = [new File(['alpha'], 'My File.txt'), new File(['beta'], 'Outside.txt')]
+    window.terminalApp.getPathForDroppedFile = vi
+      .fn()
+      .mockReturnValueOnce('/tmp/project/My File.txt')
+      .mockReturnValueOnce('/tmp/Outside.txt')
+    window.terminalApp.formatPathForTerminal = vi
+      .fn()
+      .mockReturnValueOnce("'My File.txt'")
+      .mockReturnValueOnce("'/tmp/Outside.txt'")
+
+    fireEvent.drop(surface!, {
+      dataTransfer: {
+        files,
+        getData: vi.fn(() => '')
+      }
+    })
+
+    expect(window.terminalApp.getPathForDroppedFile).toHaveBeenNthCalledWith(1, files[0])
+    expect(window.terminalApp.getPathForDroppedFile).toHaveBeenNthCalledWith(2, files[1])
+    expect(window.terminalApp.formatPathForTerminal).toHaveBeenNthCalledWith(1, '/tmp/project/My File.txt', '/tmp/project')
+    expect(window.terminalApp.formatPathForTerminal).toHaveBeenNthCalledWith(2, '/tmp/Outside.txt', '/tmp/project')
+    expect(window.terminalApp.sendTerminalInput).toHaveBeenCalledWith({
+      sessionId: 'pane-terminal',
+      data: "'My File.txt' '/tmp/Outside.txt'"
+    })
+  })
+
+  it('ignores drops that do not produce any text input', async () => {
+    const { container } = render(<TerminalPaneView {...baseProps} visible />)
+    await act(async () => {})
+
+    const surface = container.querySelector('.terminal-surface')
+    expect(surface).not.toBeNull()
+
+    window.terminalApp.getPathForDroppedFile = vi.fn(() => '')
+
+    fireEvent.drop(surface!, {
+      dataTransfer: {
+        files: [new File(['alpha'], 'ignored.txt')],
+        getData: vi.fn(() => '')
+      }
+    })
+
+    expect(window.terminalApp.sendTerminalInput).not.toHaveBeenCalled()
   })
 
   it('updates the mounted terminal theme when the app theme class changes', async () => {
