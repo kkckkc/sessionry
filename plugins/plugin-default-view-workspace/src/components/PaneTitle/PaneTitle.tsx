@@ -17,6 +17,10 @@ export interface PaneTitleProps {
    * Optional click handler for the title area
    */
   onClick?: () => void
+  /**
+   * Whether the pane has unsaved changes
+   */
+  isDirty?: boolean
 }
 
 /**
@@ -38,7 +42,7 @@ export interface PaneTitleProps {
  * />
  * ```
  */
-export const PaneTitle = ({ title, actions, className = '', onClick }: PaneTitleProps) => {
+export const PaneTitle = ({ title, actions, className = '', onClick, isDirty = false }: PaneTitleProps) => {
   const handleClick = (e: React.MouseEvent) => {
     // Only trigger onClick if clicking the title area, not the actions
     if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('pane-title-text')) {
@@ -48,7 +52,12 @@ export const PaneTitle = ({ title, actions, className = '', onClick }: PaneTitle
   
   return (
     <header className={`pane-title ${className}`.trim()} onClick={handleClick}>
-      {title && <span className="pane-title-text">{title}</span>}
+      {title && (
+        <span className="pane-title-text">
+          {isDirty && <span className="pane-title-dirty-indicator" aria-label="Unsaved changes" />}
+          {title}
+        </span>
+      )}
       {actions && <div className="pane-title-actions" onClick={(e) => e.stopPropagation()}>{actions}</div>}
     </header>
   )

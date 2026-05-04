@@ -15,6 +15,9 @@
 }
 
 .pane-title-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: var(--body-font-size);
   font-weight: var(--caption-font-weight);
   color: var(--text-muted);
@@ -22,6 +25,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   transition: color 120ms ease;
+}
+
+.pane-title-dirty-indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
 }
 
 .pane:focus-within .pane-title-text {

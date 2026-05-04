@@ -110,8 +110,9 @@ type CodePaneEditorHost = HTMLDivElement & {
   __codePaneSave?: () => Promise<void>
 }
 
-const CodePaneView = ({ pane, onRegisterFocusHandler }: PaneViewProps) => {
+const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps) => {
   const filePath = typeof pane.state.filePath === 'string' ? pane.state.filePath : ''
+  const paneIdRef = useRef(pane.id)
   const editorRootRef = useRef<CodePaneEditorHost | null>(null)
   const editorViewRef = useRef<EditorView | null>(null)
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null)
@@ -123,8 +124,9 @@ const CodePaneView = ({ pane, onRegisterFocusHandler }: PaneViewProps) => {
   const [content, setContent] = useState<string>('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [isSaving, setIsSaving] = useState(false)
-  const [isDirty, setIsDirty] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  
+  paneIdRef.current = pane.id
 
   const languageExtension = useMemo(() => {
     const extension = getFileExtension(filePath)
@@ -162,13 +164,19 @@ const CodePaneView = ({ pane, onRegisterFocusHandler }: PaneViewProps) => {
       await window.terminalApp.writeFile(filePath, nextContent)
       savedContentRef.current = nextContent
       const currentContent = editorViewRef.current.state.doc.toString()
-      setIsDirty(currentContent !== savedContentRef.current)
+      const isDirtyNow = currentContent !== savedContentRef.current
+      // Update pane state with dirty status
+      const paneHandle = workspace.getPane(paneIdRef.current)
+      const currentState = paneHandle?.data.state
+      if (currentState && currentState.isDirty !== isDirtyNow) {
+        await paneHandle?.update({ state: { ...currentState, isDirty: isDirtyNow } })
+      }
     } catch (error: unknown) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to save this file.')
     } finally {
       setIsSaving(false)
     }
-  }, [filePath, isSaving, status])
+  }, [filePath, isSaving, status, workspace])
 
   saveHandlerRef.current = handleSave
 
@@ -178,14 +186,12 @@ const CodePaneView = ({ pane, onRegisterFocusHandler }: PaneViewProps) => {
       setErrorMessage('This code pane is missing a file path.')
       setContent('')
       savedContentRef.current = ''
-      setIsDirty(false)
       return
     }
 
     let cancelled = false
     setStatus('loading')
     setErrorMessage(null)
-    setIsDirty(false)
 
     void window.terminalApp.readFile(filePath).then((nextContent) => {
       if (cancelled) return
@@ -222,7 +228,13 @@ const CodePaneView = ({ pane, onRegisterFocusHandler }: PaneViewProps) => {
     const updateListener = EditorView.updateListener.of((update) => {
       if (!update.docChanged) return
       setErrorMessage(null)
-      setIsDirty(update.state.doc.toString() !== savedContentRef.current)
+      const isDirtyNow = update.state.doc.toString() !== savedContentRef.current
+      // Update pane state with dirty status (debounced to avoid excessive updates)
+      const paneHandle = workspace.getPane(paneIdRef.current)
+      const currentState = paneHandle?.data.state
+      if (currentState && currentState.isDirty !== isDirtyNow) {
+        void paneHandle?.update({ state: { ...currentState, isDirty: isDirtyNow } })
+      }
     })
 
     // Store extensions in refs so they're accessible in applyEditorTheme
@@ -354,9 +366,6 @@ const CodePaneView = ({ pane, onRegisterFocusHandler }: PaneViewProps) => {
       : null,
     errorMessage
       ? React.createElement('div', { className: 'code-pane-status is-error' }, errorMessage)
-      : null,
-    status === 'ready' && isDirty && !isSaving && !errorMessage
-      ? React.createElement('div', { className: 'code-pane-status' }, 'Unsaved changes')
       : null,
     status === 'ready'
       ? React.createElement('div', { className: 'code-pane-editor', ref: editorRootRef })

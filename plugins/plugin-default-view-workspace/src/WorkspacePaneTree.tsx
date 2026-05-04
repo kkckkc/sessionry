@@ -529,6 +529,7 @@ export const WorkspacePaneTree = ({
         ) : null}
         <PaneTitle
           title={title}
+          isDirty={pane.state.isDirty === true}
           onClick={handleTitleClick}
           actions={
             child ? (
