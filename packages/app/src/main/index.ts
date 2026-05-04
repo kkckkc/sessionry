@@ -14,6 +14,7 @@ import { createPluginManager } from './pluginManager'
 import { builtInPlugins } from './plugins'
 import { SettingsStore } from './settingsStore'
 import { loadUserPlugins } from './pluginLoader'
+import { registerThemeHandlers } from './ipc/themeHandlers'
 
 // Must be called before app.whenReady().
 protocol.registerSchemesAsPrivileged([
@@ -161,6 +162,9 @@ app.whenReady().then(async () => {
     settingsStore.update(updates)
     mainWindow?.webContents.send('settings:changed', settingsStore.read())
   })
+  
+  // Register theme IPC handlers
+  registerThemeHandlers()
 
   const createMenu = () => {
     const settings = settingsStore.read()

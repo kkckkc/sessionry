@@ -9,7 +9,7 @@ export type { AppSettings }
 const DEFAULTS: AppSettings = {
   version: 1,
   theme: 'system',
-  terminalTheme: 'default',
+  colorTheme: 'default',
   terminalBgOverride: false,
   terminalBgColor: '#000000',
   statusBarVisible: true,
@@ -50,6 +50,14 @@ export class SettingsStore {
   private load(): AppSettings {
     try {
       const raw = parseYaml(fs.readFileSync(this.filePath, 'utf8')) as Record<string, unknown>
+      
+      // Migration: convert old terminalTheme to colorTheme
+      if ('terminalTheme' in raw && !('colorTheme' in raw)) {
+        raw.colorTheme = raw.terminalTheme
+        delete raw.terminalTheme
+        console.log('[SettingsStore] Migrated terminalTheme to colorTheme')
+      }
+      
       return {
         ...DEFAULTS,
         ...raw,

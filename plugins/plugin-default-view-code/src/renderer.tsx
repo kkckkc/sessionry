@@ -1,4 +1,4 @@
-import { EditorState } from '@codemirror/state'
+import { EditorState, type Extension, Compartment } from '@codemirror/state'
 import { css } from '@codemirror/lang-css'
 import { html } from '@codemirror/lang-html'
 import { javascript } from '@codemirror/lang-javascript'
@@ -6,10 +6,12 @@ import { json } from '@codemirror/lang-json'
 import { markdown } from '@codemirror/lang-markdown'
 import { yaml } from '@codemirror/lang-yaml'
 import { EditorView, keymap } from '@codemirror/view'
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
+import { tags as t } from '@lezer/highlight'
 import { basicSetup } from 'codemirror'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import type { PaneViewProps, RendererAppPlugin } from '@sessionry/plugin-api'
+import type { PaneViewProps, RendererAppPlugin, ThemeDefinition } from '@sessionry/plugin-api'
 
 import { codePanePlugin } from '.'
 import './styles.css'
@@ -31,6 +33,78 @@ const getFileExtension = (filePath: string): string => {
   return dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : ''
 }
 
+/**
+ * Creates syntax highlighting theme using theme's semantic token colors.
+ * No more manual mapping from ANSI colors - themes define semantic tokens directly.
+ */
+const getSyntaxHighlighting = (theme: ThemeDefinition): Extension => {
+  const { syntax } = theme
+  
+  return syntaxHighlighting(
+    HighlightStyle.define([
+      { tag: t.keyword, color: syntax.keyword },
+      { tag: [t.function(t.variableName), t.labelName], color: syntax.function },
+      { tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName], color: syntax.variable },
+      { tag: [t.typeName, t.className, t.namespace], color: syntax.type },
+      { tag: [t.color, t.constant(t.name), t.standard(t.name)], color: syntax.constant },
+      { tag: [t.processingInstruction, t.string, t.inserted], color: syntax.string },
+      { tag: [t.number, t.changed, t.annotation, t.modifier, t.self], color: syntax.number },
+      { tag: [t.meta, t.comment], color: syntax.comment, fontStyle: 'italic' },
+      { tag: [t.operator, t.operatorKeyword], color: syntax.operator },
+      { tag: [t.definition(t.name), t.separator], color: syntax.punctuation },
+      { tag: [t.url, t.escape, t.regexp, t.special(t.string)], color: syntax.escape },
+      { tag: t.link, color: syntax.link, textDecoration: 'underline' },
+      { tag: t.heading, fontWeight: 'bold', color: syntax.heading },
+      { tag: [t.atom, t.bool, t.special(t.variableName)], color: syntax.constant },
+      { tag: t.strong, fontWeight: 'bold', color: syntax.strong },
+      { tag: t.emphasis, fontStyle: 'italic', color: syntax.emphasis },
+      { tag: t.strikethrough, textDecoration: 'line-through' },
+      { tag: t.invalid, color: syntax.invalid }
+    ])
+  )
+}
+
+// TERMINAL_THEMES removed - now fetched from theme registry via IPC
+
+/**
+ * Creates editor theme using theme's ANSI colors for UI elements.
+ */
+const getEditorTheme = (theme: ThemeDefinition, bgOverride?: string): Extension => {
+  const { ansi } = theme
+  const backgroundColor = bgOverride || ansi.background
+  const foregroundColor = ansi.foreground
+  const cursorColor = ansi.cursor
+  const selectionColor = ansi.selectionBackground
+  
+  return EditorView.theme({
+    '&': {
+      backgroundColor,
+      color: foregroundColor,
+      fontFamily: '"BerkeleyMono Nerd Font Mono Plus Font Awesome Plus Octicons Plus Power Symbols Plus Codicons Plus Pomicons Plus Font Logos Plus Material Design Icons Plus Weather Icons", "SF Mono", "JetBrains Mono", ui-monospace, monospace',
+      fontSize: '11px'
+    },
+    '.cm-content': {
+      caretColor: cursorColor
+    },
+    '.cm-cursor, .cm-dropCursor': {
+      borderLeftColor: cursorColor
+    },
+    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+      backgroundColor: selectionColor
+    },
+    '.cm-activeLine': {
+      backgroundColor: `${ansi.brightBlack}40` // Add alpha
+    },
+    '.cm-gutters': {
+      backgroundColor: `${ansi.black}80`,
+      borderRight: `1px solid ${ansi.brightBlack}`
+    },
+    '.cm-activeLineGutter': {
+      backgroundColor: `${ansi.brightBlack}40`
+    }
+  }, { dark: true })
+}
+
 type CodePaneEditorHost = HTMLDivElement & {
   __codePaneEditorView?: EditorView
   __codePaneSave?: () => Promise<void>
@@ -42,6 +116,10 @@ const CodePaneView = ({ pane, onRegisterFocusHandler }: PaneViewProps) => {
   const editorViewRef = useRef<EditorView | null>(null)
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null)
   const savedContentRef = useRef<string>('')
+  const themeCompartmentRef = useRef<Compartment>(new Compartment())
+  const syntaxCompartmentRef = useRef<Compartment>(new Compartment())
+  const saveKeymapRef = useRef<Extension | null>(null)
+  const updateListenerRef = useRef<Extension | null>(null)
   const [content, setContent] = useState<string>('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [isSaving, setIsSaving] = useState(false)
@@ -147,41 +225,123 @@ const CodePaneView = ({ pane, onRegisterFocusHandler }: PaneViewProps) => {
       setIsDirty(update.state.doc.toString() !== savedContentRef.current)
     })
 
-    const state = EditorState.create({
-      doc: content,
-      extensions: [
-        basicSetup,
-        EditorView.lineWrapping,
-        saveKeymap,
-        updateListener,
-        ...(languageExtension ? [languageExtension] : [])
-      ]
-    })
+    // Store extensions in refs so they're accessible in applyEditorTheme
+    saveKeymapRef.current = saveKeymap
+    updateListenerRef.current = updateListener
 
-    const view = new EditorView({
-      state,
-      parent: editorRootRef.current
-    })
+    const applyEditorTheme = async () => {
+      if (!editorViewRef.current) return
+      
+      const themeId = document.documentElement.getAttribute('data-theme') || 'default'
+      const theme = await window.terminalApp.themes.getTheme(themeId)
+      
+      if (!theme) {
+        console.warn(`[CodeEditor] Theme "${themeId}" not found`)
+        return
+      }
+      
+      console.log('[CodeEditor] Applying theme:', themeId)
+      
+      const bgOverride = getComputedStyle(document.documentElement)
+        .getPropertyValue('--terminal-surface-bg').trim()
+      
+      const newTheme = getEditorTheme(theme, bgOverride)
+      const newSyntaxTheme = getSyntaxHighlighting(theme)
+      
+      try {
+        editorViewRef.current.dispatch({
+          effects: [
+            themeCompartmentRef.current.reconfigure(newTheme),
+            syntaxCompartmentRef.current.reconfigure(newSyntaxTheme)
+          ]
+        })
+        console.log('[CodeEditor] Theme applied successfully')
+      } catch (error) {
+        console.error('[CodeEditor] Error applying theme:', error)
+      }
+    }
 
-    editorViewRef.current = view
-    editorRootRef.current.__codePaneEditorView = view
-    editorRootRef.current.__codePaneSave = () => handleSave()
-    onRegisterFocusHandler?.(() => view.focus())
+    const initializeEditor = async () => {
+      // Load theme before creating editor
+      const themeId = document.documentElement.getAttribute('data-theme') || 'default'
+      const theme = await window.terminalApp.themes.getTheme(themeId)
+      
+      if (!theme) {
+        console.warn(`[CodeEditor] Theme "${themeId}" not found, using default`)
+      }
+      
+      const bgOverride = getComputedStyle(document.documentElement)
+        .getPropertyValue('--terminal-surface-bg').trim()
+      
+      const initialTheme = theme ? getEditorTheme(theme, bgOverride) : []
+      const initialSyntaxTheme = theme ? getSyntaxHighlighting(theme) : []
+
+      // Create editor with initial theme
+      const state = EditorState.create({
+        doc: content,
+        extensions: [
+          basicSetup,
+          EditorView.lineWrapping,
+          themeCompartmentRef.current.of(initialTheme),
+          syntaxCompartmentRef.current.of(initialSyntaxTheme),
+          saveKeymap,
+          updateListener,
+          ...(languageExtension ? [languageExtension] : [])
+        ]
+      })
+
+      const view = new EditorView({
+        state,
+        parent: editorRootRef.current!
+      })
+
+      editorViewRef.current = view
+      editorRootRef.current!.__codePaneEditorView = view
+      editorRootRef.current!.__codePaneSave = () => handleSave()
+      onRegisterFocusHandler?.(() => view.focus())
+
+      // Set up theme observer after editor is created
+      const themeObserver = new MutationObserver((mutations) => {
+        const relevantMutation = mutations.some((mutation) => 
+          mutation.attributeName === 'class' || 
+          mutation.attributeName === 'data-theme'
+        )
+        if (relevantMutation) {
+          console.log('[CodeEditor] Theme change detected, applying new theme...')
+          void applyEditorTheme()
+        }
+      })
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'data-theme']
+      })
+
+      return { view, themeObserver }
+    }
+
+    let cleanup: { view: EditorView; themeObserver: MutationObserver } | null = null
+    
+    void initializeEditor().then((result) => {
+      cleanup = result
+    })
 
     return () => {
-      onRegisterFocusHandler?.(() => {})
-      if (editorRootRef.current?.__codePaneEditorView === view) {
-        delete editorRootRef.current.__codePaneEditorView
+      if (cleanup) {
+        cleanup.themeObserver.disconnect()
+        onRegisterFocusHandler?.(() => {})
+        if (editorRootRef.current?.__codePaneEditorView === cleanup.view) {
+          delete editorRootRef.current.__codePaneEditorView
+        }
+        if (editorRootRef.current?.__codePaneSave) {
+          delete editorRootRef.current.__codePaneSave
+        }
+        if (editorViewRef.current === cleanup.view) {
+          editorViewRef.current = null
+        }
+        cleanup.view.destroy()
       }
-      if (editorRootRef.current?.__codePaneSave) {
-        delete editorRootRef.current.__codePaneSave
-      }
-      if (editorViewRef.current === view) {
-        editorViewRef.current = null
-      }
-      view.destroy()
     }
-  }, [content, languageExtension, onRegisterFocusHandler, status])
+  }, [content, languageExtension, onRegisterFocusHandler, status, handleSave])
 
   return React.createElement(
     'section',

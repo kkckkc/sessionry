@@ -6,7 +6,7 @@
   width: 100%;
   height: 100%;
   padding: 0.5rem;
-  background: var(--terminal-surface-bg, var(--workspace-bg));
+  background: var(--term-bg, var(--workspace-bg));
   overflow: hidden;
 
   .terminal-container {

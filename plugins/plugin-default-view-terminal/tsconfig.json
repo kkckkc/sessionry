@@ -13,6 +13,7 @@
     "test/**/*.ts",
     "test/**/*.tsx",
     "vitest.config.ts",
-    "../../packages/components/src/css.d.ts"
+    "../../packages/components/src/css.d.ts",
+    "../../packages/app/src/preload/bridge.d.ts"
   ]
 }

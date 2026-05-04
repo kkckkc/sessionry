@@ -1,0 +1,65 @@
+import type {
+  ActionDescriptor,
+  ActionExecutionRequest,
+  ActionExecutionResult,
+  AppSettings,
+  ThemeDefinition,
+  WorkspaceEvent,
+  WorkspaceCommand,
+  WorkspaceCommandResult,
+  WorkspaceStateSnapshot,
+  PluginViewModel,
+  UserPluginRendererInfo,
+  CreateTerminalSessionInput,
+  TerminalDataEvent,
+  TerminalExitEvent,
+  TerminalInputPayload,
+  TerminalResizePayload,
+  TerminalSessionInfo,
+  TerminalStateEvent
+} from '@sessionry/plugin-api'
+
+type Unsubscribe = () => void
+
+export interface TerminalAppBridge {
+  createTerminalSession: (input: CreateTerminalSessionInput) => Promise<TerminalSessionInfo>
+  sendTerminalInput: (payload: TerminalInputPayload) => void
+  resizeTerminal: (payload: TerminalResizePayload) => void
+  getPluginModel: () => Promise<PluginViewModel>
+  getUserPluginRenderers: () => Promise<UserPluginRendererInfo[]>
+  actions: {
+    list: () => Promise<ActionDescriptor[]>
+    execute: (request: ActionExecutionRequest) => Promise<ActionExecutionResult>
+  }
+  workspace: {
+    read: () => WorkspaceStateSnapshot
+    executeCommand: (command: WorkspaceCommand) => Promise<WorkspaceCommandResult>
+    onEvent: (listener: (event: WorkspaceEvent) => void) => Unsubscribe
+  }
+  showFolderDialog: () => Promise<{ canceled: boolean; filePaths: string[] }>
+  readDirectory: (dirPath: string) => Promise<{ name: string; isDirectory: boolean }[]>
+  readFile: (filePath: string) => Promise<string>
+  writeFile: (filePath: string, content: string) => Promise<void>
+  getPathForDroppedFile: (file: File) => string
+  formatPathForTerminal: (targetPath: string, sessionRoot?: string) => string
+  settings: {
+    read: () => Promise<AppSettings>
+    readSync: () => AppSettings
+    update: (updates: Partial<AppSettings>) => Promise<void>
+    onChange: (listener: (settings: AppSettings) => void) => Unsubscribe
+  }
+  themes: {
+    getTheme: (themeId: string) => Promise<ThemeDefinition | undefined>
+    getAllThemes: () => Promise<ThemeDefinition[]>
+    getThemeIds: () => Promise<string[]>
+  }
+  onTerminalData: (listener: (event: TerminalDataEvent) => void) => Unsubscribe
+  onTerminalState: (listener: (event: TerminalStateEvent) => void) => Unsubscribe
+  onTerminalExit: (listener: (event: TerminalExitEvent) => void) => Unsubscribe
+}
+
+declare global {
+  interface Window {
+    terminalApp: TerminalAppBridge
+  }
+}

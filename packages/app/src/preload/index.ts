@@ -8,6 +8,7 @@ import type {
   ActionExecutionRequest,
   ActionExecutionResult,
   AppSettings,
+  ThemeDefinition,
   WorkspaceEvent,
   WorkspaceCommand,
   WorkspaceCommandResult,
@@ -91,6 +92,14 @@ const api = {
       ipcRenderer.on('settings:changed', wrapped)
       return () => ipcRenderer.removeListener('settings:changed', wrapped)
     }
+  },
+  themes: {
+    getTheme: (themeId: string): Promise<ThemeDefinition | undefined> =>
+      ipcRenderer.invoke('themes:get', themeId),
+    getAllThemes: (): Promise<ThemeDefinition[]> =>
+      ipcRenderer.invoke('themes:getAll'),
+    getThemeIds: (): Promise<string[]> =>
+      ipcRenderer.invoke('themes:getIds')
   },
   onTerminalData: (listener: (event: TerminalDataEvent) => void): Unsubscribe => {
     const wrapped = (_event: Electron.IpcRendererEvent, payload: TerminalDataEvent) => listener(payload)

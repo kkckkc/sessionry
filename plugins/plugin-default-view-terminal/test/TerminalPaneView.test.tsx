@@ -180,6 +180,11 @@ describe('TerminalPaneView', () => {
         update: vi.fn(),
         onChange: vi.fn(() => () => {})
       },
+      themes: {
+        getTheme: vi.fn(),
+        getAllThemes: vi.fn(),
+        getThemeIds: vi.fn()
+      },
       onTerminalData: vi.fn((callback) => {
         onTerminalDataCallbacks.push(callback)
         return () => {}

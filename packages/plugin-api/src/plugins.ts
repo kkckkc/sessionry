@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 
 import type { ActionContribution, ActionDescriptor } from './actions'
 import type { AppSettings } from './settings'
+import type { ThemeDefinition } from './themes'
 import type { Pane, WorkspaceApi } from './workspace'
 
 export type SidebarSide = 'left' | 'right'
@@ -91,6 +92,7 @@ export interface AppPlugin {
   statusItems?: StatusItemContribution[]
   views?: PluginViewDefinition[]
   settingsView?: PluginSettingsViewDefinition
+  themes?: ThemeDefinition[]
   activateMain?: (context: MainPluginContext) => void | Promise<void>
   activateRenderer?: (context: RendererPluginContext) => void | Promise<void>
 }

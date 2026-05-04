@@ -9,129 +9,11 @@ import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { Terminal } from '@xterm/xterm'
 
-import type { PaneViewProps, TerminalThemeName } from '@sessionry/plugin-api'
+import type { PaneViewProps } from '@sessionry/plugin-api'
 
 import '@xterm/xterm/css/xterm.css'
 
-type TerminalPalette = Required<Pick<ITheme,
-  'background' | 'foreground' | 'cursor' | 'selectionBackground' |
-  'black' | 'brightBlack' | 'red' | 'brightRed' | 'green' | 'brightGreen' |
-  'yellow' | 'brightYellow' | 'blue' | 'brightBlue' | 'magenta' | 'brightMagenta' |
-  'cyan' | 'brightCyan' | 'white' | 'brightWhite'
->>
-
-const TERMINAL_THEMES: Record<TerminalThemeName, TerminalPalette> = {
-  default: {
-    background: '#0c0c0e',
-    foreground: '#d6e1ff',
-    cursor: '#ffcb6b',
-    selectionBackground: 'rgba(122, 176, 255, 0.24)',
-    black: '#2b3144',
-    brightBlack: '#66708f',
-    red: '#ff7b72',
-    brightRed: '#ffa198',
-    green: '#97e98b',
-    brightGreen: '#bef5b8',
-    yellow: '#ffd866',
-    brightYellow: '#ffe38f',
-    blue: '#7ab0ff',
-    brightBlue: '#a4c8ff',
-    magenta: '#d2a8ff',
-    brightMagenta: '#e4c7ff',
-    cyan: '#7ee7ff',
-    brightCyan: '#b4f2ff',
-    white: '#d6e1ff',
-    brightWhite: '#ffffff'
-  },
-  dracula: {
-    background: '#282a36',
-    foreground: '#f8f8f2',
-    cursor: '#f8f8f2',
-    selectionBackground: 'rgba(68, 71, 90, 0.7)',
-    black: '#21222c',
-    brightBlack: '#6272a4',
-    red: '#ff5555',
-    brightRed: '#ff6e6e',
-    green: '#50fa7b',
-    brightGreen: '#69ff94',
-    yellow: '#f1fa8c',
-    brightYellow: '#ffffa5',
-    blue: '#bd93f9',
-    brightBlue: '#d6acff',
-    magenta: '#ff79c6',
-    brightMagenta: '#ff92df',
-    cyan: '#8be9fd',
-    brightCyan: '#a4ffff',
-    white: '#f8f8f2',
-    brightWhite: '#ffffff'
-  },
-  'one-dark': {
-    background: '#282c34',
-    foreground: '#abb2bf',
-    cursor: '#528bff',
-    selectionBackground: 'rgba(67, 74, 90, 0.7)',
-    black: '#3f4451',
-    brightBlack: '#4f5666',
-    red: '#e06c75',
-    brightRed: '#ff7b86',
-    green: '#98c379',
-    brightGreen: '#b1e18b',
-    yellow: '#e5c07b',
-    brightYellow: '#f0cc8e',
-    blue: '#61afef',
-    brightBlue: '#7ec4ff',
-    magenta: '#c678dd',
-    brightMagenta: '#de8ff0',
-    cyan: '#56b6c2',
-    brightCyan: '#6acfd6',
-    white: '#abb2bf',
-    brightWhite: '#c8cdd5'
-  },
-  'solarized-dark': {
-    background: '#002b36',
-    foreground: '#839496',
-    cursor: '#839496',
-    selectionBackground: 'rgba(7, 54, 66, 0.8)',
-    black: '#073642',
-    brightBlack: '#002b36',
-    red: '#dc322f',
-    brightRed: '#cb4b16',
-    green: '#859900',
-    brightGreen: '#586e75',
-    yellow: '#b58900',
-    brightYellow: '#657b83',
-    blue: '#268bd2',
-    brightBlue: '#839496',
-    magenta: '#d33682',
-    brightMagenta: '#6c71c4',
-    cyan: '#2aa198',
-    brightCyan: '#93a1a1',
-    white: '#eee8d5',
-    brightWhite: '#fdf6e3'
-  },
-  'github-dark': {
-    background: '#0d1117',
-    foreground: '#e6edf3',
-    cursor: '#e6edf3',
-    selectionBackground: 'rgba(33, 52, 71, 0.7)',
-    black: '#484f58',
-    brightBlack: '#6e7681',
-    red: '#ff7b72',
-    brightRed: '#ffa198',
-    green: '#3fb950',
-    brightGreen: '#56d364',
-    yellow: '#d29922',
-    brightYellow: '#e3b341',
-    blue: '#58a6ff',
-    brightBlue: '#79c0ff',
-    magenta: '#bc8cff',
-    brightMagenta: '#d2a8ff',
-    cyan: '#39c5cf',
-    brightCyan: '#56d4dd',
-    white: '#b1bac4',
-    brightWhite: '#e6edf3'
-  }
-}
+// TERMINAL_THEMES removed - now fetched from theme registry via IPC
 
 const terminalThemeVariables = {
   background: '--workspace-bg',
@@ -156,26 +38,40 @@ const terminalThemeVariables = {
   brightWhite: '--term-bright-white'
 }
 
-type ManagedTerminalTheme = typeof TERMINAL_THEMES.default
-
-const getTerminalTheme = (element: HTMLElement): ITheme => {
-  const namedTheme = document.documentElement.getAttribute('data-terminal-theme') as TerminalThemeName | null
-  let theme: ITheme
-  if (namedTheme && namedTheme !== 'default' && TERMINAL_THEMES[namedTheme]) {
-    theme = { ...TERMINAL_THEMES[namedTheme] }
-  } else {
-    const styles = getComputedStyle(element)
-    theme = Object.fromEntries(
-      Object.entries(terminalThemeVariables).map(([key, variable]) => {
-        const themeKey = key as keyof ManagedTerminalTheme
-        const value = styles.getPropertyValue(variable).trim()
-        return [key, value || TERMINAL_THEMES.default[themeKey]]
-      })
-    ) as ITheme
+/**
+ * Gets terminal theme from the theme registry.
+ * Falls back to CSS variables if theme not found.
+ */
+const getTerminalTheme = async (): Promise<ITheme> => {
+  const themeId = document.documentElement.getAttribute('data-theme') || 'default'
+  
+  // Fetch theme from registry
+  const theme = await window.terminalApp.themes.getTheme(themeId)
+  
+  if (theme) {
+    const xtermTheme: ITheme = { ...theme.ansi }
+    
+    // Apply background override if set
+    const bgOverride = getComputedStyle(document.documentElement)
+      .getPropertyValue('--terminal-surface-bg').trim()
+    if (bgOverride) {
+      xtermTheme.background = bgOverride
+    }
+    
+    return xtermTheme
   }
-  const bgOverride = getComputedStyle(document.documentElement).getPropertyValue('--terminal-surface-bg').trim()
-  if (bgOverride) theme = { ...theme, background: bgOverride }
-  return theme
+  
+  // Fallback to CSS variables if theme not found
+  console.warn(`[Terminal] Theme "${themeId}" not found, falling back to CSS variables`)
+  const styles = getComputedStyle(document.documentElement)
+  const fallbackTheme: ITheme = Object.fromEntries(
+    Object.entries(terminalThemeVariables).map(([key, variable]) => {
+      const value = styles.getPropertyValue(variable).trim()
+      return [key, value || '']
+    })
+  ) as ITheme
+  
+  return fallbackTheme
 }
 
 export const TerminalPaneView = ({
@@ -233,18 +129,26 @@ export const TerminalPaneView = ({
       fontFamily: '"BerkeleyMono Nerd Font Mono Plus Font Awesome Plus Octicons Plus Power Symbols Plus Codicons Plus Pomicons Plus Font Logos Plus Material Design Icons Plus Weather Icons", "SF Mono", "JetBrains Mono", ui-monospace, monospace',
       fontSize: 11,
       lineHeight: 1.15,
-      customGlyphs: true,
-      theme: getTerminalTheme(containerRef.current)
+      customGlyphs: true
     })
 
     terminal.loadAddon(fitAddon)
     terminal.open(containerRef.current)
     terminal.loadAddon(new WebglAddon())
-    const applyTerminalTheme = () => {
-      if (!containerRef.current) return
-      terminal.options.theme = getTerminalTheme(containerRef.current)
+    
+    const applyTerminalTheme = async () => {
+      const theme = await getTerminalTheme()
+      terminal.options.theme = theme
       terminal.refresh(0, terminal.rows - 1)
+      
+      // Update CSS custom property for terminal surface background
+      if (containerRef.current?.parentElement && theme.background) {
+        containerRef.current.parentElement.style.setProperty('--term-bg', theme.background)
+      }
     }
+    
+    // Apply initial theme
+    void applyTerminalTheme()
 
     const currentSession = pane.id
     const resizeTerminal = () => {
@@ -261,13 +165,13 @@ export const TerminalPaneView = ({
     const resizeObserver = new ResizeObserver(resizeTerminal)
     resizeObserver.observe(containerRef.current)
     const themeObserver = new MutationObserver((mutations) => {
-      if (mutations.some((mutation) => mutation.attributeName === 'class' || mutation.attributeName === 'data-terminal-theme')) {
-        applyTerminalTheme()
+      if (mutations.some((mutation) => mutation.attributeName === 'class' || mutation.attributeName === 'data-theme')) {
+        void applyTerminalTheme()
       }
     })
     themeObserver.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class', 'data-terminal-theme']
+      attributeFilter: ['class', 'data-theme']
     })
 
 

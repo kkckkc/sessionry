@@ -8,7 +8,7 @@ import { SettingsView } from './SettingsView'
 const initialSettings: AppSettings = {
   version: 1,
   theme: 'system',
-  terminalTheme: 'default',
+  colorTheme: 'default',
   terminalBgOverride: false,
   terminalBgColor: '#000000',
   statusBarVisible: true,

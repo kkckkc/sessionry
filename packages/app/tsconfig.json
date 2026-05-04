@@ -16,6 +16,7 @@
       "@sessionry/plugin-default-view-terminal": ["../../plugins/plugin-default-view-terminal/src/index.ts"],
       "@sessionry/plugin-default-view-workspace/renderer": ["../../plugins/plugin-default-view-workspace/src/renderer.tsx"],
       "@sessionry/plugin-default-view-workspace": ["../../plugins/plugin-default-view-workspace/src/index.ts"],
+      "@sessionry/plugin-default-themes": ["../../plugins/plugin-default-themes/src/index.ts"],
       "@app-shared/*": ["src/shared/*"],
       "@app-renderer/*": ["src/renderer/src/*"],
       "@sessionry/plugin-api": ["../plugin-api/src/index.ts"]

@@ -175,7 +175,7 @@ describe('App', () => {
     read: vi.fn(async () => ({
       version: 1 as const,
       theme: 'system' as const,
-      terminalTheme: 'default' as const,
+      colorTheme: 'default' as const,
       terminalBgOverride: false,
       terminalBgColor: '#000000',
       statusBarVisible: true,
@@ -217,6 +217,11 @@ describe('App', () => {
         onEvent: onWorkspaceEvent
       },
       settings,
+      themes: {
+        getTheme: vi.fn(),
+        getAllThemes: vi.fn(),
+        getThemeIds: vi.fn()
+      },
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
@@ -277,6 +282,11 @@ describe('App', () => {
         onEvent: onWorkspaceEvent
       },
       settings,
+      themes: {
+        getTheme: vi.fn(),
+        getAllThemes: vi.fn(),
+        getThemeIds: vi.fn()
+      },
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
@@ -377,6 +387,11 @@ describe('App', () => {
         onEvent: onWorkspaceEvent
       },
       settings,
+      themes: {
+        getTheme: vi.fn(),
+        getAllThemes: vi.fn(),
+        getThemeIds: vi.fn()
+      },
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})

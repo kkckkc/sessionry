@@ -13,10 +13,10 @@ import {
   SettingSelect,
   SettingColorInput
 } from '@sessionry/components'
-import type { AppSettings, AppTheme, TerminalThemeName } from '@sessionry/plugin-api'
+import type { AppSettings, AppTheme, ThemeId } from '@sessionry/plugin-api'
 import type { RendererViewRegistration } from '@sessionry/plugin-api'
 import { PluginSurface } from './PluginSurface'
-import { applyTheme, applyTerminalTheme } from '../lib/theme'
+import { applyTheme, applyColorTheme } from '../lib/theme'
 
 interface ConfirmationsSettings {
   confirmPaneClose: boolean
@@ -107,7 +107,7 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
       : selectedPlugin.id === 'app-appearance'
         ? {
             theme: settings.theme ?? 'system',
-            terminalTheme: settings.terminalTheme ?? 'default',
+            colorTheme: settings.colorTheme ?? 'default',
             terminalBgOverride: settings.terminalBgOverride ?? false,
             terminalBgColor: settings.terminalBgColor ?? '#000000'
           }
@@ -120,17 +120,17 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
     
     // Handle built-in appearance settings
     if (pluginId === 'app-appearance') {
-      const { theme, terminalTheme, terminalBgOverride, terminalBgColor } = updates as {
+      const { theme, colorTheme, terminalBgOverride, terminalBgColor } = updates as {
         theme: AppTheme
-        terminalTheme: TerminalThemeName
+        colorTheme: ThemeId
         terminalBgOverride: boolean
         terminalBgColor: string
       }
-      const nextSettings: AppSettings = { ...settings, theme, terminalTheme, terminalBgOverride, terminalBgColor }
+      const nextSettings: AppSettings = { ...settings, theme, colorTheme, terminalBgOverride, terminalBgColor }
       setSettings(nextSettings)
       applyTheme(theme)
-      applyTerminalTheme(terminalTheme, terminalBgOverride, terminalBgColor)
-      await window.terminalApp.settings.update({ theme, terminalTheme, terminalBgOverride, terminalBgColor })
+      applyColorTheme(colorTheme, terminalBgOverride, terminalBgColor)
+      await window.terminalApp.settings.update({ theme, colorTheme, terminalBgOverride, terminalBgColor })
       return
     }
 
@@ -221,7 +221,7 @@ const PluginSettingsContent = ({ plugin, settings, onUpdate, resolveRendererView
   if (plugin.id === 'app-appearance') {
     return (
       <PluginSurface pluginId={plugin.id} surface="settings" slot="settings" viewId={plugin.settingsView.id}>
-        <AppearanceSettingsView settings={settings as { theme: AppTheme; terminalTheme: TerminalThemeName; terminalBgOverride: boolean; terminalBgColor: string }} onUpdate={onUpdate} />
+        <AppearanceSettingsView settings={settings as { theme: AppTheme; colorTheme: ThemeId; terminalBgOverride: boolean; terminalBgColor: string }} onUpdate={onUpdate} />
       </PluginSurface>
     )
   }
@@ -260,7 +260,7 @@ const PluginSettingsContent = ({ plugin, settings, onUpdate, resolveRendererView
 }
 
 interface AppearanceSettingsViewProps {
-  settings: { theme: AppTheme; terminalTheme: TerminalThemeName; terminalBgOverride: boolean; terminalBgColor: string }
+  settings: { theme: AppTheme; colorTheme: ThemeId; terminalBgOverride: boolean; terminalBgColor: string }
   onUpdate: (updates: unknown) => Promise<void>
 }
 
@@ -270,48 +270,52 @@ const THEME_OPTIONS: { value: AppTheme; label: string }[] = [
   { value: 'light', label: 'Light' }
 ]
 
-const TERMINAL_THEME_OPTIONS: { value: TerminalThemeName; label: string }[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'dracula', label: 'Dracula' },
-  { value: 'one-dark', label: 'One Dark' },
-  { value: 'solarized-dark', label: 'Solarized Dark' },
-  { value: 'github-dark', label: 'GitHub Dark' }
-]
-
 const AppearanceSettingsView = ({ settings, onUpdate }: AppearanceSettingsViewProps) => {
+  const [colorThemeOptions, setColorThemeOptions] = useState<{ value: string; label: string }[]>([])
+  
   const theme = settings?.theme ?? 'system'
-  const terminalTheme = settings?.terminalTheme ?? 'default'
+  const colorTheme = settings?.colorTheme ?? 'default'
   const terminalBgOverride = settings?.terminalBgOverride ?? false
   const terminalBgColor = settings?.terminalBgColor ?? '#000000'
 
+  useEffect(() => {
+    void window.terminalApp.themes.getAllThemes().then((themes) => {
+      const options = themes.map((t) => ({
+        value: t.id,
+        label: t.name
+      }))
+      setColorThemeOptions(options)
+    })
+  }, [])
+
   const update = (partial: Partial<typeof settings>) =>
-    void onUpdate({ theme, terminalTheme, terminalBgOverride, terminalBgColor, ...partial })
+    void onUpdate({ theme, colorTheme, terminalBgOverride, terminalBgColor, ...partial })
 
   return (
     <div className="appearance-settings">
       <SettingsSection title="Theme">
         <SettingSelect
-          label="Color theme"
+          label="UI theme"
           options={THEME_OPTIONS}
           value={theme}
           onChange={(value) => update({ theme: value as AppTheme })}
         />
-      </SettingsSection>
-      <SettingsSection title="Terminal">
         <SettingSelect
-          label="Terminal color theme"
-          description="Color palette used for the terminal"
-          options={TERMINAL_THEME_OPTIONS}
-          value={terminalTheme}
-          onChange={(value) => update({ terminalTheme: value as TerminalThemeName })}
+          label="Color theme"
+          options={colorThemeOptions}
+          value={colorTheme}
+          onChange={(value) => update({ colorTheme: value })}
         />
+      </SettingsSection>
+      <SettingsSection title="Background Override">
         <SettingToggle
-          label="Override terminal background"
+          label="Override background color"
+          description="Use a custom background color instead of the theme's default"
           checked={terminalBgOverride}
           onChange={(checked) => update({ terminalBgOverride: checked })}
         />
         <SettingColorInput
-          label="Terminal background color"
+          label="Background color"
           value={terminalBgColor}
           onChange={(value) => update({ terminalBgColor: value })}
           disabled={!terminalBgOverride}

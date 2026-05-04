@@ -18,8 +18,10 @@
     "@codemirror/lang-json": "^6.0.2",
     "@codemirror/lang-markdown": "^6.3.4",
     "@codemirror/lang-yaml": "^6.1.2",
+    "@codemirror/language": "^6.10.6",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.6",
+    "@lezer/highlight": "^1.2.1",
     "@sessionry/plugin-api": "workspace:*",
     "codemirror": "^6.0.2",
     "react": "19.2.5"

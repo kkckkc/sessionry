@@ -1,6 +1,7 @@
 import type { ActionDescriptor, ActionExecutionRequest, ActionExecutionResult } from './actions'
 import type { PluginViewModel } from './plugins'
 import type { AppSettings } from './settings'
+import type { ThemeDefinition } from './themes'
 import type {
   WorkspaceCommand,
   WorkspaceCommandResult,
@@ -47,6 +48,11 @@ export interface TerminalAppBridge {
     read: () => Promise<AppSettings>
     update: (updates: Partial<AppSettings>) => Promise<void>
     onChange: (listener: (settings: AppSettings) => void) => () => void
+  }
+  themes: {
+    getTheme: (themeId: string) => Promise<ThemeDefinition | undefined>
+    getAllThemes: () => Promise<ThemeDefinition[]>
+    getThemeIds: () => Promise<string[]>
   }
   onTerminalData: (listener: (event: TerminalDataEvent) => void) => () => void
   onTerminalState: (listener: (event: TerminalStateEvent) => void) => () => void
