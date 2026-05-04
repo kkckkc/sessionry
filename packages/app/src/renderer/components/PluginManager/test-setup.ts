@@ -9,7 +9,8 @@ import { vi } from 'vitest'
 global.window = global.window || {}
 global.window.terminalApp = {
   vcs: {
-    getStatus: vi.fn()
+    getStatus: vi.fn(),
+    getDiff: vi.fn()
   },
   plugins: {
     search: vi.fn(),

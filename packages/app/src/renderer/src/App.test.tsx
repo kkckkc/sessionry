@@ -218,7 +218,8 @@ describe('App', () => {
       readFile: vi.fn(),
       writeFile: vi.fn(),
       vcs: {
-        getStatus: vi.fn(async () => null)
+        getStatus: vi.fn(async () => null),
+        getDiff: vi.fn(async () => null)
       },
       getPluginModel: vi.fn(async () => pluginModel),
       getUserPluginRenderers: vi.fn(async () => []),
@@ -272,7 +273,8 @@ describe('App', () => {
       readFile: vi.fn(),
       writeFile: vi.fn(),
       vcs: {
-        getStatus: vi.fn(async () => null)
+        getStatus: vi.fn(async () => null),
+        getDiff: vi.fn(async () => null)
       },
       getPluginModel: vi.fn(async (): Promise<PluginViewModel> => ({
         ...pluginModel,
@@ -337,7 +339,8 @@ describe('App', () => {
       readFile: vi.fn(),
       writeFile: vi.fn(),
       vcs: {
-        getStatus: vi.fn(async () => null)
+        getStatus: vi.fn(async () => null),
+        getDiff: vi.fn(async () => null)
       },
       getPluginModel: vi.fn(
         async (): Promise<PluginViewModel> => ({

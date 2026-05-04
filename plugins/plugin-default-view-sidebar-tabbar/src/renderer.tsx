@@ -61,6 +61,8 @@ const SidebarTabBarView = ({
       <div className="sidebar-tabbar-view">
         <TabBar
           variant="secondary"
+          value={activeChildView.id}
+          onValueChange={setActiveChildViewId}
           ariaLabel="Sidebar views"
           items={childViews.map((view) => ({
             icon: (() => {

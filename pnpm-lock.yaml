@@ -29,6 +29,9 @@ importers:
       '@sessionry/plugin-debug-view-pane-hierarchy':
         specifier: workspace:*
         version: link:../../plugins/plugin-debug-view-pane-hierarchy
+      '@sessionry/plugin-default-vcs-git':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-default-vcs-git
       '@sessionry/plugin-default-view-code':
         specifier: workspace:*
         version: link:../../plugins/plugin-default-view-code
@@ -44,6 +47,9 @@ importers:
       '@sessionry/plugin-default-view-terminal':
         specifier: workspace:*
         version: link:../../plugins/plugin-default-view-terminal
+      '@sessionry/plugin-default-view-vcs':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-default-view-vcs
       '@sessionry/plugin-default-view-workspace':
         specifier: workspace:*
         version: link:../../plugins/plugin-default-view-workspace
@@ -252,6 +258,22 @@ importers:
       typescript:
         specifier: latest
         version: 6.0.3
+
+  plugins/plugin-default-vcs-git:
+    dependencies:
+      '@sessionry/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+    devDependencies:
+      '@types/node':
+        specifier: latest
+        version: 25.6.0
+      typescript:
+        specifier: latest
+        version: 6.0.3
+      vitest:
+        specifier: latest
+        version: 4.1.5(@types/node@25.6.0)(jsdom@29.1.1)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(yaml@2.8.3))
 
   plugins/plugin-default-view-code:
     dependencies:
@@ -476,6 +498,25 @@ importers:
       vitest:
         specifier: latest
         version: 4.1.4(@types/node@25.6.0)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(yaml@2.8.3))
+
+  plugins/plugin-default-view-vcs:
+    dependencies:
+      '@sessionry/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+      react:
+        specifier: 19.2.5
+        version: 19.2.5
+    devDependencies:
+      '@types/react':
+        specifier: latest
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: latest
+        version: 19.2.3(@types/react@19.2.14)
+      typescript:
+        specifier: latest
+        version: 6.0.3
 
   plugins/plugin-default-view-workspace:
     dependencies:

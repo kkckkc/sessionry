@@ -558,3 +558,33 @@ describe('WorkspaceStore', () => {
     expect(newGroup.name).toBe((outlinePaneData.state as any).title)
     expect(newGroup.direction).toBe('stacked')
   })
+
+  it('activates the closest tab to the left when closing the active tab in a stacked group', () => {
+    const service = new WorkspaceStore()
+
+    const leftTabs = service.getPaneGroup('pane-group-left-tabs')!
+    expect(leftTabs.children).toEqual([
+      { kind: 'pane', paneId: 'pane-terminal-primary' },
+      { kind: 'pane', paneId: 'pane-activity' }
+    ])
+
+    const extraPane = service.createPane({
+      id: 'pane-extra',
+      sessionId: 'session-primary',
+      type: 'terminal',
+      state: { title: 'Extra' },
+      parentPaneGroupId: 'pane-group-left-tabs',
+      index: 1
+    })
+
+    service.updatePaneGroup('pane-group-left-tabs', { activeChildId: extraPane.id })
+    service.removePane(extraPane.id)
+
+    expect(service.getPaneGroup('pane-group-left-tabs')).toMatchObject({
+      activeChildId: 'pane-terminal-primary',
+      children: [
+        { kind: 'pane', paneId: 'pane-terminal-primary' },
+        { kind: 'pane', paneId: 'pane-activity' }
+      ]
+    })
+  })

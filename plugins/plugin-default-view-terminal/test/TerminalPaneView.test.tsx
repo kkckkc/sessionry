@@ -155,7 +155,8 @@ describe('TerminalPaneView', () => {
       readFile: vi.fn(),
       writeFile: vi.fn(),
       vcs: {
-        getStatus: vi.fn(async () => null)
+        getStatus: vi.fn(async () => null),
+        getDiff: vi.fn(async () => null)
       },
       getPathForDroppedFile: vi.fn((file: File) => `/tmp/${file.name}`),
       formatPathForTerminal: vi.fn((targetPath: string, sessionRoot?: string) => {

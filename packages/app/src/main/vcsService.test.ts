@@ -27,7 +27,8 @@ describe('createVcsService', () => {
     await expect(service.getStatus('/tmp/project')).resolves.toEqual({
       providerId: 'high',
       providerName: 'High',
-      stats: { filesChanged: 4, insertions: 5, deletions: 6 }
+      stats: { filesChanged: 4, insertions: 5, deletions: 6 },
+      files: []
     })
   })
 
@@ -57,7 +58,8 @@ describe('createVcsService', () => {
     await expect(service.getStatus('/tmp/project')).resolves.toEqual({
       providerId: 'git',
       providerName: 'Git',
-      stats: { filesChanged: 2, insertions: 8, deletions: 1 }
+      stats: { filesChanged: 2, insertions: 8, deletions: 1 },
+      files: []
     })
   })
 
@@ -92,12 +94,14 @@ describe('createVcsService', () => {
     await expect(service.getStatus('/tmp/project')).resolves.toEqual({
       providerId: 'git',
       providerName: 'Git',
-      stats: { filesChanged: 1, insertions: 12, deletions: 3 }
+      stats: { filesChanged: 1, insertions: 12, deletions: 3 },
+      files: []
     })
     await expect(service.getStatus('/tmp/project')).resolves.toEqual({
       providerId: 'git',
       providerName: 'Git',
-      stats: { filesChanged: 1, insertions: 12, deletions: 3 }
+      stats: { filesChanged: 1, insertions: 12, deletions: 3 },
+      files: []
     })
     expect(getStatus).toHaveBeenCalledTimes(1)
 
@@ -105,5 +109,45 @@ describe('createVcsService', () => {
 
     await service.getStatus('/tmp/project')
     expect(getStatus).toHaveBeenCalledTimes(2)
+  })
+
+  it('preserves provider file entries in the resolved status', async () => {
+    const service = createVcsService()
+    service.registerProvider({
+      id: 'git',
+      name: 'Git',
+      getStatus: vi.fn(async () => ({
+        active: true,
+        stats: { filesChanged: 2, insertions: 8, deletions: 1 },
+        files: [
+          { path: 'packages/app/src/main/plugins.ts', status: 'M' },
+          { path: '.bob/notes/pending-notes.txt', status: '??' }
+        ]
+      }))
+    })
+
+    await expect(service.getStatus('/tmp/project')).resolves.toEqual({
+      providerId: 'git',
+      providerName: 'Git',
+      stats: { filesChanged: 2, insertions: 8, deletions: 1 },
+      files: [
+        { path: 'packages/app/src/main/plugins.ts', status: 'M' },
+        { path: '.bob/notes/pending-notes.txt', status: '??' }
+      ]
+    })
+  })
+
+  it('returns diffs from the first active provider that supports them', async () => {
+    const service = createVcsService()
+    service.registerProvider({
+      id: 'git',
+      name: 'Git',
+      getStatus: vi.fn(async () => ({ active: true })),
+      getDiff: vi.fn(async () => 'diff --git a/file.ts b/file.ts\n')
+    })
+
+    await expect(
+      service.getDiff('/tmp/project', { path: 'file.ts', status: 'M' })
+    ).resolves.toBe('diff --git a/file.ts b/file.ts\n')
   })
 })

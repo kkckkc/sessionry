@@ -6,6 +6,7 @@ import { projectSessionsSidebarRendererPlugin } from '@sessionry/plugin-default-
 import { sidebarTabBarRendererPlugin } from '@sessionry/plugin-default-view-sidebar-tabbar/renderer'
 import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-terminal/renderer'
 import { fileBrowserRendererPlugin } from '@sessionry/plugin-default-view-files/renderer'
+import { vcsViewRendererPlugin } from '@sessionry/plugin-default-view-vcs/renderer'
 import { coreRendererPlugin } from './coreRendererPlugin'
 
 const builtInRendererPlugins = [
@@ -16,6 +17,7 @@ const builtInRendererPlugins = [
   projectSessionsSidebarRendererPlugin,
   sidebarTabBarRendererPlugin,
   fileBrowserRendererPlugin,
+  vcsViewRendererPlugin,
   debugPaneHierarchyRendererPlugin
 ]
 

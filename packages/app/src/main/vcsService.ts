@@ -1,4 +1,4 @@
-import type { ResolvedVcsStatus, VcsProviderDefinition } from '@sessionry/plugin-api'
+import type { ResolvedVcsStatus, VcsFileStatus, VcsProviderDefinition } from '@sessionry/plugin-api'
 
 interface CachedStatus {
   expiresAt: number
@@ -12,6 +12,7 @@ interface RegisteredProvider extends VcsProviderDefinition {
 export interface VcsService {
   registerProvider: (provider: VcsProviderDefinition) => void
   getStatus: (folder: string) => Promise<ResolvedVcsStatus | null>
+  getDiff: (folder: string, file: VcsFileStatus) => Promise<string | null>
 }
 
 export interface CreateVcsServiceOptions {
@@ -61,7 +62,8 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
           resolvedStatus = {
             providerId: provider.id,
             providerName: provider.name,
-            stats: status.stats ?? null
+            stats: status.stats ?? null,
+            files: status.files ?? []
           }
           break
         } catch {
@@ -75,6 +77,32 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       })
 
       return resolvedStatus
+    },
+    getDiff: async (folder, file) => {
+      const sortedProviders = [...providers].sort(
+        (left, right) =>
+          (right.priority ?? 0) - (left.priority ?? 0) ||
+          left.registrationOrder - right.registrationOrder
+      )
+
+      for (const provider of sortedProviders) {
+        if (!provider.getDiff) {
+          continue
+        }
+
+        try {
+          const status = await provider.getStatus(folder)
+          if (!status.active) {
+            continue
+          }
+
+          return (await provider.getDiff(folder, file)) ?? null
+        } catch {
+          continue
+        }
+      }
+
+      return null
     }
   }
 }

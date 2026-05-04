@@ -28,6 +28,7 @@ export const IPC_CHANNELS = {
   readFile: 'fs:read-file',
   writeFile: 'fs:write-file',
   vcsStatus: 'vcs:status',
+  vcsDiff: 'vcs:diff',
 
   // Themes
   themesList: 'themes:list',

@@ -39,7 +39,8 @@ describe('SettingsView', () => {
       readFile: vi.fn(),
       writeFile: vi.fn(),
       vcs: {
-        getStatus: vi.fn(async () => null)
+        getStatus: vi.fn(async () => null),
+        getDiff: vi.fn(async () => null)
       },
       createTerminalSession: vi.fn(),
       sendTerminalInput: vi.fn(),

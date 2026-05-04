@@ -17,6 +17,7 @@ import type {
 import type { PluginViewModel, UserPluginRendererInfo } from '@sessionry/plugin-api'
 import type {
   CreateTerminalSessionInput,
+  VcsFileStatus,
   TerminalDataEvent,
   TerminalExitEvent,
   TerminalInputPayload,
@@ -81,7 +82,9 @@ const api = {
   writeFile: (filePath: string, content: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.writeFile, filePath, content),
   vcs: {
-    getStatus: (dirPath: string) => ipcRenderer.invoke(IPC_CHANNELS.vcsStatus, dirPath)
+    getStatus: (dirPath: string) => ipcRenderer.invoke(IPC_CHANNELS.vcsStatus, dirPath),
+    getDiff: (dirPath: string, file: VcsFileStatus) =>
+      ipcRenderer.invoke(IPC_CHANNELS.vcsDiff, dirPath, file)
   },
   getPathForDroppedFile: (file: File): string => webUtils.getPathForFile(file),
   formatPathForTerminal,

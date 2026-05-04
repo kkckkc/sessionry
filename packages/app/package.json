@@ -24,6 +24,7 @@
     "@sessionry/plugin-default-view-code": "workspace:*",
     "@sessionry/plugin-default-view-files": "workspace:*",
     "@sessionry/plugin-default-view-left-sidebar": "workspace:*",
+    "@sessionry/plugin-default-view-vcs": "workspace:*",
     "@sessionry/plugin-default-view-sidebar-tabbar": "workspace:*",
     "@sessionry/plugin-default-view-terminal": "workspace:*",
     "@sessionry/plugin-default-view-workspace": "workspace:*",

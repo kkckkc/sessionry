@@ -112,6 +112,11 @@ type CodePaneEditorHost = HTMLDivElement & {
 
 const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps) => {
   const filePath = typeof pane.state.filePath === 'string' ? pane.state.filePath : ''
+  const inlineContent = typeof pane.state.content === 'string' ? pane.state.content : null
+  const isReadOnly = pane.state.readOnly === true
+  const languagePath = typeof pane.state.languagePath === 'string'
+    ? pane.state.languagePath
+    : filePath
   const paneIdRef = useRef(pane.id)
   const editorRootRef = useRef<CodePaneEditorHost | null>(null)
   const editorViewRef = useRef<EditorView | null>(null)
@@ -129,7 +134,7 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
   paneIdRef.current = pane.id
 
   const languageExtension = useMemo(() => {
-    const extension = getFileExtension(filePath)
+    const extension = getFileExtension(languagePath)
     switch (extension) {
       case '.ts':
       case '.tsx':
@@ -151,10 +156,10 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
       default:
         return null
     }
-  }, [filePath])
+  }, [languagePath])
 
   const handleSave = useCallback(async () => {
-    if (!filePath || !editorViewRef.current || status !== 'ready' || isSaving) return
+    if (isReadOnly || !filePath || !editorViewRef.current || status !== 'ready' || isSaving) return
 
     const nextContent = editorViewRef.current.state.doc.toString()
     setIsSaving(true)
@@ -176,14 +181,22 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
     } finally {
       setIsSaving(false)
     }
-  }, [filePath, isSaving, status, workspace])
+  }, [filePath, isReadOnly, isSaving, status, workspace])
 
   saveHandlerRef.current = handleSave
 
   useEffect(() => {
+    if (inlineContent !== null) {
+      setStatus('ready')
+      setErrorMessage(null)
+      setContent(inlineContent)
+      savedContentRef.current = inlineContent
+      return
+    }
+
     if (!filePath) {
       setStatus('error')
-      setErrorMessage('This code pane is missing a file path.')
+      setErrorMessage('This code pane is missing content.')
       setContent('')
       savedContentRef.current = ''
       return
@@ -209,7 +222,7 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
     return () => {
       cancelled = true
     }
-  }, [filePath])
+  }, [filePath, inlineContent])
 
   useEffect(() => {
     if (status !== 'ready' || !editorRootRef.current) return
@@ -294,6 +307,8 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
         extensions: [
           basicSetup,
           EditorView.lineWrapping,
+          EditorState.readOnly.of(isReadOnly),
+          EditorView.editable.of(!isReadOnly),
           themeCompartmentRef.current.of(initialTheme),
           syntaxCompartmentRef.current.of(initialSyntaxTheme),
           saveKeymap,
@@ -353,7 +368,7 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
         cleanup.view.destroy()
       }
     }
-  }, [content, languageExtension, onRegisterFocusHandler, status, handleSave])
+  }, [content, isReadOnly, languageExtension, onRegisterFocusHandler, status, handleSave])
 
   return React.createElement(
     'section',

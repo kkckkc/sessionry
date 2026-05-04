@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createGitVcsProvider, parseGitShortStat } from '../src/index'
+import {
+  createGitVcsProvider,
+  getGitFileDiff,
+  parseGitShortStat,
+  parseGitStatusPorcelain
+} from '../src/index'
 
 describe('parseGitShortStat', () => {
   it('parses the git shortstat output into normalized stats', () => {
@@ -17,6 +22,16 @@ describe('parseGitShortStat', () => {
       insertions: 0,
       deletions: 0
     })
+  })
+})
+
+describe('parseGitStatusPorcelain', () => {
+  it('parses tracked, untracked, and renamed files', () => {
+    expect(parseGitStatusPorcelain(' M src/app.ts\n?? notes/todo.md\nR  old.ts -> new.ts\n')).toEqual([
+      { path: 'src/app.ts', status: 'M' },
+      { path: 'notes/todo.md', status: '??' },
+      { path: 'new.ts', status: 'R', oldPath: 'old.ts' }
+    ])
   })
 })
 
@@ -38,6 +53,10 @@ describe('createGitVcsProvider', () => {
         stdout: ' 2 files changed, 8 insertions(+), 3 deletions(-)\n',
         stderr: ''
       })
+      .mockResolvedValueOnce({
+        stdout: ' M src/app.ts\n?? notes/todo.md\n',
+        stderr: ''
+      })
     const provider = createGitVcsProvider(run)
 
     await expect(provider.getStatus('/tmp/project')).resolves.toEqual({
@@ -46,7 +65,35 @@ describe('createGitVcsProvider', () => {
         filesChanged: 2,
         insertions: 8,
         deletions: 3
-      }
+      },
+      files: [
+        { path: 'src/app.ts', status: 'M' },
+        { path: 'notes/todo.md', status: '??' }
+      ]
     })
+  })
+
+  it('returns a tracked file diff by combining staged and unstaged changes', async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValueOnce({ stdout: 'cached diff', stderr: '' })
+      .mockResolvedValueOnce({ stdout: 'working diff', stderr: '' })
+
+    await expect(
+      getGitFileDiff('/tmp/project', { path: 'src/app.ts', status: 'M' }, run)
+    ).resolves.toBe('cached diff\n\nworking diff\n')
+  })
+
+  it('returns an untracked file diff using no-index mode', async () => {
+    const run = vi.fn(async () => {
+      const error = new Error('diff found') as Error & { stdout: string; code: number }
+      error.stdout = 'diff --git a/notes/todo.md b/notes/todo.md\n'
+      error.code = 1
+      throw error
+    })
+
+    await expect(
+      getGitFileDiff('/tmp/project', { path: 'notes/todo.md', status: '??' }, run)
+    ).resolves.toBe('diff --git a/notes/todo.md b/notes/todo.md\n')
   })
 })

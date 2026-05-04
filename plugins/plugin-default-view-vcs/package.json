@@ -1,0 +1,22 @@
+{
+  "name": "@sessionry/plugin-default-view-vcs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./renderer": "./src/renderer.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sessionry/plugin-api": "workspace:*",
+    "react": "19.2.5"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}

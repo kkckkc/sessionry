@@ -639,7 +639,7 @@ export class WorkspaceStore {
 
     const sourceBefore = cloneValue(sourceParent.children)
     sourceParent.children = sourceParent.children.filter((child) => paneNodeId(child) !== paneNodeId(node))
-    this.reconcileActiveChildAfterRemoval(sourceParent, paneNodeId(node))
+    this.reconcileActiveChildAfterRemoval(sourceParent, paneNodeId(node), sourceBefore)
     this.emitChildrenChanged(sourceParent, sourceBefore)
 
     const targetBefore = cloneValue(target.children)
@@ -685,7 +685,7 @@ export class WorkspaceStore {
 
     const beforeChildren = cloneValue(parent.children)
     parent.children = parent.children.filter((child) => paneNodeId(child) !== paneNodeId(node))
-    this.reconcileActiveChildAfterRemoval(parent, paneNodeId(node))
+    this.reconcileActiveChildAfterRemoval(parent, paneNodeId(node), beforeChildren)
     this.emitChildrenChanged(parent, beforeChildren)
 
     // Collapse horizontal/vertical groups with only one child (but keep stacked groups)
@@ -1340,7 +1340,7 @@ export class WorkspaceStore {
 
       const beforeChildren = cloneValue(parent.children)
       parent.children = parent.children.filter((child) => !(isPaneChild(child) && child.paneId === paneId))
-      this.reconcileActiveChildAfterRemoval(parent, paneId)
+      this.reconcileActiveChildAfterRemoval(parent, paneId, beforeChildren)
       this.emitChildrenChanged(parent, beforeChildren)
 
       // Collapse horizontal/vertical groups with only one child (but keep stacked groups)
@@ -1661,9 +1661,23 @@ export class WorkspaceStore {
     paneGroup.activeChildId = paneGroup.children[0] ? paneNodeId(paneGroup.children[0]) : undefined
   }
 
-  private reconcileActiveChildAfterRemoval(paneGroup: PaneGroup, removedChildId: string): void {
+  private reconcileActiveChildAfterRemoval(
+    paneGroup: PaneGroup,
+    removedChildId: string,
+    beforeChildren: PaneGroupChild[]
+  ): void {
     if (paneGroup.direction !== 'stacked' || paneGroup.activeChildId !== removedChildId) return
-    paneGroup.activeChildId = paneGroup.children[0] ? paneNodeId(paneGroup.children[0]) : undefined
+
+    const removedIndex = beforeChildren.findIndex((child) => paneNodeId(child) === removedChildId)
+    if (removedIndex === -1) {
+      paneGroup.activeChildId = paneGroup.children[0] ? paneNodeId(paneGroup.children[0]) : undefined
+      return
+    }
+
+    const nextIndex = removedIndex > 0 ? removedIndex - 1 : 0
+    paneGroup.activeChildId = paneGroup.children[nextIndex]
+      ? paneNodeId(paneGroup.children[nextIndex])
+      : undefined
   }
 
   private normalizeStackedGroupActiveChild(paneGroup: PaneGroup): void {

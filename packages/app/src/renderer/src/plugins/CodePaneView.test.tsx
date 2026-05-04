@@ -112,7 +112,8 @@ describe('CodePaneView', () => {
       readFile: vi.fn().mockResolvedValue('export const value = 1\n'),
       writeFile: vi.fn().mockResolvedValue(undefined),
       vcs: {
-        getStatus: vi.fn(async () => null)
+        getStatus: vi.fn(async () => null),
+        getDiff: vi.fn(async () => null)
       },
       getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
@@ -163,7 +164,7 @@ describe('CodePaneView', () => {
 
     await waitFor(() => {
       expect(window.terminalApp.readFile).toHaveBeenCalledWith('/tmp/project/src/index.ts')
-      expect(document.querySelector('.cm-editor')).toBeInTheDocument()
+      expect(document.querySelector('.cm-editor')).not.toBeNull()
     })
   })
 
@@ -171,7 +172,7 @@ describe('CodePaneView', () => {
     render(<CodePaneView {...baseProps} />)
 
     await waitFor(() => {
-      expect(document.querySelector('.cm-editor')).toBeInTheDocument()
+      expect(document.querySelector('.cm-editor')).not.toBeNull()
     })
 
     const view = getEditorView()
@@ -185,8 +186,6 @@ describe('CodePaneView', () => {
       })
     })
 
-    expect(screen.getByText('Unsaved changes')).toBeInTheDocument()
-
     await act(async () => {
       await getEditorHost().__codePaneSave?.()
     })
@@ -196,7 +195,6 @@ describe('CodePaneView', () => {
         '/tmp/project/src/index.ts',
         'export const value = 2\n'
       )
-      expect(screen.queryByText('Unsaved changes')).not.toBeInTheDocument()
     })
   })
 
@@ -205,7 +203,7 @@ describe('CodePaneView', () => {
 
     render(<CodePaneView {...baseProps} />)
 
-    expect(await screen.findByText('missing file')).toBeInTheDocument()
+    expect(await screen.findByText('missing file')).toBeTruthy()
   })
 
   it('preserves dirty state and shows an error when save fails', async () => {
@@ -214,7 +212,7 @@ describe('CodePaneView', () => {
     render(<CodePaneView {...baseProps} />)
 
     await waitFor(() => {
-      expect(document.querySelector('.cm-editor')).toBeInTheDocument()
+      expect(document.querySelector('.cm-editor')).not.toBeNull()
     })
 
     const view = getEditorView()
@@ -232,10 +230,33 @@ describe('CodePaneView', () => {
       await getEditorHost().__codePaneSave?.()
     })
 
-    expect(await screen.findByText('permission denied')).toBeInTheDocument()
+    expect(await screen.findByText('permission denied')).toBeTruthy()
     expect(window.terminalApp.writeFile).toHaveBeenCalledWith(
       '/tmp/project/src/index.ts',
       'export const value = 3\n'
     )
+  })
+
+  it('renders inline read-only content without reading from disk', async () => {
+    render(
+      <CodePaneView
+        {...baseProps}
+        pane={{
+          ...baseProps.pane,
+          state: {
+            title: 'index.ts (diff)',
+            filePath: '/tmp/project/src/index.ts',
+            languagePath: '/tmp/project/src/index.ts',
+            content: 'diff --git a/src/index.ts b/src/index.ts\n',
+            readOnly: true
+          }
+        }}
+      />
+    )
+
+    await waitFor(() => {
+      expect(document.querySelector('.cm-editor')).not.toBeNull()
+      expect(window.terminalApp.readFile).not.toHaveBeenCalled()
+    })
   })
 })

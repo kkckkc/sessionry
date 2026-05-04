@@ -6,11 +6,12 @@ import { FiFileText, FiFolder, FiSearch } from 'react-icons/fi'
 import { TabBar } from './TabBar'
 
 const renderWithSelectedTab = (args: ComponentProps<typeof TabBar>) => {
-  const selectedValue = args.items[1]?.value ?? args.items[0]?.value ?? ''
+  const initialValue = args.items[1]?.value ?? args.items[0]?.value ?? ''
+  const [selectedValue, setSelectedValue] = useState(initialValue)
 
   return (
-    <Tabs.Root value={selectedValue}>
-      <TabBar {...args} />
+    <Tabs.Root value={selectedValue} onValueChange={setSelectedValue}>
+      <TabBar {...args} value={selectedValue} onValueChange={setSelectedValue} />
     </Tabs.Root>
   )
 }
@@ -94,6 +95,8 @@ export const WithCloseButtons: Story = {
       <Tabs.Root value={value} onValueChange={setValue}>
         <TabBar
           variant={args.variant}
+          value={value}
+          onValueChange={setValue}
           ariaLabel={args.ariaLabel}
           items={items.map((item) => ({
             ...item,

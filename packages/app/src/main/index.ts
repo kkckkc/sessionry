@@ -211,6 +211,9 @@ app.whenReady().then(async () => {
     fs.writeFileSync(filePath, content, 'utf-8')
   )
   ipcMain.handle(IPC_CHANNELS.vcsStatus, (_event, dirPath: string) => vcsService.getStatus(dirPath))
+  ipcMain.handle(IPC_CHANNELS.vcsDiff, (_event, dirPath: string, file) =>
+    vcsService.getDiff(dirPath, file)
+  )
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read())
   ipcMain.on(IPC_CHANNELS.settingsRead, (event) => {
     event.returnValue = settingsStore.read()

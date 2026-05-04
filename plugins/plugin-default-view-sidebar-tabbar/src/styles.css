@@ -1,15 +1,29 @@
 .sidebar-tabbar-view {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
+  min-width: 0;
+  overflow: hidden;
   background: var(--sidebar-bg);
-  margin: -0.4rem;
 }
 
 .sidebar-tabbar-view__panel {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  height: 100%;
   min-height: 0;
-  overflow: auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sidebar-tabbar-view__panel > * {
+  flex: 1 1 0;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
 }
 
 .sidebar-tabbar-view__empty {

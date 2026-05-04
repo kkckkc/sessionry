@@ -4,10 +4,14 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: 0.4rem;
+  overflow: hidden;
   min-height: 0;
+  min-width: 0;
   background: var(--sidebar-bg);
 
   &.sidebar--right {
+    padding: 0;
+    gap: 0;
     border-left: 1px solid var(--border);
     background: var(--sidebar-bg);
   }
