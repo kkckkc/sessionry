@@ -1,6 +1,7 @@
 /* ── Settings Modal (Dialog Component) ── */
 .settings-modal {
   width: 720px;
+  height: 600px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
