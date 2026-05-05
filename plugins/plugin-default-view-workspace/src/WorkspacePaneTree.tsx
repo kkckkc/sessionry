@@ -498,6 +498,11 @@ export const WorkspacePaneTree = ({
     const paneView = resolveActiveView(plugins, slot)
     const paneRenderer = paneView ? resolveRendererView(paneView.id) : null
     const PaneRenderer = paneRenderer?.component
+    const [customPaneActions, setCustomPaneActions] = useState<Array<{ id: string; icon: ReactNode; label: string; onClick: () => void; disabled?: boolean }>>([])
+
+    const handleRegisterPaneActions = useCallback((actions: Array<{ id: string; icon: ReactNode; label: string; onClick: () => void; disabled?: boolean }>) => {
+      setCustomPaneActions(actions)
+    }, [])
 
     const handleTitleClick = () => {
       // DOM-based focus for panes
@@ -534,6 +539,17 @@ export const WorkspacePaneTree = ({
           actions={
             child ? (
               <>
+                {customPaneActions.map((action) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    aria-label={action.label}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                  >
+                    {action.icon}
+                  </button>
+                ))}
                 <button
                   type="button"
                   aria-label="Split horizontal"
@@ -565,6 +581,17 @@ export const WorkspacePaneTree = ({
               </>
             ) : (
               <>
+                {customPaneActions.map((action) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    aria-label={action.label}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                  >
+                    {action.icon}
+                  </button>
+                ))}
                 <button
                   type="button"
                   aria-label="Split horizontal"
@@ -608,6 +635,7 @@ export const WorkspacePaneTree = ({
                 pane={pane}
                 clearSignal={clearSignal}
                 visible={isVisible}
+                onRegisterPaneActions={handleRegisterPaneActions}
               />
             </div>
           ) : (

@@ -10,10 +10,12 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags as t } from '@lezer/highlight'
 import { basicSetup } from 'codemirror'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { TbEye, TbEdit } from 'react-icons/tb'
 
 import type { PaneViewProps, RendererAppPlugin, ThemeDefinition } from '@sessionry/plugin-api'
 
 import { codePanePlugin } from '.'
+import { MarkdownPreview } from './MarkdownPreview'
 import './styles.css'
 
 const codeView = codePanePlugin.views?.[0]
@@ -110,13 +112,15 @@ type CodePaneEditorHost = HTMLDivElement & {
   __codePaneSave?: () => Promise<void>
 }
 
-const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps) => {
+const CodePaneView = ({ pane, workspace, onRegisterFocusHandler, onRegisterPaneActions }: PaneViewProps) => {
   const filePath = typeof pane.state.filePath === 'string' ? pane.state.filePath : ''
   const inlineContent = typeof pane.state.content === 'string' ? pane.state.content : null
   const isReadOnly = pane.state.readOnly === true
   const languagePath = typeof pane.state.languagePath === 'string'
     ? pane.state.languagePath
     : filePath
+  const viewMode = (pane.state.viewMode as 'edit' | 'preview') || 'edit'
+  const isMarkdown = getFileExtension(languagePath) === '.md'
   const paneIdRef = useRef(pane.id)
   const editorRootRef = useRef<CodePaneEditorHost | null>(null)
   const editorViewRef = useRef<EditorView | null>(null)
@@ -183,6 +187,34 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
     }
   }, [filePath, isReadOnly, isSaving, status, workspace])
 
+  const handleToggleViewMode = useCallback(async () => {
+    const newMode = viewMode === 'edit' ? 'preview' : 'edit'
+    const paneHandle = workspace.getPane(paneIdRef.current)
+    const currentState = paneHandle?.data.state
+    if (currentState) {
+      await paneHandle?.update({ 
+        state: { ...currentState, viewMode: newMode } 
+      })
+    }
+  }, [viewMode, workspace])
+
+  // Register custom pane actions for markdown files
+  useEffect(() => {
+    if (!isMarkdown || !onRegisterPaneActions) return
+
+    const ToggleIcon = viewMode === 'edit' ? TbEye : TbEdit
+    const toggleLabel = viewMode === 'edit' ? 'Preview' : 'Edit'
+
+    onRegisterPaneActions([
+      {
+        id: 'toggle-markdown-preview',
+        icon: React.createElement(ToggleIcon, { size: 13 }),
+        label: toggleLabel,
+        onClick: handleToggleViewMode
+      }
+    ])
+  }, [isMarkdown, viewMode, handleToggleViewMode, onRegisterPaneActions])
+
   saveHandlerRef.current = handleSave
 
   useEffect(() => {
@@ -225,7 +257,7 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
   }, [filePath, inlineContent])
 
   useEffect(() => {
-    if (status !== 'ready' || !editorRootRef.current) return
+    if (status !== 'ready' || !editorRootRef.current || viewMode !== 'edit') return
 
     const saveKeymap = keymap.of([
       {
@@ -237,6 +269,17 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
         }
       }
     ])
+
+    const previewKeymap = isMarkdown ? keymap.of([
+      {
+        key: 'Mod-Shift-v',
+        preventDefault: true,
+        run: () => {
+          void handleToggleViewMode()
+          return true
+        }
+      }
+    ]) : []
 
     const updateListener = EditorView.updateListener.of((update) => {
       if (!update.docChanged) return
@@ -313,7 +356,8 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
           syntaxCompartmentRef.current.of(initialSyntaxTheme),
           saveKeymap,
           updateListener,
-          ...(languageExtension ? [languageExtension] : [])
+          ...(languageExtension ? [languageExtension] : []),
+          ...(Array.isArray(previewKeymap) ? previewKeymap : [previewKeymap])
         ]
       })
 
@@ -368,7 +412,7 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
         cleanup.view.destroy()
       }
     }
-  }, [content, isReadOnly, languageExtension, onRegisterFocusHandler, status, handleSave])
+  }, [content, isReadOnly, languageExtension, onRegisterFocusHandler, status, handleSave, viewMode, isMarkdown, handleToggleViewMode])
 
   return React.createElement(
     'section',
@@ -382,8 +426,11 @@ const CodePaneView = ({ pane, workspace, onRegisterFocusHandler }: PaneViewProps
     errorMessage
       ? React.createElement('div', { className: 'code-pane-status is-error' }, errorMessage)
       : null,
-    status === 'ready'
+    status === 'ready' && viewMode === 'edit'
       ? React.createElement('div', { className: 'code-pane-editor', ref: editorRootRef })
+      : null,
+    status === 'ready' && viewMode === 'preview' && isMarkdown
+      ? React.createElement(MarkdownPreview, { content })
       : null
   )
 }

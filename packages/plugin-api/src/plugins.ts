@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 
 import type { ActionContribution, ActionDescriptor } from './actions'
 import type { AppSettings } from './settings'
@@ -56,6 +56,14 @@ export interface PluginViewModel {
   viewsBySlot: Record<string, PluginViewContribution[]>
 }
 
+export interface PaneAction {
+  id: string
+  icon: ReactNode
+  label: string
+  onClick: () => void
+  disabled?: boolean
+}
+
 export interface PaneViewProps extends ViewProps {
   pane: Pane
   clearSignal: number
@@ -65,6 +73,11 @@ export interface PaneViewProps extends ViewProps {
    * The pane view should call this with a function that focuses the pane content.
    */
   onRegisterFocusHandler?: (focusHandler: () => void) => void
+  /**
+   * Optional callback to register custom actions for the pane title bar.
+   * The pane view should call this with an array of actions to display.
+   */
+  onRegisterPaneActions?: (actions: PaneAction[]) => void
 }
 
 export interface SettingsViewProps {
