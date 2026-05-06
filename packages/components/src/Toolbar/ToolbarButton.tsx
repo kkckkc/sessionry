@@ -1,43 +1,43 @@
-import { type ReactNode } from 'react'
-import { Toolbar as BaseToolbar } from '@base-ui/react/toolbar'
-import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
+import { type ReactNode } from 'react';
+import { Toolbar as BaseToolbar } from '@base-ui/react/toolbar';
+import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip';
 
 export interface ToolbarButtonProps {
   /**
    * Button content (typically an icon)
    */
-  children: ReactNode
+  children: ReactNode;
   /**
    * Click handler
    */
-  onClick: () => void
+  onClick: () => void;
   /**
    * Tooltip text to display on hover
    */
-  tooltip?: string
+  tooltip?: string;
   /**
    * Additional CSS class name
    */
-  className?: string
+  className?: string;
   /**
    * Whether the button is disabled
    */
-  disabled?: boolean
+  disabled?: boolean;
   /**
    * Tooltip delay in milliseconds
    * @default 600
    */
-  tooltipDelay?: number
+  tooltipDelay?: number;
 }
 
 /**
  * Toolbar button component with integrated tooltip support.
  * Built on Base UI Toolbar.Button for accessibility.
- * 
+ *
  * @example
  * ```tsx
- * <ToolbarButton 
- *   onClick={handleSave} 
+ * <ToolbarButton
+ *   onClick={handleSave}
  *   tooltip="Save file"
  * >
  *   <SaveIcon size={15} />
@@ -55,14 +55,10 @@ export const ToolbarButton = ({
   // If no tooltip, return button directly
   if (!tooltip) {
     return (
-      <BaseToolbar.Button 
-        className={className} 
-        onClick={onClick}
-        disabled={disabled}
-      >
+      <BaseToolbar.Button className={className} onClick={onClick} disabled={disabled}>
         {children}
       </BaseToolbar.Button>
-    )
+    );
   }
 
   // With tooltip
@@ -70,10 +66,10 @@ export const ToolbarButton = ({
     <BaseTooltip.Provider delay={tooltipDelay}>
       <BaseTooltip.Root>
         <BaseTooltip.Trigger
-          render={(props) => (
-            <BaseToolbar.Button 
+          render={props => (
+            <BaseToolbar.Button
               {...props}
-              className={className} 
+              className={className}
               onClick={onClick}
               disabled={disabled}
             >
@@ -83,12 +79,10 @@ export const ToolbarButton = ({
         />
         <BaseTooltip.Portal>
           <BaseTooltip.Positioner sideOffset={8}>
-            <BaseTooltip.Popup className="tooltip">
-              {tooltip}
-            </BaseTooltip.Popup>
+            <BaseTooltip.Popup className="tooltip">{tooltip}</BaseTooltip.Popup>
           </BaseTooltip.Positioner>
         </BaseTooltip.Portal>
       </BaseTooltip.Root>
     </BaseTooltip.Provider>
-  )
-}
+  );
+};

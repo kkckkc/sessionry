@@ -1,4 +1,4 @@
-import type { ThemeDefinition } from '@sessionry/plugin-api'
+import type { ThemeDefinition } from '@sessionry/plugin-api';
 
 export const draculaTheme: ThemeDefinition = {
   id: 'dracula',
@@ -56,4 +56,4 @@ export const draculaTheme: ThemeDefinition = {
     inserted: '#50fa7b',
     invalid: '#ff5555'
   }
-}
+};

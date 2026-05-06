@@ -1,6 +1,6 @@
-import type { RendererAppPlugin } from '@sessionry/plugin-api'
+import type { RendererAppPlugin } from '@sessionry/plugin-api';
 
-import samplePlugin from '.'
+import samplePlugin from '.';
 
 function SampleView() {
   return (
@@ -8,7 +8,7 @@ function SampleView() {
       <h2>Sample Plugin</h2>
       <p>Replace this component to build your plugin&apos;s UI.</p>
     </div>
-  )
+  );
 }
 
 const sampleRendererPlugin: RendererAppPlugin = {
@@ -21,6 +21,6 @@ const sampleRendererPlugin: RendererAppPlugin = {
   ],
   // TODO: Why do we need to make this undefined
   settingsView: undefined
-}
+};
 
-export default sampleRendererPlugin
+export default sampleRendererPlugin;

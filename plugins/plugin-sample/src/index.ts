@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 const samplePlugin: AppPlugin = {
   id: 'sample-plugin',
@@ -10,6 +10,6 @@ const samplePlugin: AppPlugin = {
       slot: 'workspace'
     }
   ]
-}
+};
 
-export default samplePlugin
+export default samplePlugin;

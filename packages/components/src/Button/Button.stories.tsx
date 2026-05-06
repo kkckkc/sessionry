@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { Button } from './Button'
-import './Button.css'
+import type { Meta, StoryObj } from '@storybook/react';
+import { Button } from './Button';
+import './Button.css';
 
 const meta: Meta<typeof Button> = {
   title: 'Components/Button',
@@ -24,10 +24,10 @@ const meta: Meta<typeof Button> = {
   parameters: {
     layout: 'centered'
   }
-}
+};
 
-export default meta
-type Story = StoryObj<typeof Button>
+export default meta;
+type Story = StoryObj<typeof Button>;
 
 /**
  * Default button with standard styling
@@ -36,7 +36,7 @@ export const Default: Story = {
   args: {
     children: 'Click me'
   }
-}
+};
 
 /**
  * Ghost variant with transparent background
@@ -46,7 +46,7 @@ export const Ghost: Story = {
     variant: 'ghost',
     children: 'Ghost Button'
   }
-}
+};
 
 /**
  * Button with tooltip that appears on hover
@@ -56,7 +56,7 @@ export const WithTooltip: Story = {
     children: 'Hover me',
     tooltip: 'This is a helpful tooltip'
   }
-}
+};
 
 /**
  * Disabled button state
@@ -66,7 +66,7 @@ export const Disabled: Story = {
     children: 'Disabled',
     disabled: true
   }
-}
+};
 
 /**
  * Button with icon (using emoji as placeholder)
@@ -81,7 +81,7 @@ export const WithIcon: Story = {
     ),
     tooltip: 'Open settings'
   }
-}
+};
 
 /**
  * Primary variant — accent-filled, for the dominant action
@@ -91,7 +91,7 @@ export const Primary: Story = {
     variant: 'primary',
     children: 'Confirm'
   }
-}
+};
 
 /**
  * Multiple buttons in a group
@@ -104,7 +104,7 @@ export const ButtonGroup: Story = {
       <Button tooltip="Delete item">🗑️</Button>
     </div>
   )
-}
+};
 
 /**
  * Buttons in different contexts (using context classes)
@@ -121,7 +121,7 @@ export const InContexts: Story = {
           <Button variant="ghost">Cancel</Button>
         </div>
       </div>
-      
+
       <div className="ctx-workspace" style={{ padding: '1rem', background: 'var(--workspace-bg)' }}>
         <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
           Workspace Context
@@ -133,4 +133,4 @@ export const InContexts: Story = {
       </div>
     </div>
   )
-}
+};

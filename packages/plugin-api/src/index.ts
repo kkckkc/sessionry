@@ -1,12 +1,12 @@
-import './global'
+import './global';
 
-export * from './actions'
-export * from './pluginRegistry'
-export * from './plugins'
-export * from './rendererBridge'
-export * from './settings'
-export * from './terminal'
-export * from './themes'
-export * from './vcs'
-export * from './workspace'
-export * from './workspaceApi'
+export * from './actions';
+export * from './pluginRegistry';
+export * from './plugins';
+export * from './rendererBridge';
+export * from './settings';
+export * from './terminal';
+export * from './themes';
+export * from './vcs';
+export * from './workspace';
+export * from './workspaceApi';

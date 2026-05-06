@@ -61,7 +61,9 @@
   cursor: pointer;
   font-size: var(--title-font-size);
   line-height: 1;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 .pane-title-actions > button:hover {

@@ -1,10 +1,10 @@
-import { type ReactNode } from 'react'
-import './SettingsSection.css'
+import { type ReactNode } from 'react';
+import './SettingsSection.css';
 
 export interface SettingsSectionProps {
-  title: string
-  description?: string
-  children: ReactNode
+  title: string;
+  description?: string;
+  children: ReactNode;
 }
 
 export const SettingsSection = ({ title, description, children }: SettingsSectionProps) => {
@@ -16,7 +16,7 @@ export const SettingsSection = ({ title, description, children }: SettingsSectio
       </div>
       <div className="sr-settings-section-content">{children}</div>
     </section>
-  )
-}
+  );
+};
 
-SettingsSection.displayName = 'SettingsSection'
+SettingsSection.displayName = 'SettingsSection';

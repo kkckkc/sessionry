@@ -2,11 +2,11 @@
  * Test Setup for Plugin Manager Components
  */
 
-import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Mock Electron IPC
-global.window = global.window || {}
+global.window = global.window || {};
 global.window.terminalApp = {
   vcs: {
     getStatus: vi.fn(),
@@ -24,4 +24,4 @@ global.window.terminalApp = {
     onInstallProgress: vi.fn(() => () => {}),
     onUpdateProgress: vi.fn(() => () => {})
   }
-} as never
+} as never;

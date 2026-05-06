@@ -1,64 +1,66 @@
-import fs from 'node:fs'
-import os from 'node:os'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-import type { AppPlugin } from '@sessionry/plugin-api'
-import type { PluginConfigStore } from './pluginConfigStore'
+import type { AppPlugin } from '@sessionry/plugin-api';
+import type { PluginConfigStore } from './pluginConfigStore';
 
 export interface PluginManifest {
-  id: string
-  name: string
-  version: string
-  main: string
-  renderer?: string
+  id: string;
+  name: string;
+  version: string;
+  main: string;
+  renderer?: string;
 }
 
 export interface LoadedUserPlugin {
-  manifest: PluginManifest
-  pluginDir: string
-  dirName: string
-  plugin: AppPlugin
+  manifest: PluginManifest;
+  pluginDir: string;
+  dirName: string;
+  plugin: AppPlugin;
 }
 
-export const getUserPluginsDir = (): string => path.join(os.homedir(), 'sessionry', 'plugins')
+export const getUserPluginsDir = (): string => path.join(os.homedir(), 'sessionry', 'plugins');
 
 export const loadUserPlugins = async (
   pluginConfigStore?: PluginConfigStore
 ): Promise<LoadedUserPlugin[]> => {
-  const pluginsDir = getUserPluginsDir()
-  if (!fs.existsSync(pluginsDir)) return []
+  const pluginsDir = getUserPluginsDir();
+  if (!fs.existsSync(pluginsDir)) return [];
 
-  const entries = fs.readdirSync(pluginsDir, { withFileTypes: true })
-  const loaded: LoadedUserPlugin[] = []
+  const entries = fs.readdirSync(pluginsDir, { withFileTypes: true });
+  const loaded: LoadedUserPlugin[] = [];
 
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue
-    const pluginDir = path.join(pluginsDir, entry.name)
-    const manifestPath = path.join(pluginDir, 'plugin.json')
-    if (!fs.existsSync(manifestPath)) continue
+    if (!entry.isDirectory()) continue;
+    const pluginDir = path.join(pluginsDir, entry.name);
+    const manifestPath = path.join(pluginDir, 'plugin.json');
+    if (!fs.existsSync(manifestPath)) continue;
 
     try {
-      const manifest: PluginManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
-      
+      const manifest: PluginManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+
       // Check if plugin is enabled in configuration
       if (pluginConfigStore && !pluginConfigStore.isPluginEnabled(manifest.id)) {
-        console.log(`[plugin-loader] ${manifest.id}: disabled in configuration, skipping`)
-        continue
+        console.log(`[plugin-loader] ${manifest.id}: disabled in configuration, skipping`);
+        continue;
       }
-      
-      const mainPath = path.resolve(pluginDir, manifest.main)
+
+      const mainPath = path.resolve(pluginDir, manifest.main);
       if (!mainPath.startsWith(pluginDir + path.sep)) {
-        console.error(`[plugin-loader] ${manifest.id}: main path escapes plugin directory, skipping`)
-        continue
+        console.error(
+          `[plugin-loader] ${manifest.id}: main path escapes plugin directory, skipping`
+        );
+        continue;
       }
-      const mod = await import(pathToFileURL(mainPath).href)
-      const plugin: AppPlugin = mod.default
-      loaded.push({ manifest, pluginDir, dirName: entry.name, plugin })
+      const mod = await import(pathToFileURL(mainPath).href);
+      const plugin: AppPlugin = mod.default;
+      loaded.push({ manifest, pluginDir, dirName: entry.name, plugin });
     } catch (err) {
-      console.error(`[plugin-loader] Failed to load plugin from ${pluginDir}:`, err)
+      console.error(`[plugin-loader] Failed to load plugin from ${pluginDir}:`, err);
     }
   }
 
-  return loaded
-}
+  return loaded;
+};

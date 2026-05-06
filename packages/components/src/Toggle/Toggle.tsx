@@ -1,48 +1,49 @@
-import { Switch } from '@base-ui/react/switch'
-import './Toggle.css'
+import { Switch } from '@base-ui/react/switch';
+import './Toggle.css';
 
 export interface ToggleProps {
   /**
    * Label text for the toggle
    */
-  label?: string
-  
+  label?: string;
+
   /**
    * Whether the toggle is checked
    */
-  checked: boolean
-  
+  checked: boolean;
+
   /**
    * Callback when toggle state changes
    */
-  onChange: (checked: boolean) => void
-  
+  onChange: (checked: boolean) => void;
+
   /**
    * Whether the toggle is disabled
    */
-  disabled?: boolean
-  
+  disabled?: boolean;
+
   /**
    * Additional props passed to the root element
    */
-  [key: string]: any
+  // biome-ignore lint/suspicious/noExplicitAny: Index signature for spreading additional props to Base UI component
+  [key: string]: any;
 }
 
 /**
  * Toggle switch component for boolean settings.
  * Built with Base UI Switch primitive for enhanced accessibility.
- * 
+ *
  * Features:
  * - Full keyboard support (Space/Enter to toggle)
  * - ARIA attributes (role="switch", aria-checked)
  * - Focus management
  * - Screen reader support
- * 
+ *
  * @example
  *
  * ```tsx
  * const [enabled, setEnabled] = useState(false)
- * 
+ *
  * <Toggle
  *   label="Enable feature"
  *   checked={enabled}
@@ -50,13 +51,13 @@ export interface ToggleProps {
  * />
  * ```
  */
-export const Toggle = ({ 
+export const Toggle = ({
   label,
   checked,
   onChange,
   disabled,
   className = '',
-  ...props 
+  ...props
 }: ToggleProps) => {
   return (
     <label className={['toggle-container', className].filter(Boolean).join(' ')}>
@@ -71,7 +72,7 @@ export const Toggle = ({
       </Switch.Root>
       {label && <span className="toggle-label">{label}</span>}
     </label>
-  )
-}
+  );
+};
 
-Toggle.displayName = 'Toggle'
+Toggle.displayName = 'Toggle';

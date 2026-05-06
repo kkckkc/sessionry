@@ -7,7 +7,8 @@
 :root {
   color-scheme: dark light;
   font-family:
-    'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', sans-serif;
+    "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI",
+    sans-serif;
   background: var(--window-bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;

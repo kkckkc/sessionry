@@ -1,74 +1,74 @@
-import { Select as BaseSelect } from '@base-ui/react/select'
-import { Field } from '@base-ui/react/field'
-import './Select.css'
+import { Select as BaseSelect } from '@base-ui/react/select';
+import { Field } from '@base-ui/react/field';
+import './Select.css';
 
 export interface SelectOption {
-  value: string
-  label: string
-  disabled?: boolean
+  value: string;
+  label: string;
+  disabled?: boolean;
 }
 
 export interface SelectProps {
   /**
    * Label text for the select
    */
-  label?: string
-  
+  label?: string;
+
   /**
    * Description text shown below the select
    */
-  description?: string
-  
+  description?: string;
+
   /**
    * Error message to display
    */
-  error?: string
-  
+  error?: string;
+
   /**
    * Array of options to display
    */
-  options: SelectOption[]
-  
+  options: SelectOption[];
+
   /**
    * Currently selected value (controlled)
    */
-  value?: string
-  
+  value?: string;
+
   /**
    * Default value (uncontrolled)
    */
-  defaultValue?: string
-  
+  defaultValue?: string;
+
   /**
    * Callback when selection changes
    */
-  onChange?: (value: string) => void
-  
+  onChange?: (value: string) => void;
+
   /**
    * Placeholder text when no value selected
    */
-  placeholder?: string
-  
+  placeholder?: string;
+
   /**
    * Whether the select is disabled
    */
-  disabled?: boolean
-  
+  disabled?: boolean;
+
   /**
    * Whether the select is required
    */
-  required?: boolean
-  
+  required?: boolean;
+
   /**
    * Name attribute for form submission
    */
-  name?: string
+  name?: string;
 }
 
 /**
  * Select component built on Base UI Select with enhanced accessibility.
  * Provides keyboard navigation, ARIA support, and automatic validation states.
- * 
+ *
  * @example
  *
  * ```tsx
@@ -76,7 +76,7 @@ export interface SelectProps {
  *   { value: 'light', label: 'Light Theme' },
  *   { value: 'dark', label: 'Dark Theme' }
  * ]
- * 
+ *
  * <Select
  *   label="Theme"
  *   options={options}
@@ -98,8 +98,8 @@ export const Select = ({
   required = false,
   name
 }: SelectProps) => {
-  const hasError = Boolean(error)
-  const selectedLabel = options.find(o => o.value === (value ?? defaultValue))?.label
+  const hasError = Boolean(error);
+  const selectedLabel = options.find(o => o.value === (value ?? defaultValue))?.label;
 
   return (
     <Field.Root
@@ -118,7 +118,7 @@ export const Select = ({
       <BaseSelect.Root
         value={value}
         defaultValue={defaultValue}
-        onValueChange={(newValue) => onChange?.(newValue as string)}
+        onValueChange={newValue => onChange?.(newValue as string)}
         disabled={disabled}
         required={required}
         name={name}
@@ -129,12 +129,12 @@ export const Select = ({
           </BaseSelect.Value>
           <BaseSelect.Icon className="select-icon">▼</BaseSelect.Icon>
         </BaseSelect.Trigger>
-        
+
         <BaseSelect.Portal>
           <BaseSelect.Positioner className="select-positioner">
             <BaseSelect.Popup className="select-popup">
               <BaseSelect.List>
-                {options.map((option) => (
+                {options.map(option => (
                   <BaseSelect.Item
                     key={option.value}
                     value={option.value}
@@ -152,20 +152,14 @@ export const Select = ({
           </BaseSelect.Positioner>
         </BaseSelect.Portal>
       </BaseSelect.Root>
-      
-      {error && (
-        <Field.Error className="select-error">
-          {error}
-        </Field.Error>
-      )}
-      
+
+      {error && <Field.Error className="select-error">{error}</Field.Error>}
+
       {!error && description && (
-        <Field.Description className="select-description">
-          {description}
-        </Field.Description>
+        <Field.Description className="select-description">{description}</Field.Description>
       )}
     </Field.Root>
-  )
-}
+  );
+};
 
-Select.displayName = 'Select'
+Select.displayName = 'Select';

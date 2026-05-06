@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom/vitest'
+import '@testing-library/jest-dom/vitest';
 
 if (!window.matchMedia) {
   window.matchMedia = ((query: string) => ({
@@ -10,5 +10,5 @@ if (!window.matchMedia) {
     addEventListener: () => {},
     removeEventListener: () => {},
     dispatchEvent: () => false
-  })) as typeof window.matchMedia
+  })) as typeof window.matchMedia;
 }

@@ -1,37 +1,37 @@
 /**
  * Tab Navigation Component
- * 
+ *
  * Tabs for switching between Installed, Available, and Updates views.
  */
 
-import React from 'react'
-import type { PluginTab } from './PluginManagerContext'
-import './TabNavigation.css'
+import React from 'react';
+import type { PluginTab } from './PluginManagerContext';
+import './TabNavigation.css';
 
 /**
  * Tab Navigation Props
  */
 export interface TabNavigationProps {
-  activeTab: PluginTab
-  onTabChange: (tab: PluginTab) => void
-  installedCount?: number
-  updatesCount?: number
-  disabled?: boolean
+  activeTab: PluginTab;
+  onTabChange: (tab: PluginTab) => void;
+  installedCount?: number;
+  updatesCount?: number;
+  disabled?: boolean;
 }
 
 /**
  * Tab item configuration
  */
 interface TabItem {
-  id: PluginTab
-  label: string
+  id: PluginTab;
+  label: string;
 }
 
 const tabs: TabItem[] = [
   { id: 'installed', label: 'Installed' },
   { id: 'available', label: 'Available' },
   { id: 'updates', label: 'Updates' }
-]
+];
 
 /**
  * Tab Navigation Component
@@ -49,39 +49,39 @@ export function TabNavigation({
   const getTabCount = (tabId: PluginTab): number | undefined => {
     switch (tabId) {
       case 'installed':
-        return installedCount
+        return installedCount;
       case 'updates':
-        return updatesCount
+        return updatesCount;
       default:
-        return undefined
+        return undefined;
     }
-  }
+  };
 
   /**
    * Handle tab click
    */
   const handleTabClick = (tabId: PluginTab) => {
     if (!disabled && tabId !== activeTab) {
-      onTabChange(tabId)
+      onTabChange(tabId);
     }
-  }
+  };
 
   /**
    * Handle keyboard navigation
    */
   const handleKeyDown = (e: React.KeyboardEvent, tabId: PluginTab) => {
     if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      handleTabClick(tabId)
+      e.preventDefault();
+      handleTabClick(tabId);
     }
-  }
+  };
 
   return (
     <div className="tab-navigation" role="tablist" aria-label="Plugin views">
-      {tabs.map((tab) => {
-        const isActive = activeTab === tab.id
-        const count = getTabCount(tab.id)
-        const showBadge = count !== undefined && count > 0
+      {tabs.map(tab => {
+        const isActive = activeTab === tab.id;
+        const count = getTabCount(tab.id);
+        const showBadge = count !== undefined && count > 0;
 
         return (
           <button
@@ -91,23 +91,22 @@ export function TabNavigation({
             aria-selected={isActive}
             aria-controls={`panel-${tab.id}`}
             id={`tab-${tab.id}`}
-            className={`tab-navigation__tab ${
-              isActive ? 'tab-navigation__tab--active' : ''
-            }`}
+            className={`tab-navigation__tab ${isActive ? 'tab-navigation__tab--active' : ''}`}
             onClick={() => handleTabClick(tab.id)}
-            onKeyDown={(e) => handleKeyDown(e, tab.id)}
+            onKeyDown={e => handleKeyDown(e, tab.id)}
             disabled={disabled}
             tabIndex={isActive ? 0 : -1}
           >
             <span className="tab-navigation__label">{tab.label}</span>
             {showBadge && (
+              // biome-ignore lint/a11y/useAriaPropsSupportedByRole: Badge count is decorative, aria-label provides context
               <span className="tab-navigation__badge" aria-label={`${count} items`}>
                 {count}
               </span>
             )}
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

@@ -1,24 +1,24 @@
 /**
  * Plugin Manager Dialog
- * 
+ *
  * Main container for the Plugin Manager UI.
  */
 
-import React, { useEffect } from 'react'
-import { Dialog, DialogHeader, ConfirmationDialog } from '@sessionry/components'
-import { usePluginManager } from './PluginManagerContext'
-import { SearchBar } from './SearchBar'
-import { TabNavigation } from './TabNavigation'
-import { PluginCard } from './PluginCard'
-import { StatusBar } from './StatusBar'
-import './PluginManagerDialog.css'
+import React, { useEffect } from 'react';
+import { Dialog, DialogHeader, ConfirmationDialog } from '@sessionry/components';
+import { usePluginManager } from './PluginManagerContext';
+import { SearchBar } from './SearchBar';
+import { TabNavigation } from './TabNavigation';
+import { PluginCard } from './PluginCard';
+import { StatusBar } from './StatusBar';
+import './PluginManagerDialog.css';
 
 /**
  * Plugin Manager Dialog Props
  */
 export interface PluginManagerDialogProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
 /**
@@ -42,82 +42,82 @@ export function PluginManagerDialog({ open, onClose }: PluginManagerDialogProps)
     refreshInstalledPlugins,
     clearError,
     isOperationInProgress
-  } = usePluginManager()
+  } = usePluginManager();
 
   const [confirmDialog, setConfirmDialog] = React.useState<{
-    open: boolean
-    title: string
-    message: string
-    onConfirm: () => void
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
   }>({
     open: false,
     title: '',
     message: '',
     onConfirm: () => {}
-  })
+  });
 
   /**
    * Load data on mount
    */
   useEffect(() => {
     if (open) {
-      refreshInstalledPlugins()
-      checkForUpdates()
+      refreshInstalledPlugins();
+      checkForUpdates();
     }
-  }, [open, refreshInstalledPlugins, checkForUpdates])
+  }, [open, refreshInstalledPlugins, checkForUpdates]);
 
   /**
    * Handle install
    */
   const handleInstall = (packageName: string) => {
-    installPlugin(packageName)
-  }
+    installPlugin(packageName);
+  };
 
   /**
    * Handle uninstall with confirmation
    */
   const handleUninstall = (pluginId: string) => {
-    const plugin = installedPlugins.find(p => p.id === pluginId)
-    if (!plugin) return
+    const plugin = installedPlugins.find(p => p.id === pluginId);
+    if (!plugin) return;
 
     setConfirmDialog({
       open: true,
       title: 'Uninstall Plugin',
       message: `Are you sure you want to uninstall "${plugin.name}"? This action cannot be undone.`,
       onConfirm: () => {
-        uninstallPlugin(pluginId)
-        setConfirmDialog(prev => ({ ...prev, open: false }))
+        uninstallPlugin(pluginId);
+        setConfirmDialog(prev => ({ ...prev, open: false }));
       }
-    })
-  }
+    });
+  };
 
   /**
    * Handle update
    */
   const handleUpdate = (pluginId: string, packageName: string) => {
-    updatePlugin(pluginId, packageName)
-  }
+    updatePlugin(pluginId, packageName);
+  };
 
   /**
    * Handle enable/disable
    */
   const handleEnable = async (pluginId: string) => {
     try {
-      await window.terminalApp.plugins.enable(pluginId)
-      await refreshInstalledPlugins()
+      await window.terminalApp.plugins.enable(pluginId);
+      await refreshInstalledPlugins();
     } catch (error) {
-      console.error('Failed to enable plugin:', error)
+      console.error('Failed to enable plugin:', error);
     }
-  }
+  };
 
   const handleDisable = async (pluginId: string) => {
     try {
-      await window.terminalApp.plugins.disable(pluginId)
-      await refreshInstalledPlugins()
+      await window.terminalApp.plugins.disable(pluginId);
+      await refreshInstalledPlugins();
     } catch (error) {
-      console.error('Failed to disable plugin:', error)
+      console.error('Failed to disable plugin:', error);
     }
-  }
+  };
 
   /**
    * Get plugins for current tab
@@ -125,32 +125,36 @@ export function PluginManagerDialog({ open, onClose }: PluginManagerDialogProps)
   const getPluginsForTab = () => {
     switch (activeTab) {
       case 'installed':
-        return installedPlugins
+        return installedPlugins;
       case 'available':
-        return availablePlugins
+        return availablePlugins;
       case 'updates':
-        return updatesAvailable.map(update => {
-          const plugin = installedPlugins.find(p => p.id === update.pluginId)
-          return plugin ? {
-            ...plugin,
-            updateAvailable: true,
-            latestVersion: update.latestVersion
-          } : null
-        }).filter(Boolean)
+        return updatesAvailable
+          .map(update => {
+            const plugin = installedPlugins.find(p => p.id === update.pluginId);
+            return plugin
+              ? {
+                  ...plugin,
+                  updateAvailable: true,
+                  latestVersion: update.latestVersion
+                }
+              : null;
+          })
+          .filter(Boolean);
       default:
-        return []
+        return [];
     }
-  }
+  };
 
-  const plugins = getPluginsForTab()
-  const isLoading = isOperationInProgress()
+  const plugins = getPluginsForTab();
+  const isLoading = isOperationInProgress();
 
   return (
     <>
       <Dialog
         open={open}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) onClose()
+        onOpenChange={isOpen => {
+          if (!isOpen) onClose();
         }}
         className="plugin-manager-dialog"
       >
@@ -199,9 +203,7 @@ export function PluginManagerDialog({ open, onClose }: PluginManagerDialogProps)
                 {activeTab === 'installed' && (
                   <>
                     <span className="plugin-manager-dialog__empty-icon">📦</span>
-                    <p className="plugin-manager-dialog__empty-text">
-                      No plugins installed yet
-                    </p>
+                    <p className="plugin-manager-dialog__empty-text">No plugins installed yet</p>
                     <p className="plugin-manager-dialog__empty-hint">
                       Browse available plugins to get started
                     </p>
@@ -218,15 +220,12 @@ export function PluginManagerDialog({ open, onClose }: PluginManagerDialogProps)
                   </>
                 )}
                 {activeTab === 'updates' && (
-                  <>
-                    <p className="plugin-manager-dialog__empty-text">
-                      All plugins are up to date
-                    </p>
-                  </>
+                  <p className="plugin-manager-dialog__empty-text">All plugins are up to date</p>
                 )}
               </div>
             ) : (
               <div className="plugin-manager-dialog__cards">
+                {/* biome-ignore lint/suspicious/noExplicitAny: Plugins can be PluginState or PluginSearchResult with different shapes */}
                 {plugins.map((plugin: any) => (
                   <PluginCard
                     key={plugin.id || plugin.package?.name}
@@ -258,5 +257,5 @@ export function PluginManagerDialog({ open, onClose }: PluginManagerDialogProps)
         intent="danger"
       />
     </>
-  )
+  );
 }

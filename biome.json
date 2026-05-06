@@ -1,0 +1,132 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "globals": [],
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "none",
+      "arrowParentheses": "asNeeded",
+      "quoteProperties": "preserve"
+    }
+  },
+  "css": {
+    "formatter": {
+      "indentWidth": 2,
+      "indentStyle": "space"
+    },
+    "parser": {
+      "cssModules": true
+    }
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!!**/dist",
+      "!!**/out",
+      "!!**/coverage",
+      "!!**/storybook-static",
+      "!!**/node_modules",
+      "!!**/.pnpm-store",
+      "!**/*.png",
+      "!**/*.jpg",
+      "!**/*.gif",
+      "!**/*.svg",
+      "!**/*.webp",
+      "!**/eslintrc.cjs",
+      "!**/.storybook",
+      "!.*",
+      "!**/*.html",
+      "!**/vite.config.ts",
+      "!**/vitest.config.ts",
+      "!**/electron.vite.config.ts",
+      "!**/vite.host.config.ts",
+      "!**/vite.main.config.ts",
+      "!**/vite.renderer.config.ts"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "domains": {
+      "project": "recommended",
+      "react": "recommended",
+      "test": "recommended"
+    },
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "useKeyWithClickEvents": "off",
+        "noStaticElementInteractions": "off",
+        "useKeyWithMouseEvents": "off",
+        "useValidAnchor": "off",
+        "noSvgWithoutTitle": "off",
+        "noLabelWithoutControl": "off",
+        "noAutofocus": "off",
+        "useAltText": "off"
+      },
+      "style": {
+        "noDescendingSpecificity": "off",
+        "noNonNullAssertion": "off",
+        "useImportType": "off",
+        "useShorthandFunctionType": "off"
+      },
+      "suspicious": {
+        "useIterableCallbackReturn": "off",
+        "noAssignInExpressions": "off",
+        "noArrayIndexKey": "off",
+        "noConfusingVoidType": "off",
+        "noImportantInKeyframe": "off",
+        "noConfusingLabels": "off",
+        "noControlCharactersInRegex": "off"
+      },
+      "complexity": {
+        "noImportantStyles": "off",
+        "useLiteralKeys": "off",
+        "noStaticOnlyClass": "off",
+        "noAdjacentSpacesInRegex": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn",
+        "noConstantCondition": "off",
+        "useUniqueElementIds": "off",
+        "noUnusedLabels": "off",
+        "noNestedComponentDefinitions": "error",
+        "noPrivateImports": "error"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "nursery": {
+        "noFloatingPromises": "off",
+        "noUnnecessaryConditions": "off"
+      },
+      "performance": {
+        "noBarrelFile": "off"
+      }
+    },
+    "includes": ["**", "!**/*.test.ts", "!**/*.stories.tsx"]
+  },
+  "assist": {
+    "enabled": false
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/test/**/*"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUndeclaredDependencies": "off"
+          },
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,10 +1,10 @@
-import type { WorkspaceViewProps } from '@sessionry/plugin-api'
-import { getChildViewsForSlot, resolveActiveView } from '@sessionry/plugin-api'
-import { PluginSurface } from './PluginSurface'
+import type { WorkspaceViewProps } from '@sessionry/plugin-api';
+import { getChildViewsForSlot, resolveActiveView } from '@sessionry/plugin-api';
+import { PluginSurface } from './PluginSurface';
 
 interface WorkspaceSlotViewProps extends WorkspaceViewProps {
-  selectedViewId?: string
-  preferredViewId?: string
+  selectedViewId?: string;
+  preferredViewId?: string;
 }
 
 export const WorkspaceSlotView = ({
@@ -13,18 +13,18 @@ export const WorkspaceSlotView = ({
   preferredViewId,
   ...viewProps
 }: WorkspaceSlotViewProps) => {
-  const slot = 'workspace'
-  const activeView = resolveActiveView(plugins, slot, selectedViewId, preferredViewId)
+  const slot = 'workspace';
+  const activeView = resolveActiveView(plugins, slot, selectedViewId, preferredViewId);
   if (!activeView) {
-    return <section className="workspace-empty">No workspace view registered.</section>
+    return <section className="workspace-empty">No workspace view registered.</section>;
   }
 
-  const registration = viewProps.resolveRendererView(activeView.id)
+  const registration = viewProps.resolveRendererView(activeView.id);
   if (!registration) {
-    return <section className="workspace-empty">Workspace view renderer not found.</section>
+    return <section className="workspace-empty">Workspace view renderer not found.</section>;
   }
 
-  const Component = registration.component
+  const Component = registration.component;
   return (
     <PluginSurface
       pluginId={activeView.pluginId}
@@ -41,5 +41,5 @@ export const WorkspaceSlotView = ({
         preferredViewId={preferredViewId}
       />
     </PluginSurface>
-  )
-}
+  );
+};

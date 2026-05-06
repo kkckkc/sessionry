@@ -41,4 +41,4 @@ export const IPC_CHANNELS = {
   terminalData: 'terminal:data',
   terminalState: 'terminal:state',
   terminalExit: 'terminal:exit'
-} as const
+} as const;

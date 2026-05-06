@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 export const projectSessionsSidebarPlugin: AppPlugin = {
   id: 'plugin-default-view-left-sidebar',
@@ -11,6 +11,6 @@ export const projectSessionsSidebarPlugin: AppPlugin = {
       isDefault: true
     }
   ]
-}
+};
 
-export default projectSessionsSidebarPlugin
+export default projectSessionsSidebarPlugin;

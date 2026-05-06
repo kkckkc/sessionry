@@ -1,19 +1,19 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { Toolbar, ToolbarButton } from './index'
-import { TbDeviceFloppy, TbFolderOpen, TbPlayerPlay, TbSettings } from 'react-icons/tb'
-import './Toolbar.css'
+import type { Meta, StoryObj } from '@storybook/react';
+import { Toolbar, ToolbarButton } from './index';
+import { TbDeviceFloppy, TbFolderOpen, TbPlayerPlay, TbSettings } from 'react-icons/tb';
+import './Toolbar.css';
 
 const meta = {
   title: 'Components/Toolbar',
   component: Toolbar,
   parameters: {
-    layout: 'fullscreen',
+    layout: 'fullscreen'
   },
-  tags: ['autodocs'],
-} satisfies Meta<typeof Toolbar>
+  tags: ['autodocs']
+} satisfies Meta<typeof Toolbar>;
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
@@ -34,9 +34,9 @@ export const Default: Story = {
           <TbSettings size={15} />
         </ToolbarButton>
       </>
-    ),
-  },
-}
+    )
+  }
+};
 
 export const WithoutBrand: Story = {
   args: {
@@ -50,9 +50,9 @@ export const WithoutBrand: Story = {
           <TbFolderOpen size={15} />
         </ToolbarButton>
       </>
-    ),
-  },
-}
+    )
+  }
+};
 
 export const WithTextButtons: Story = {
   args: {
@@ -69,9 +69,9 @@ export const WithTextButtons: Story = {
           Run
         </ToolbarButton>
       </>
-    ),
-  },
-}
+    )
+  }
+};
 
 export const WithDisabledButton: Story = {
   args: {
@@ -88,6 +88,6 @@ export const WithDisabledButton: Story = {
           <TbPlayerPlay size={15} />
         </ToolbarButton>
       </>
-    ),
-  },
-}
+    )
+  }
+};

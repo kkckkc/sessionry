@@ -1,9 +1,9 @@
-import type { ThemeDefinition } from '@sessionry/plugin-api'
+import type { ThemeDefinition } from '@sessionry/plugin-api';
 
 export const githubDarkTheme: ThemeDefinition = {
   id: 'github-dark',
   name: 'GitHub Dark',
-  description: 'GitHub\'s dark theme',
+  description: "GitHub's dark theme",
   author: 'GitHub',
   ansi: {
     background: '#0d1117',
@@ -56,4 +56,4 @@ export const githubDarkTheme: ThemeDefinition = {
     inserted: '#3fb950',
     invalid: '#ff7b72'
   }
-}
+};

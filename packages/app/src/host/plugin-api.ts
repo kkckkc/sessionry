@@ -1,1 +1,1 @@
-export * from '@sessionry/plugin-api'
+export * from '@sessionry/plugin-api';

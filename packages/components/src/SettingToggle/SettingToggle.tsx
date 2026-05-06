@@ -1,12 +1,12 @@
-import { Toggle } from '../Toggle'
-import './SettingToggle.css'
+import { Toggle } from '../Toggle';
+import './SettingToggle.css';
 
 export interface SettingToggleProps {
-  label: string
-  description?: string
-  checked: boolean
-  onChange: (checked: boolean) => void
-  disabled?: boolean
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
 }
 
 export const SettingToggle = ({
@@ -29,7 +29,7 @@ export const SettingToggle = ({
       </div>
       {description && <p className="sr-setting-toggle-description">{description}</p>}
     </div>
-  )
-}
+  );
+};
 
-SettingToggle.displayName = 'SettingToggle'
+SettingToggle.displayName = 'SettingToggle';

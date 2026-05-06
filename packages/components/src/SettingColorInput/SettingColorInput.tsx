@@ -1,11 +1,11 @@
-import './SettingColorInput.css'
+import './SettingColorInput.css';
 
 export interface SettingColorInputProps {
-  label: string
-  description?: string
-  value: string
-  onChange: (value: string) => void
-  disabled?: boolean
+  label: string;
+  description?: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
 export const SettingColorInput = ({
@@ -24,7 +24,7 @@ export const SettingColorInput = ({
           <input
             type="color"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={e => onChange(e.target.value)}
             disabled={disabled}
             className="sr-setting-color-native"
           />
@@ -32,7 +32,7 @@ export const SettingColorInput = ({
       </div>
       {description && <p className="sr-setting-color-input-description">{description}</p>}
     </div>
-  )
-}
+  );
+};
 
-SettingColorInput.displayName = 'SettingColorInput'
+SettingColorInput.displayName = 'SettingColorInput';

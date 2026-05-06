@@ -1,13 +1,13 @@
-import type { RendererAppPlugin } from '@sessionry/plugin-api'
-import './components/PaneTitle/PaneTitle.css'
+import type { RendererAppPlugin } from '@sessionry/plugin-api';
+import './components/PaneTitle/PaneTitle.css';
 
-import { defaultWorkspacePanePlugin } from '.'
-import { WorkspacePaneTree, getActiveVisibleTerminalPaneId } from './WorkspacePaneTree'
+import { defaultWorkspacePanePlugin } from '.';
+import { WorkspacePaneTree, getActiveVisibleTerminalPaneId } from './WorkspacePaneTree';
 
-const workspaceView = defaultWorkspacePanePlugin.views?.[0]
+const workspaceView = defaultWorkspacePanePlugin.views?.[0];
 
 if (!workspaceView) {
-  throw new Error('defaultWorkspacePanePlugin must register a workspace view.')
+  throw new Error('defaultWorkspacePanePlugin must register a workspace view.');
 }
 
 export const defaultWorkspacePaneRendererPlugin: RendererAppPlugin = {
@@ -19,6 +19,6 @@ export const defaultWorkspacePaneRendererPlugin: RendererAppPlugin = {
       component: WorkspacePaneTree
     }
   ]
-}
+};
 
-export { WorkspacePaneTree, getActiveVisibleTerminalPaneId }
+export { WorkspacePaneTree, getActiveVisibleTerminalPaneId };

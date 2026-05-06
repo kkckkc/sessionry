@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 export const vcsViewPlugin: AppPlugin = {
   id: 'plugin-default-view-vcs',
@@ -12,6 +12,6 @@ export const vcsViewPlugin: AppPlugin = {
       isDefault: true
     }
   ]
-}
+};
 
-export default vcsViewPlugin
+export default vcsViewPlugin;

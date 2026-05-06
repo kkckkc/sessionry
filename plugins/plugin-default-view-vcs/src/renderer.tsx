@@ -1,139 +1,138 @@
-import './styles.css'
+import './styles.css';
 
-import { useState, useEffect } from 'react'
-import type {
-  RendererAppPlugin,
-  SidebarViewProps,
-  VcsFileStatus
-} from '@sessionry/plugin-api'
+import { useState, useEffect } from 'react';
+import type { RendererAppPlugin, SidebarViewProps, VcsFileStatus } from '@sessionry/plugin-api';
 
-import { vcsViewPlugin } from '.'
+import { vcsViewPlugin } from '.';
 
-const getFileTitle = (filePath: string): string => filePath.split(/[\\/]/).filter(Boolean).pop() ?? filePath
+const getFileTitle = (filePath: string): string =>
+  filePath.split(/[\\/]/).filter(Boolean).pop() ?? filePath;
 
 const getActivePaneId = (
   workspace: SidebarViewProps['workspace'],
   sessionId: string
 ): string | undefined => {
-  const snapshot = workspace.snapshot
-  const session = snapshot.sessions.find((value) => value.id === sessionId)
-  if (!session) return undefined
-  if (session.focusedPaneId) return session.focusedPaneId
+  const snapshot = workspace.snapshot;
+  const session = snapshot.sessions.find(value => value.id === sessionId);
+  if (!session) return undefined;
+  if (session.focusedPaneId) return session.focusedPaneId;
 
-  const groupById = new Map(snapshot.paneGroups.map((paneGroup) => [paneGroup.id, paneGroup]))
+  const groupById = new Map(snapshot.paneGroups.map(paneGroup => [paneGroup.id, paneGroup]));
   const visitGroup = (paneGroupId: string): string | undefined => {
-    const paneGroup = groupById.get(paneGroupId)
-    if (!paneGroup) return undefined
+    const paneGroup = groupById.get(paneGroupId);
+    if (!paneGroup) return undefined;
 
     const children =
       paneGroup.direction === 'stacked'
         ? paneGroup.children
-            .filter((child) => {
-              const childId = child.kind === 'pane' ? child.paneId : child.paneGroupId
-              return childId === paneGroup.activeChildId
+            .filter(child => {
+              const childId = child.kind === 'pane' ? child.paneId : child.paneGroupId;
+              return childId === paneGroup.activeChildId;
             })
             .slice(0, 1)
-        : paneGroup.children
+        : paneGroup.children;
 
     for (const child of children) {
-      if (child.kind === 'pane') return child.paneId
+      if (child.kind === 'pane') return child.paneId;
 
-      const paneId = visitGroup(child.paneGroupId)
-      if (paneId) return paneId
+      const paneId = visitGroup(child.paneGroupId);
+      if (paneId) return paneId;
     }
 
-    return undefined
-  }
+    return undefined;
+  };
 
-  return visitGroup(session.rootPaneGroupId)
-}
+  return visitGroup(session.rootPaneGroupId);
+};
 
 const getPaneParentGroup = (workspace: SidebarViewProps['workspace'], paneId: string) =>
-  workspace.snapshot.paneGroups.find((paneGroup) =>
-    paneGroup.children.some((child) => child.kind === 'pane' && child.paneId === paneId)
-  )
+  workspace.snapshot.paneGroups.find(paneGroup =>
+    paneGroup.children.some(child => child.kind === 'pane' && child.paneId === paneId)
+  );
 
 const VcsView = ({ workspace }: SidebarViewProps) => {
-  const [files, setFiles] = useState<VcsFileStatus[]>([])
-  const [loading, setLoading] = useState(true)
-  const [, setRefreshKey] = useState(0)
+  const [files, setFiles] = useState<VcsFileStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [, setRefreshKey] = useState(0);
 
   // Subscribe to workspace changes
-  useEffect(() => workspace.subscribeAll(() => setRefreshKey((k) => k + 1)), [workspace])
+  useEffect(() => workspace.subscribeAll(() => setRefreshKey(k => k + 1)), [workspace]);
 
   // Get active session folder
   const activeSession = workspace.snapshot.sessions.find(
-    (s) => s.id === workspace.snapshot.activeSessionId
-  )
+    s => s.id === workspace.snapshot.activeSessionId
+  );
 
   // Load VCS file status
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     const loadFileStatus = async () => {
       if (!activeSession) {
-        setFiles([])
-        setLoading(false)
-        return
+        setFiles([]);
+        setLoading(false);
+        return;
       }
 
-      setLoading(true)
-      const status = await window.terminalApp.vcs.getStatus(activeSession.folder)
+      setLoading(true);
+      const status = await window.terminalApp.vcs.getStatus(activeSession.folder);
 
       if (!cancelled) {
-        setFiles(status?.files ?? [])
-        setLoading(false)
+        setFiles(status?.files ?? []);
+        setLoading(false);
       }
-    }
+    };
 
-    void loadFileStatus()
+    void loadFileStatus();
 
     // Refresh every 5 seconds
     const intervalId = setInterval(() => {
-      void loadFileStatus()
-    }, 5000)
+      void loadFileStatus();
+    }, 5000);
 
     return () => {
-      cancelled = true
-      clearInterval(intervalId)
-    }
-  }, [activeSession?.id, activeSession?.folder])
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, [activeSession?.id, activeSession?.folder, activeSession]);
 
   const openCodePane = async (state: Record<string, unknown>) => {
-    if (!activeSession) return
+    if (!activeSession) return;
 
-    const session = workspace.getSession(activeSession.id)
-    if (!session) return
+    const session = workspace.getSession(activeSession.id);
+    if (!session) return;
 
-    const focusedPaneId = getActivePaneId(workspace, activeSession.id)
+    const focusedPaneId = getActivePaneId(workspace, activeSession.id);
     if (!focusedPaneId) {
       const pane = await session.createPane({
         type: 'code',
         state,
         parentPaneGroupId: session.data.rootPaneGroupId
-      })
-      await workspace.getPaneGroup(session.data.rootPaneGroupId)?.update({ activeChildId: pane.id })
-      await session.setFocusedPane(pane.id)
-      return
+      });
+      await workspace
+        .getPaneGroup(session.data.rootPaneGroupId)
+        ?.update({ activeChildId: pane.id });
+      await session.setFocusedPane(pane.id);
+      return;
     }
 
-    const focusedPane = workspace.getPane(focusedPaneId)
-    if (!focusedPane) return
+    const focusedPane = workspace.getPane(focusedPaneId);
+    if (!focusedPane) return;
 
-    const parentPaneGroup = getPaneParentGroup(workspace, focusedPaneId)
-    if (!parentPaneGroup) return
+    const parentPaneGroup = getPaneParentGroup(workspace, focusedPaneId);
+    if (!parentPaneGroup) return;
 
-    let targetPaneGroupId = parentPaneGroup.id
+    let targetPaneGroupId = parentPaneGroup.id;
     let insertIndex =
       parentPaneGroup.children.findIndex(
-        (child) => child.kind === 'pane' && child.paneId === focusedPaneId
-      ) + 1
+        child => child.kind === 'pane' && child.paneId === focusedPaneId
+      ) + 1;
 
     if (parentPaneGroup.direction !== 'stacked') {
       const paneIndex = parentPaneGroup.children.findIndex(
-        (child) => child.kind === 'pane' && child.paneId === focusedPaneId
-      )
-      if (paneIndex === -1) return
+        child => child.kind === 'pane' && child.paneId === focusedPaneId
+      );
+      if (paneIndex === -1) return;
 
       const stackedGroup = await session.createPaneGroup({
         name: `${focusedPane.data.state.title ?? getFileTitle(String(state.filePath ?? 'Code'))}`,
@@ -141,37 +140,37 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         preferredSizePct: focusedPane.data.preferredSizePct,
         parentPaneGroupId: parentPaneGroup.id,
         index: paneIndex
-      })
-      await stackedGroup.moveNode({ kind: 'pane', paneId: focusedPaneId }, 0)
-      targetPaneGroupId = stackedGroup.id
-      insertIndex = 1
+      });
+      await stackedGroup.moveNode({ kind: 'pane', paneId: focusedPaneId }, 0);
+      targetPaneGroupId = stackedGroup.id;
+      insertIndex = 1;
     }
 
-    const targetPaneGroup = workspace.getPaneGroup(targetPaneGroupId)
-    if (!targetPaneGroup) return
+    const targetPaneGroup = workspace.getPaneGroup(targetPaneGroupId);
+    if (!targetPaneGroup) return;
 
     const codePane = await session.createPane({
       type: 'code',
       state,
       parentPaneGroupId: targetPaneGroupId,
       index: insertIndex
-    })
-    await targetPaneGroup.update({ activeChildId: codePane.id })
-    await session.setFocusedPane(codePane.id)
-  }
+    });
+    await targetPaneGroup.update({ activeChildId: codePane.id });
+    await session.setFocusedPane(codePane.id);
+  };
 
   const handleFileDoubleClick = async (file: VcsFileStatus) => {
-    if (!activeSession) return
+    if (!activeSession) return;
 
-    const filePath = `${activeSession.folder}/${file.path}`
-    const diff = await window.terminalApp.vcs.getDiff(activeSession.folder, file)
+    const filePath = `${activeSession.folder}/${file.path}`;
+    const diff = await window.terminalApp.vcs.getDiff(activeSession.folder, file);
 
     if (!diff) {
       await openCodePane({
         title: getFileTitle(filePath),
         filePath
-      })
-      return
+      });
+      return;
     }
 
     await openCodePane({
@@ -181,8 +180,8 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       languagePath: filePath,
       content: diff,
       readOnly: true
-    })
-  }
+    });
+  };
 
   const getStatusLabel = (status: string): string => {
     const statusMap: Record<string, string> = {
@@ -193,18 +192,18 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       C: 'Copied',
       U: 'Unmerged',
       '??': 'Untracked'
-    }
-    return statusMap[status] ?? status
-  }
+    };
+    return statusMap[status] ?? status;
+  };
 
   const getStatusClass = (status: string): string => {
-    if (status.includes('M')) return 'status-modified'
-    if (status.includes('A')) return 'status-added'
-    if (status.includes('D')) return 'status-deleted'
-    if (status.includes('R')) return 'status-renamed'
-    if (status.includes('??')) return 'status-untracked'
-    return 'status-unknown'
-  }
+    if (status.includes('M')) return 'status-modified';
+    if (status.includes('A')) return 'status-added';
+    if (status.includes('D')) return 'status-deleted';
+    if (status.includes('R')) return 'status-renamed';
+    if (status.includes('??')) return 'status-untracked';
+    return 'status-unknown';
+  };
 
   if (!activeSession) {
     return (
@@ -213,7 +212,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           <p>No active session</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -223,7 +222,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           <p>Loading changes...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (files.length === 0) {
@@ -233,7 +232,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           <p>No changes</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -249,7 +248,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
               type="button"
               className="vcs-file-button"
               onDoubleClick={() => {
-                void handleFileDoubleClick(file)
+                void handleFileDoubleClick(file);
               }}
               title={getStatusLabel(file.status)}
             >
@@ -270,12 +269,12 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         ))}
       </ul>
     </div>
-  )
-}
+  );
+};
 
-const panelView = vcsViewPlugin.views?.[0]
+const panelView = vcsViewPlugin.views?.[0];
 if (!panelView) {
-  throw new Error('vcsViewPlugin must register a sidebar view.')
+  throw new Error('vcsViewPlugin must register a sidebar view.');
 }
 
 export const vcsViewRendererPlugin: RendererAppPlugin = {
@@ -287,6 +286,6 @@ export const vcsViewRendererPlugin: RendererAppPlugin = {
       component: VcsView
     }
   ]
-}
+};
 
-export default vcsViewRendererPlugin
+export default vcsViewRendererPlugin;

@@ -1,16 +1,16 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-import type { PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type { PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api';
 
-import projectSessionsSidebarRendererPlugin from '../src/renderer'
+import projectSessionsSidebarRendererPlugin from '../src/renderer';
 
 const plugins: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
   statusItems: [],
   viewsBySlot: {}
-}
+};
 
 const snapshot: WorkspaceStateSnapshot = {
   projects: [
@@ -24,13 +24,25 @@ const snapshot: WorkspaceStateSnapshot = {
     }
   ],
   sessions: [
-    { id: 'session-1', projectId: 'project-1', name: 'First', folder: '/tmp/alpha', rootPaneGroupId: 'group-1' },
-    { id: 'session-2', projectId: 'project-1', name: 'Second', folder: '/tmp/alpha', rootPaneGroupId: 'group-2' }
+    {
+      id: 'session-1',
+      projectId: 'project-1',
+      name: 'First',
+      folder: '/tmp/alpha',
+      rootPaneGroupId: 'group-1'
+    },
+    {
+      id: 'session-2',
+      projectId: 'project-1',
+      name: 'Second',
+      folder: '/tmp/alpha',
+      rootPaneGroupId: 'group-2'
+    }
   ],
   paneGroups: [],
   panes: [],
   activeSessionId: 'session-2'
-}
+};
 
 describe('ProjectSessionsSidebarView', () => {
   it('renders project sessions, shows git diff stats, and activates the clicked session', async () => {
@@ -53,14 +65,14 @@ describe('ProjectSessionsSidebarView', () => {
           }
         }))
       }
-    } as never
+    } as never;
 
-    const activate = vi.fn(async () => {})
+    const activate = vi.fn(async () => {});
     const getSession = vi.fn((id: string) =>
       id === 'session-1' || id === 'session-2'
         ? ({
             id,
-            data: snapshot.sessions.find((session) => session.id === id)!,
+            data: snapshot.sessions.find(session => session.id === id)!,
             project: null,
             rootPaneGroup: null,
             activate,
@@ -68,17 +80,17 @@ describe('ProjectSessionsSidebarView', () => {
             remove: async () => {},
             setRootPaneGroup: async () => {},
             createPaneGroup: async () => {
-              throw new Error('Not implemented in test')
+              throw new Error('Not implemented in test');
             },
             createPane: async () => {
-              throw new Error('Not implemented in test')
+              throw new Error('Not implemented in test');
             }
           } as any)
         : null
-    )
+    );
     const workspace: WorkspaceApi = {
       get snapshot() {
-        return snapshot
+        return snapshot;
       },
       projects: [],
       getProject: () => null,
@@ -88,31 +100,25 @@ describe('ProjectSessionsSidebarView', () => {
       subscribe: () => () => {},
       subscribeAll: () => () => {},
       createProject: async () => {
-        throw new Error('Not implemented in test')
+        throw new Error('Not implemented in test');
       }
-    }
-    const Component = projectSessionsSidebarRendererPlugin.views?.[0]?.component
+    };
+    const Component = projectSessionsSidebarRendererPlugin.views?.[0]?.component;
 
     if (!Component) {
-      throw new Error('Expected project sessions sidebar renderer to register a component.')
+      throw new Error('Expected project sessions sidebar renderer to register a component.');
     }
 
-    render(
-      <Component
-        plugins={plugins}
-        workspace={workspace}
-        resolveRendererView={() => null}
-      />
-    )
+    render(<Component plugins={plugins} workspace={workspace} resolveRendererView={() => null} />);
 
-    expect(screen.getByRole('button', { name: 'Second' })).toHaveAttribute('aria-pressed', 'true')
-    expect(await screen.findAllByText('+12')).toHaveLength(2)
-    expect(screen.getAllByText('-3')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Second' })).toHaveAttribute('aria-pressed', 'true');
+    expect(await screen.findAllByText('+12')).toHaveLength(2);
+    expect(screen.getAllByText('-3')).toHaveLength(2);
 
-    fireEvent.click(screen.getByRole('button', { name: 'First' }))
+    fireEvent.click(screen.getByRole('button', { name: 'First' }));
 
-    expect(getSession).toHaveBeenCalledWith('session-1')
-    expect(activate).toHaveBeenCalled()
-    expect(window.terminalApp.vcs.getStatus).toHaveBeenCalledWith('/tmp/alpha')
-  })
-})
+    expect(getSession).toHaveBeenCalledWith('session-1');
+    expect(activate).toHaveBeenCalled();
+    expect(window.terminalApp.vcs.getStatus).toHaveBeenCalledWith('/tmp/alpha');
+  });
+});

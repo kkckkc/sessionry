@@ -59,7 +59,15 @@
 .plugin-card__version {
   font-size: var(--body-sm-font-size);
   color: var(--text-muted);
-  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    SF Mono,
+    Menlo,
+    Monaco,
+    Consolas,
+    Liberation Mono,
+    monospace;
 }
 
 .plugin-card__badge {
@@ -173,7 +181,7 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .plugin-card__actions {
     width: 100%;
     justify-content: flex-end;

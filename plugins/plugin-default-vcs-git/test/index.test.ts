@@ -1,11 +1,11 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   createGitVcsProvider,
   getGitFileDiff,
   parseGitShortStat,
   parseGitStatusPorcelain
-} from '../src/index'
+} from '../src/index';
 
 describe('parseGitShortStat', () => {
   it('parses the git shortstat output into normalized stats', () => {
@@ -13,37 +13,39 @@ describe('parseGitShortStat', () => {
       filesChanged: 3,
       insertions: 12,
       deletions: 4
-    })
-  })
+    });
+  });
 
   it('returns zero stats for empty output', () => {
     expect(parseGitShortStat('')).toEqual({
       filesChanged: 0,
       insertions: 0,
       deletions: 0
-    })
-  })
-})
+    });
+  });
+});
 
 describe('parseGitStatusPorcelain', () => {
   it('parses tracked, untracked, and renamed files', () => {
-    expect(parseGitStatusPorcelain(' M src/app.ts\n?? notes/todo.md\nR  old.ts -> new.ts\n')).toEqual([
+    expect(
+      parseGitStatusPorcelain(' M src/app.ts\n?? notes/todo.md\nR  old.ts -> new.ts\n')
+    ).toEqual([
       { path: 'src/app.ts', status: 'M' },
       { path: 'notes/todo.md', status: '??' },
       { path: 'new.ts', status: 'R', oldPath: 'old.ts' }
-    ])
-  })
-})
+    ]);
+  });
+});
 
 describe('createGitVcsProvider', () => {
   it('reports inactive when the folder is not a git repository', async () => {
     const run = vi.fn(async () => {
-      throw new Error('not a repo')
-    })
-    const provider = createGitVcsProvider(run)
+      throw new Error('not a repo');
+    });
+    const provider = createGitVcsProvider(run);
 
-    await expect(provider.getStatus('/tmp/project')).resolves.toEqual({ active: false })
-  })
+    await expect(provider.getStatus('/tmp/project')).resolves.toEqual({ active: false });
+  });
 
   it('reports normalized stats for active git repositories', async () => {
     const run = vi
@@ -56,8 +58,8 @@ describe('createGitVcsProvider', () => {
       .mockResolvedValueOnce({
         stdout: ' M src/app.ts\n?? notes/todo.md\n',
         stderr: ''
-      })
-    const provider = createGitVcsProvider(run)
+      });
+    const provider = createGitVcsProvider(run);
 
     await expect(provider.getStatus('/tmp/project')).resolves.toEqual({
       active: true,
@@ -70,30 +72,30 @@ describe('createGitVcsProvider', () => {
         { path: 'src/app.ts', status: 'M' },
         { path: 'notes/todo.md', status: '??' }
       ]
-    })
-  })
+    });
+  });
 
   it('returns a tracked file diff by combining staged and unstaged changes', async () => {
     const run = vi
       .fn()
       .mockResolvedValueOnce({ stdout: 'cached diff', stderr: '' })
-      .mockResolvedValueOnce({ stdout: 'working diff', stderr: '' })
+      .mockResolvedValueOnce({ stdout: 'working diff', stderr: '' });
 
     await expect(
       getGitFileDiff('/tmp/project', { path: 'src/app.ts', status: 'M' }, run)
-    ).resolves.toBe('cached diff\n\nworking diff\n')
-  })
+    ).resolves.toBe('cached diff\n\nworking diff\n');
+  });
 
   it('returns an untracked file diff using no-index mode', async () => {
     const run = vi.fn(async () => {
-      const error = new Error('diff found') as Error & { stdout: string; code: number }
-      error.stdout = 'diff --git a/notes/todo.md b/notes/todo.md\n'
-      error.code = 1
-      throw error
-    })
+      const error = new Error('diff found') as Error & { stdout: string; code: number };
+      error.stdout = 'diff --git a/notes/todo.md b/notes/todo.md\n';
+      error.code = 1;
+      throw error;
+    });
 
     await expect(
       getGitFileDiff('/tmp/project', { path: 'notes/todo.md', status: '??' }, run)
-    ).resolves.toBe('diff --git a/notes/todo.md b/notes/todo.md\n')
-  })
-})
+    ).resolves.toBe('diff --git a/notes/todo.md b/notes/todo.md\n');
+  });
+});

@@ -1,2 +1,2 @@
-export { PaneTitle } from './PaneTitle'
-export type { PaneTitleProps } from './PaneTitle'
+export { PaneTitle } from './PaneTitle';
+export type { PaneTitleProps } from './PaneTitle';

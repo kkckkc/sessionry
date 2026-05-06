@@ -1,26 +1,26 @@
-import { type ReactNode } from 'react'
-import './Section.css'
+import { type ReactNode } from 'react';
+import './Section.css';
 
 export interface SectionProps {
   /**
    * Section title (displayed as uppercase label)
    */
-  title: string
-  
+  title: string;
+
   /**
    * Optional description text
    */
-  description?: string
-  
+  description?: string;
+
   /**
    * Section content (typically form controls)
    */
-  children: ReactNode
+  children: ReactNode;
 }
 
 /**
  * Section component for grouping related settings or form controls.
- * 
+ *
  * @example
  *
  * ```tsx
@@ -38,7 +38,7 @@ export const Section = ({ title, description, children }: SectionProps) => {
       </div>
       <div className="section-content">{children}</div>
     </section>
-  )
-}
+  );
+};
 
-Section.displayName = 'Section'
+Section.displayName = 'Section';

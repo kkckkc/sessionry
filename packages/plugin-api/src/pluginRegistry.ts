@@ -4,14 +4,14 @@ import type {
   PluginViewContribution,
   PluginViewDefinition,
   PluginViewSlotId
-} from './plugins'
+} from './plugins';
 
 export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
-  const actions = plugins.flatMap((plugin) =>
+  const actions = plugins.flatMap(plugin =>
     (plugin.actions ?? []).map(({ run: _run, ...action }) => action)
-  )
-  const statusItems = plugins.flatMap((plugin) => plugin.statusItems ?? [])
-  const views = plugins.flatMap((plugin) =>
+  );
+  const statusItems = plugins.flatMap(plugin => plugin.statusItems ?? []);
+  const views = plugins.flatMap(plugin =>
     (plugin.views ?? []).map<PluginViewContribution>((view: PluginViewDefinition) => ({
       ...view,
       icon: view.icon ?? plugin.icon,
@@ -19,54 +19,59 @@ export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
       pluginIcon: plugin.icon,
       viewMode: plugin.viewMode ?? 'single-view'
     }))
-  )
+  );
 
   const viewsBySlot = Object.fromEntries(
-    views.reduce<Map<string, PluginViewContribution[]>>((groups, view) => {
-      const group = groups.get(view.slot) ?? []
-      group.push(view)
-      groups.set(view.slot, group)
-      return groups
-    }, new Map()).entries()
-  )
+    views
+      .reduce<Map<string, PluginViewContribution[]>>((groups, view) => {
+        const group = groups.get(view.slot) ?? [];
+        group.push(view);
+        groups.set(view.slot, group);
+        return groups;
+      }, new Map())
+      .entries()
+  );
 
   return {
     actions,
-    toolbarActionIds: actions.filter((action) => action.surfaces?.includes('toolbar')).map((action) => action.id),
+    toolbarActionIds: actions
+      .filter(action => action.surfaces?.includes('toolbar'))
+      .map(action => action.id),
     statusItems,
     viewsBySlot
-  }
-}
+  };
+};
 
 export const getViewsForSlot = (
   plugins: PluginViewModel,
   slot: PluginViewSlotId
-): PluginViewContribution[] => plugins.viewsBySlot[slot] ?? []
+): PluginViewContribution[] => plugins.viewsBySlot[slot] ?? [];
 
 const resolveViewFromCandidates = (
   views: PluginViewContribution[],
   selectedViewId?: string,
   preferredViewId?: string
 ): PluginViewContribution | null => {
-  if (views.length === 0) return null
+  if (views.length === 0) return null;
 
-  const viewById = new Map(views.map((view) => [view.id, view]))
+  const viewById = new Map(views.map(view => [view.id, view]));
 
   if (selectedViewId && viewById.has(selectedViewId)) {
-    return viewById.get(selectedViewId) ?? null
+    return viewById.get(selectedViewId) ?? null;
   }
 
   if (preferredViewId && viewById.has(preferredViewId)) {
-    return viewById.get(preferredViewId) ?? null
+    return viewById.get(preferredViewId) ?? null;
   }
 
-  return views.find((view) => view.isDefault) ?? views[0] ?? null
-}
+  return views.find(view => view.isDefault) ?? views[0] ?? null;
+};
 
 export const getChildViewsForSlot = (
   plugins: PluginViewModel,
   slot: PluginViewSlotId
-): PluginViewContribution[] => getViewsForSlot(plugins, slot).filter((view) => view.viewMode !== 'multi-view')
+): PluginViewContribution[] =>
+  getViewsForSlot(plugins, slot).filter(view => view.viewMode !== 'multi-view');
 
 export const resolveChildViewForSlot = (
   plugins: PluginViewModel,
@@ -74,7 +79,7 @@ export const resolveChildViewForSlot = (
   selectedViewId?: string,
   preferredViewId?: string
 ): PluginViewContribution | null =>
-  resolveViewFromCandidates(getChildViewsForSlot(plugins, slot), selectedViewId, preferredViewId)
+  resolveViewFromCandidates(getChildViewsForSlot(plugins, slot), selectedViewId, preferredViewId);
 
 export const resolveActiveView = (
   plugins: PluginViewModel,
@@ -82,9 +87,9 @@ export const resolveActiveView = (
   selectedViewId?: string,
   preferredViewId?: string
 ): PluginViewContribution | null => {
-  const views = getViewsForSlot(plugins, slot)
-  const multiViewHost = views.find((view) => view.viewMode === 'multi-view')
-  if (multiViewHost) return multiViewHost
+  const views = getViewsForSlot(plugins, slot);
+  const multiViewHost = views.find(view => view.viewMode === 'multi-view');
+  if (multiViewHost) return multiViewHost;
 
-  return resolveViewFromCandidates(views, selectedViewId, preferredViewId)
-}
+  return resolveViewFromCandidates(views, selectedViewId, preferredViewId);
+};

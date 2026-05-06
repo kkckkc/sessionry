@@ -1,2 +1,2 @@
-export { SettingSelect } from './SettingSelect'
-export type { SettingSelectProps } from './SettingSelect'
+export { SettingSelect } from './SettingSelect';
+export type { SettingSelectProps } from './SettingSelect';

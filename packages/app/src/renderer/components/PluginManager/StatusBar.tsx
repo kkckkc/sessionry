@@ -1,18 +1,18 @@
 /**
  * Status Bar Component
- * 
+ *
  * Displays operation status, progress, and feedback messages.
  */
 
-import type { OperationProgress } from './PluginManagerContext'
-import './StatusBar.css'
+import type { OperationProgress } from './PluginManagerContext';
+import './StatusBar.css';
 
 /**
  * Status Bar Props
  */
 export interface StatusBarProps {
-  operation: OperationProgress
-  onDismiss?: () => void
+  operation: OperationProgress;
+  onDismiss?: () => void;
 }
 
 /**
@@ -21,13 +21,13 @@ export interface StatusBarProps {
 function getStatusIcon(status: OperationProgress['status']): string {
   switch (status) {
     case 'loading':
-      return '⏳'
+      return '⏳';
     case 'success':
-      return '✅'
+      return '✅';
     case 'error':
-      return '❌'
+      return '❌';
     default:
-      return ''
+      return '';
   }
 }
 
@@ -37,13 +37,13 @@ function getStatusIcon(status: OperationProgress['status']): string {
 function getStatusColorClass(status: OperationProgress['status']): string {
   switch (status) {
     case 'loading':
-      return 'status-bar--loading'
+      return 'status-bar--loading';
     case 'success':
-      return 'status-bar--success'
+      return 'status-bar--success';
     case 'error':
-      return 'status-bar--error'
+      return 'status-bar--error';
     default:
-      return ''
+      return '';
   }
 }
 
@@ -51,17 +51,17 @@ function getStatusColorClass(status: OperationProgress['status']): string {
  * Status Bar Component
  */
 export function StatusBar({ operation, onDismiss }: StatusBarProps) {
-  const { status, message, error, progress } = operation
+  const { status, message, error, progress } = operation;
 
   // Don't render if idle
   if (status === 'idle') {
-    return null
+    return null;
   }
 
-  const icon = getStatusIcon(status)
-  const colorClass = getStatusColorClass(status)
-  const displayMessage = error || message
-  const showProgress = status === 'loading' && progress !== undefined
+  const icon = getStatusIcon(status);
+  const colorClass = getStatusColorClass(status);
+  const displayMessage = error || message;
+  const showProgress = status === 'loading' && progress !== undefined;
 
   return (
     <div className={`status-bar ${colorClass}`} role="status" aria-live="polite">
@@ -71,12 +71,10 @@ export function StatusBar({ operation, onDismiss }: StatusBarProps) {
             {icon}
           </span>
         )}
-        
+
         <div className="status-bar__text">
-          {displayMessage && (
-            <span className="status-bar__message">{displayMessage}</span>
-          )}
-          
+          {displayMessage && <span className="status-bar__message">{displayMessage}</span>}
+
           {showProgress && (
             <div className="status-bar__progress-wrapper">
               <div className="status-bar__progress-bar">
@@ -94,7 +92,7 @@ export function StatusBar({ operation, onDismiss }: StatusBarProps) {
             </div>
           )}
         </div>
-        
+
         {(status === 'success' || status === 'error') && onDismiss && (
           <button
             type="button"
@@ -120,7 +118,7 @@ export function StatusBar({ operation, onDismiss }: StatusBarProps) {
           </button>
         )}
       </div>
-      
+
       {/* Loading spinner for operations without progress */}
       {status === 'loading' && !showProgress && (
         <div className="status-bar__spinner" aria-hidden="true">
@@ -145,5 +143,5 @@ export function StatusBar({ operation, onDismiss }: StatusBarProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

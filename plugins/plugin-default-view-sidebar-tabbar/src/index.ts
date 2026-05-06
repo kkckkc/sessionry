@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 export const sidebarTabBarPlugin: AppPlugin = {
   id: 'plugin-default-view-sidebar-tabbar',
@@ -11,6 +11,6 @@ export const sidebarTabBarPlugin: AppPlugin = {
       title: 'Sidebar Tabs'
     }
   ]
-}
+};
 
-export default sidebarTabBarPlugin
+export default sidebarTabBarPlugin;

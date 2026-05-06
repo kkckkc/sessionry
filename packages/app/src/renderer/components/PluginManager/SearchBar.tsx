@@ -1,24 +1,24 @@
 /**
  * Search Bar Component
- * 
+ *
  * Search input with debouncing for plugin search.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Input } from '@sessionry/components'
-import './SearchBar.css'
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Input } from '@sessionry/components';
+import './SearchBar.css';
 
 /**
  * Search Bar Props
  */
 export interface SearchBarProps {
-  value: string
-  onChange: (value: string) => void
-  onSearch: (query: string) => void
-  placeholder?: string
-  debounceMs?: number
-  disabled?: boolean
-  autoFocus?: boolean
+  value: string;
+  onChange: (value: string) => void;
+  onSearch: (query: string) => void;
+  placeholder?: string;
+  debounceMs?: number;
+  disabled?: boolean;
+  autoFocus?: boolean;
 }
 
 /**
@@ -33,54 +33,57 @@ export function SearchBar({
   disabled = false,
   autoFocus = false
 }: SearchBarProps) {
-  const [localValue, setLocalValue] = useState(value)
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [localValue, setLocalValue] = useState(value);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * Sync local value with prop value
    */
   useEffect(() => {
-    setLocalValue(value)
-  }, [value])
+    setLocalValue(value);
+  }, [value]);
 
   /**
    * Debounced search
    */
-  const debouncedSearch = useCallback((query: string) => {
-    // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
+  const debouncedSearch = useCallback(
+    (query: string) => {
+      // Clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
 
-    // Set new timer
-    debounceTimerRef.current = setTimeout(() => {
-      onSearch(query)
-    }, debounceMs)
-  }, [onSearch, debounceMs])
+      // Set new timer
+      debounceTimerRef.current = setTimeout(() => {
+        onSearch(query);
+      }, debounceMs);
+    },
+    [onSearch, debounceMs]
+  );
 
   /**
    * Handle input change
    */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    setLocalValue(newValue)
-    onChange(newValue)
-    debouncedSearch(newValue)
-  }
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    onChange(newValue);
+    debouncedSearch(newValue);
+  };
 
   /**
    * Handle clear button
    */
   const handleClear = () => {
-    setLocalValue('')
-    onChange('')
-    onSearch('')
-    
+    setLocalValue('');
+    onChange('');
+    onSearch('');
+
     // Clear debounce timer
     if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
+      clearTimeout(debounceTimerRef.current);
     }
-  }
+  };
 
   /**
    * Handle key press
@@ -89,11 +92,11 @@ export function SearchBar({
     if (e.key === 'Enter') {
       // Immediate search on Enter
       if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
+        clearTimeout(debounceTimerRef.current);
       }
-      onSearch(localValue)
+      onSearch(localValue);
     }
-  }
+  };
 
   /**
    * Cleanup on unmount
@@ -101,10 +104,10 @@ export function SearchBar({
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
+        clearTimeout(debounceTimerRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   return (
     <div className="search-bar">
@@ -133,7 +136,7 @@ export function SearchBar({
             strokeLinejoin="round"
           />
         </svg>
-        
+
         <Input
           type="text"
           value={localValue}
@@ -145,7 +148,7 @@ export function SearchBar({
           className="search-bar__input"
           aria-label="Search plugins"
         />
-        
+
         {localValue && (
           <button
             type="button"
@@ -172,7 +175,7 @@ export function SearchBar({
           </button>
         )}
       </div>
-      
+
       {/* Search hints */}
       <div className="search-bar__hints">
         <span className="search-bar__hint">
@@ -180,5 +183,5 @@ export function SearchBar({
         </span>
       </div>
     </div>
-  )
+  );
 }

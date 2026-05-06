@@ -1,9 +1,7 @@
-import type { TerminalAppBridge } from './rendererBridge'
+import type { TerminalAppBridge } from './rendererBridge';
 
 declare global {
   interface Window {
-    terminalApp: TerminalAppBridge
+    terminalApp: TerminalAppBridge;
   }
 }
-
-export {}

@@ -1,14 +1,14 @@
-import { Select } from '../Select'
-import type { SelectOption } from '../Select'
-import './SettingSelect.css'
+import { Select } from '../Select';
+import type { SelectOption } from '../Select';
+import './SettingSelect.css';
 
 export interface SettingSelectProps {
-  label: string
-  description?: string
-  options: SelectOption[]
-  value: string
-  onChange: (value: string) => void
-  disabled?: boolean
+  label: string;
+  description?: string;
+  options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
 export const SettingSelect = ({
@@ -27,7 +27,7 @@ export const SettingSelect = ({
       </div>
       {description && <p className="sr-setting-select-description">{description}</p>}
     </div>
-  )
-}
+  );
+};
 
-SettingSelect.displayName = 'SettingSelect'
+SettingSelect.displayName = 'SettingSelect';

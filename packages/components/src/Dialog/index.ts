@@ -1,7 +1,7 @@
-export { 
-  Dialog, 
-  DialogHeader, 
-  DialogContent, 
+export {
+  Dialog,
+  DialogHeader,
+  DialogContent,
   DialogFooter,
   DialogRoot,
   DialogPortal,
@@ -9,10 +9,10 @@ export {
   DialogPopup,
   DialogTitle,
   DialogDescription
-} from './Dialog'
-export type { 
-  DialogProps, 
-  DialogHeaderProps, 
-  DialogContentProps, 
-  DialogFooterProps 
-} from './Dialog'
+} from './Dialog';
+export type {
+  DialogProps,
+  DialogHeaderProps,
+  DialogContentProps,
+  DialogFooterProps
+} from './Dialog';

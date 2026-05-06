@@ -1,25 +1,25 @@
-import './SegmentedControl.css'
+import './SegmentedControl.css';
 
 export interface SegmentedControlItem {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 export interface SegmentedControlProps {
   /**
    * The list of tab items to display.
    */
-  items: SegmentedControlItem[]
+  items: SegmentedControlItem[];
 
   /**
    * The currently selected value.
    */
-  value: string
+  value: string;
 
   /**
    * Callback fired when the selected item changes.
    */
-  onChange: (value: string) => void
+  onChange: (value: string) => void;
 }
 
 /**
@@ -43,12 +43,14 @@ export interface SegmentedControlProps {
 export const SegmentedControl = ({ items, value, onChange }: SegmentedControlProps) => {
   return (
     <div className="segmented-control" role="tablist">
-      {items.map((item) => (
+      {items.map(item => (
         <button
           key={item.value}
           role="tab"
           aria-selected={item.value === value}
-          className={['segmented-control-item', item.value === value && 'is-active'].filter(Boolean).join(' ')}
+          className={['segmented-control-item', item.value === value && 'is-active']
+            .filter(Boolean)
+            .join(' ')}
           onClick={() => onChange(item.value)}
           type="button"
         >
@@ -56,7 +58,7 @@ export const SegmentedControl = ({ items, value, onChange }: SegmentedControlPro
         </button>
       ))}
     </div>
-  )
-}
+  );
+};
 
-SegmentedControl.displayName = 'SegmentedControl'
+SegmentedControl.displayName = 'SegmentedControl';

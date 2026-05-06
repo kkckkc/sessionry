@@ -1,62 +1,62 @@
-import { type ReactNode } from 'react'
-import { Dialog, DialogHeader, DialogContent, DialogFooter } from '../Dialog'
-import { Button } from '../Button'
-import './ConfirmationDialog.css'
+import { type ReactNode } from 'react';
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from '../Dialog';
+import { Button } from '../Button';
+import './ConfirmationDialog.css';
 
 export interface ConfirmationDialogProps {
   /**
    * Whether the dialog is open
    */
-  open: boolean
+  open: boolean;
   /**
    * Dialog title
    */
-  title: string
+  title: string;
   /**
    * Confirmation message/question
    */
-  message: ReactNode
+  message: ReactNode;
   /**
    * Visual intent of the confirm button
    * @default 'primary'
    */
-  intent?: 'primary' | 'danger'
+  intent?: 'primary' | 'danger';
 
   /**
    * Label for the confirm button
    * @default "Confirm"
    */
-  confirmLabel?: string
+  confirmLabel?: string;
   /**
    * Label for the cancel button
    * @default "Cancel"
    */
-  cancelLabel?: string
+  cancelLabel?: string;
   /**
    * Callback when user confirms the action
    */
-  onConfirm: () => void
+  onConfirm: () => void;
   /**
    * Callback when user cancels or closes the dialog
    */
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 /**
  * Confirmation dialog for destructive or important actions.
  * Provides a simple yes/no choice with clear messaging.
- * 
+ *
  * Features:
  * - Modal blocking behavior
  * - Keyboard support (Enter = confirm, Escape = cancel)
  * - Focus trap for accessibility
  * - Clear visual hierarchy
- * 
+ *
  * @example
  *
  * ```tsx
  * const [showConfirm, setShowConfirm] = useState(false)
- * 
+ *
  * <ConfirmationDialog
  *   open={showConfirm}
  *   title="Delete File"
@@ -82,7 +82,13 @@ export const ConfirmationDialog = ({
   onCancel
 }: ConfirmationDialogProps) => {
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onCancel() }} className="dialog confirmation-dialog">
+    <Dialog
+      open={open}
+      onOpenChange={isOpen => {
+        if (!isOpen) onCancel();
+      }}
+      className="dialog confirmation-dialog"
+    >
       <DialogHeader title={title} />
       <DialogContent className="content confirmation-content">
         <p>{message}</p>
@@ -96,7 +102,7 @@ export const ConfirmationDialog = ({
         </Button>
       </DialogFooter>
     </Dialog>
-  )
-}
+  );
+};
 
-ConfirmationDialog.displayName = 'ConfirmationDialog'
+ConfirmationDialog.displayName = 'ConfirmationDialog';

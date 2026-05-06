@@ -1,17 +1,25 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { PaneViewProps, WorkspaceApi } from '@sessionry/plugin-api'
-import { CodePaneView } from '@sessionry/plugin-default-view-code/renderer'
+import type { PaneViewProps, WorkspaceApi } from '@sessionry/plugin-api';
+import { CodePaneView } from '@sessionry/plugin-default-view-code/renderer';
 
 const workspace: WorkspaceApi = {
   get snapshot() {
     return {
       projects: [],
-      sessions: [{ id: 'session-1', projectId: 'project-1', name: 'Session', folder: '/tmp/project', rootPaneGroupId: 'group-1' }],
+      sessions: [
+        {
+          id: 'session-1',
+          projectId: 'project-1',
+          name: 'Session',
+          folder: '/tmp/project',
+          rootPaneGroupId: 'group-1'
+        }
+      ],
       paneGroups: [],
       panes: []
-    }
+    };
   },
   projects: [],
   getProject: () => null,
@@ -21,9 +29,9 @@ const workspace: WorkspaceApi = {
   subscribe: () => () => {},
   subscribeAll: () => () => {},
   createProject: async () => {
-    throw new Error('Not implemented in test')
+    throw new Error('Not implemented in test');
   }
-}
+};
 
 const baseProps: PaneViewProps = {
   plugins: {
@@ -45,50 +53,53 @@ const baseProps: PaneViewProps = {
   },
   clearSignal: 0,
   visible: true
-}
+};
 
 const getEditorView = (): {
-  state: { doc: { length: number } }
-  dispatch: (spec: { changes: { from: number; to: number; insert: string } }) => void
+  state: { doc: { length: number } };
+  dispatch: (spec: { changes: { from: number; to: number; insert: string } }) => void;
 } => {
-  const editorHost = document.querySelector('.code-pane-editor')
+  const editorHost = document.querySelector('.code-pane-editor');
   if (!(editorHost instanceof HTMLDivElement)) {
-    throw new Error('Editor host not found')
+    throw new Error('Editor host not found');
   }
 
-  const view = (editorHost as HTMLDivElement & {
-    __codePaneEditorView?: {
-      state: { doc: { length: number } }
-      dispatch: (spec: { changes: { from: number; to: number; insert: string } }) => void
+  const view = (
+    editorHost as HTMLDivElement & {
+      __codePaneEditorView?: {
+        state: { doc: { length: number } };
+        dispatch: (spec: { changes: { from: number; to: number; insert: string } }) => void;
+      };
     }
-  }).__codePaneEditorView
+  ).__codePaneEditorView;
 
   if (!view) {
-    throw new Error('EditorView instance not found')
+    throw new Error('EditorView instance not found');
   }
 
-  return view
-}
+  return view;
+};
 
 const getEditorHost = (): HTMLDivElement & {
-  __codePaneSave?: () => Promise<void>
+  __codePaneSave?: () => Promise<void>;
 } => {
-  const editorHost = document.querySelector('.code-pane-editor')
+  const editorHost = document.querySelector('.code-pane-editor');
   if (!(editorHost instanceof HTMLDivElement)) {
-    throw new Error('Editor host not found')
+    throw new Error('Editor host not found');
   }
 
-  return editorHost as HTMLDivElement & { __codePaneSave?: () => Promise<void> }
-}
+  return editorHost as HTMLDivElement & { __codePaneSave?: () => Promise<void> };
+};
 
 describe('CodePaneView', () => {
   beforeEach(() => {
     if (!Range.prototype.getClientRects) {
-      Range.prototype.getClientRects = () => ({
-        length: 0,
-        item: () => null,
-        [Symbol.iterator]: function* iterator() {}
-      }) as DOMRectList
+      Range.prototype.getClientRects = () =>
+        ({
+          length: 0,
+          item: () => null,
+          [Symbol.iterator]: function* iterator() {}
+        }) as DOMRectList;
     }
 
     if (!Range.prototype.getBoundingClientRect) {
@@ -103,7 +114,7 @@ describe('CodePaneView', () => {
           bottom: 0,
           left: 0,
           toJSON: () => ({})
-        }) as DOMRect
+        }) as DOMRect;
     }
 
     window.terminalApp = {
@@ -156,26 +167,26 @@ describe('CodePaneView', () => {
       onTerminalData: vi.fn(),
       onTerminalState: vi.fn(),
       onTerminalExit: vi.fn()
-    } as never
-  })
+    } as never;
+  });
 
   it('loads file content and renders the editor', async () => {
-    render(<CodePaneView {...baseProps} />)
+    render(<CodePaneView {...baseProps} />);
 
     await waitFor(() => {
-      expect(window.terminalApp.readFile).toHaveBeenCalledWith('/tmp/project/src/index.ts')
-      expect(document.querySelector('.cm-editor')).not.toBeNull()
-    })
-  })
+      expect(window.terminalApp.readFile).toHaveBeenCalledWith('/tmp/project/src/index.ts');
+      expect(document.querySelector('.cm-editor')).not.toBeNull();
+    });
+  });
 
   it('marks the editor dirty and saves through the bridge', async () => {
-    render(<CodePaneView {...baseProps} />)
+    render(<CodePaneView {...baseProps} />);
 
     await waitFor(() => {
-      expect(document.querySelector('.cm-editor')).not.toBeNull()
-    })
+      expect(document.querySelector('.cm-editor')).not.toBeNull();
+    });
 
-    const view = getEditorView()
+    const view = getEditorView();
     await act(async () => {
       view.dispatch({
         changes: {
@@ -183,39 +194,39 @@ describe('CodePaneView', () => {
           to: view.state.doc.length,
           insert: 'export const value = 2\n'
         }
-      })
-    })
+      });
+    });
 
     await act(async () => {
-      await getEditorHost().__codePaneSave?.()
-    })
+      await getEditorHost().__codePaneSave?.();
+    });
 
     await waitFor(() => {
       expect(window.terminalApp.writeFile).toHaveBeenCalledWith(
         '/tmp/project/src/index.ts',
         'export const value = 2\n'
-      )
-    })
-  })
+      );
+    });
+  });
 
   it('shows a read error when loading fails', async () => {
-    window.terminalApp.readFile = vi.fn().mockRejectedValue(new Error('missing file'))
+    window.terminalApp.readFile = vi.fn().mockRejectedValue(new Error('missing file'));
 
-    render(<CodePaneView {...baseProps} />)
+    render(<CodePaneView {...baseProps} />);
 
-    expect(await screen.findByText('missing file')).toBeTruthy()
-  })
+    expect(await screen.findByText('missing file')).toBeTruthy();
+  });
 
   it('preserves dirty state and shows an error when save fails', async () => {
-    window.terminalApp.writeFile = vi.fn().mockRejectedValue(new Error('permission denied'))
+    window.terminalApp.writeFile = vi.fn().mockRejectedValue(new Error('permission denied'));
 
-    render(<CodePaneView {...baseProps} />)
+    render(<CodePaneView {...baseProps} />);
 
     await waitFor(() => {
-      expect(document.querySelector('.cm-editor')).not.toBeNull()
-    })
+      expect(document.querySelector('.cm-editor')).not.toBeNull();
+    });
 
-    const view = getEditorView()
+    const view = getEditorView();
     await act(async () => {
       view.dispatch({
         changes: {
@@ -223,19 +234,19 @@ describe('CodePaneView', () => {
           to: view.state.doc.length,
           insert: 'export const value = 3\n'
         }
-      })
-    })
+      });
+    });
 
     await act(async () => {
-      await getEditorHost().__codePaneSave?.()
-    })
+      await getEditorHost().__codePaneSave?.();
+    });
 
-    expect(await screen.findByText('permission denied')).toBeTruthy()
+    expect(await screen.findByText('permission denied')).toBeTruthy();
     expect(window.terminalApp.writeFile).toHaveBeenCalledWith(
       '/tmp/project/src/index.ts',
       'export const value = 3\n'
-    )
-  })
+    );
+  });
 
   it('renders inline read-only content without reading from disk', async () => {
     render(
@@ -252,11 +263,11 @@ describe('CodePaneView', () => {
           }
         }}
       />
-    )
+    );
 
     await waitFor(() => {
-      expect(document.querySelector('.cm-editor')).not.toBeNull()
-      expect(window.terminalApp.readFile).not.toHaveBeenCalled()
-    })
-  })
-})
+      expect(document.querySelector('.cm-editor')).not.toBeNull();
+      expect(window.terminalApp.readFile).not.toHaveBeenCalled();
+    });
+  });
+});

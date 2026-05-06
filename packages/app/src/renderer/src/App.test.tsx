@@ -1,9 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ActionExecutionResult, PluginViewModel } from '@sessionry/plugin-api'
-import type { TerminalSessionInfo } from '@sessionry/plugin-api'
-import type { WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type { ActionExecutionResult, PluginViewModel } from '@sessionry/plugin-api';
+import type { TerminalSessionInfo } from '@sessionry/plugin-api';
+import type { WorkspaceStateSnapshot } from '@sessionry/plugin-api';
 
 vi.mock('@sessionry/plugin-default-view-workspace/renderer', () => ({
   WorkspacePaneTree: () => <div data-testid="workspace-tree-view">workspace tree</div>,
@@ -21,7 +21,7 @@ vi.mock('@sessionry/plugin-default-view-workspace/renderer', () => ({
     ]
   },
   getActiveVisibleTerminalPaneId: () => 'pane-terminal'
-}))
+}));
 
 vi.mock('@sessionry/plugin-default-view-terminal/renderer', () => ({
   terminalPaneRendererPlugin: {
@@ -37,7 +37,7 @@ vi.mock('@sessionry/plugin-default-view-terminal/renderer', () => ({
       }
     ]
   }
-}))
+}));
 
 vi.mock('@sessionry/plugin-default-view-left-sidebar/renderer', () => ({
   projectSessionsSidebarRendererPlugin: {
@@ -49,7 +49,11 @@ vi.mock('@sessionry/plugin-default-view-left-sidebar/renderer', () => ({
         title: 'Projects',
         slot: 'sidebar:left',
         isDefault: true,
-        component: ({ workspace }: { workspace: { getSession: (sessionId: string) => { activate(): Promise<void> } | null } }) => (
+        component: ({
+          workspace
+        }: {
+          workspace: { getSession: (sessionId: string) => { activate(): Promise<void> } | null };
+        }) => (
           <button type="button" onClick={() => void workspace.getSession('session-1')?.activate()}>
             Session nav
           </button>
@@ -57,7 +61,7 @@ vi.mock('@sessionry/plugin-default-view-left-sidebar/renderer', () => ({
       }
     ]
   }
-}))
+}));
 
 vi.mock('@sessionry/plugin-default-view-sidebar-tabbar/renderer', () => ({
   sidebarTabBarRendererPlugin: {
@@ -73,7 +77,7 @@ vi.mock('@sessionry/plugin-default-view-sidebar-tabbar/renderer', () => ({
       }
     ]
   }
-}))
+}));
 
 vi.mock('@sessionry/plugin-debug-view-pane-hierarchy/renderer', () => ({
   debugPaneHierarchyRendererPlugin: {
@@ -88,7 +92,7 @@ vi.mock('@sessionry/plugin-debug-view-pane-hierarchy/renderer', () => ({
       }
     ]
   }
-}))
+}));
 
 const pluginModel: PluginViewModel = {
   actions: [],
@@ -123,7 +127,7 @@ const pluginModel: PluginViewModel = {
       }
     ]
   }
-}
+};
 
 const terminalSession: TerminalSessionInfo = {
   id: 'pane-terminal',
@@ -132,7 +136,7 @@ const terminalSession: TerminalSessionInfo = {
   pid: 42,
   state: 'ready',
   buffer: ''
-}
+};
 
 const snapshot: WorkspaceStateSnapshot = {
   projects: [
@@ -166,11 +170,11 @@ const snapshot: WorkspaceStateSnapshot = {
   ],
   panes: [{ id: 'pane-terminal', sessionId: 'session-1', type: 'terminal', state: {} }],
   activeSessionId: 'session-1'
-}
+};
 
 describe('App', () => {
-  const onTerminalState = vi.fn(() => () => {})
-  const onWorkspaceEvent = vi.fn(() => () => {})
+  const onTerminalState = vi.fn(() => () => {});
+  const onWorkspaceEvent = vi.fn(() => () => {});
   const settings = {
     read: vi.fn(async () => ({
       version: 1 as const,
@@ -188,7 +192,7 @@ describe('App', () => {
     })),
     update: vi.fn(async () => {}),
     onChange: vi.fn(() => () => {})
-  }
+  };
   const pluginsBridge = {
     search: vi.fn(async () => []),
     install: vi.fn(async () => ({ success: true })),
@@ -200,13 +204,13 @@ describe('App', () => {
     checkUpdates: vi.fn(async () => []),
     onInstallProgress: vi.fn(() => () => {}),
     onUpdateProgress: vi.fn(() => () => {})
-  }
+  };
 
   beforeEach(() => {
-    vi.resetModules()
-    settings.read.mockClear()
-    settings.update.mockClear()
-    settings.onChange.mockClear()
+    vi.resetModules();
+    settings.read.mockClear();
+    settings.update.mockClear();
+    settings.onChange.mockClear();
     window.terminalApp = {
       showFolderDialog: vi.fn(),
       getPathForDroppedFile: vi.fn(),
@@ -242,25 +246,25 @@ describe('App', () => {
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
-    }
-  })
+    };
+  });
 
   afterEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('renders the resolved workspace slot view and falls back to the default view for unknown project selections', async () => {
-    const { App } = await import('./App')
+    const { App } = await import('./App');
 
-    render(<App />)
+    render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('workspace-tree-view')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByTestId('workspace-tree-view')).toBeInTheDocument();
+    });
+  });
 
   it('activates a session from sidebar interactions through workspace commands', async () => {
-    const executeCommand = vi.fn(async () => ({}))
+    const executeCommand = vi.fn(async () => ({}));
 
     window.terminalApp = {
       showFolderDialog: vi.fn(),
@@ -276,22 +280,24 @@ describe('App', () => {
         getStatus: vi.fn(async () => null),
         getDiff: vi.fn(async () => null)
       },
-      getPluginModel: vi.fn(async (): Promise<PluginViewModel> => ({
-        ...pluginModel,
-        viewsBySlot: {
-          ...pluginModel.viewsBySlot,
-          'sidebar:left': [
-            {
-              id: 'project-sessions.panel.view',
-              title: 'Projects',
-              slot: 'sidebar:left',
-              pluginId: 'nav',
-              viewMode: 'single-view',
-              isDefault: true
-            }
-          ]
-        }
-      })),
+      getPluginModel: vi.fn(
+        async (): Promise<PluginViewModel> => ({
+          ...pluginModel,
+          viewsBySlot: {
+            ...pluginModel.viewsBySlot,
+            'sidebar:left': [
+              {
+                id: 'project-sessions.panel.view',
+                title: 'Projects',
+                slot: 'sidebar:left',
+                pluginId: 'nav',
+                viewMode: 'single-view',
+                isDefault: true
+              }
+            ]
+          }
+        })
+      ),
       getUserPluginRenderers: vi.fn(async () => []),
       actions: {
         list: vi.fn(async () => []),
@@ -312,20 +318,23 @@ describe('App', () => {
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
-    }
+    };
 
-    const { App } = await import('./App')
+    const { App } = await import('./App');
 
-    render(<App />)
+    render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('workspace tree')).toBeInTheDocument()
-    })
+      expect(screen.getByText('workspace tree')).toBeInTheDocument();
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Session nav' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Session nav' }));
 
-    expect(executeCommand).toHaveBeenCalledWith({ type: 'session.activate', sessionId: 'session-1' })
-  })
+    expect(executeCommand).toHaveBeenCalledWith({
+      type: 'session.activate',
+      sessionId: 'session-1'
+    });
+  });
 
   it('runs toolbar actions through the action bridge', async () => {
     window.terminalApp = {
@@ -422,25 +431,24 @@ describe('App', () => {
       onTerminalData: vi.fn(() => () => {}),
       onTerminalState,
       onTerminalExit: vi.fn(() => () => {})
-    }
+    };
 
-    const { App } = await import('./App')
+    const { App } = await import('./App');
 
-    render(<App />)
+    render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Create Session' })).toBeInTheDocument()
-    })
+      expect(screen.getByRole('button', { name: 'Create Session' })).toBeInTheDocument();
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create Session' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create Session' }));
 
     await waitFor(() => {
       expect(window.terminalApp.actions.execute).toHaveBeenCalledWith({
         actionId: 'session:create',
         source: 'toolbar',
         args: undefined
-      })
-    })
-  })
-
-})
+      });
+    });
+  });
+});

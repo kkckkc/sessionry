@@ -5,7 +5,7 @@
 }
 
 .tree-output {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Courier New", monospace;
   font-size: var(--caption-font-size);
   font-weight: var(--caption-font-weight);
   line-height: 1.4;

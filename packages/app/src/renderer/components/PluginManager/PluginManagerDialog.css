@@ -99,11 +99,11 @@
     --dialog-width: 100%;
     --dialog-height: 100%;
   }
-  
+
   .plugin-manager-dialog__content {
     gap: var(--space-4);
   }
-  
+
   .plugin-manager-dialog__tabs {
     margin: 0 calc(var(--space-4) * -1);
   }

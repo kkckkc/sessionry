@@ -27,7 +27,9 @@
   font-size: var(--body-font-size);
   font-weight: var(--body-font-weight);
   font-family: inherit;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   outline: none;
 }
 

@@ -7,12 +7,23 @@
     "build": "pnpm --filter @sessionry/app build",
     "preview": "pnpm --filter @sessionry/app preview",
     "test": "pnpm -r --if-present test",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write ."
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.14",
     "electron": "latest"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["electron", "esbuild", "node-pty"]
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "node-pty"
+    ]
   }
 }

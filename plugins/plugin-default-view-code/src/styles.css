@@ -34,7 +34,11 @@
   height: 100%;
   /* Background is set by CodeMirror theme extension, not CSS */
   color: inherit;
-  font: 11px/1.15 "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+  font:
+    11px / 1.15 "SF Mono",
+    "JetBrains Mono",
+    ui-monospace,
+    monospace;
 }
 
 .code-pane-editor .cm-scroller {

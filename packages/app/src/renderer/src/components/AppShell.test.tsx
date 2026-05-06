@@ -1,22 +1,22 @@
-import * as React from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import * as React from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 
-import type { PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
-import type { TerminalSessionInfo } from '@sessionry/plugin-api'
+import type { PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api';
+import type { TerminalSessionInfo } from '@sessionry/plugin-api';
 
-import { AppShell } from './AppShell'
+import { AppShell } from './AppShell';
 
 const snapshot: WorkspaceStateSnapshot = {
   projects: [],
   sessions: [],
   paneGroups: [],
   panes: []
-}
+};
 
 const workspace: WorkspaceApi = {
   get snapshot() {
-    return snapshot
+    return snapshot;
   },
   projects: [],
   getProject: () => null,
@@ -26,16 +26,23 @@ const workspace: WorkspaceApi = {
   subscribe: () => () => {},
   subscribeAll: () => () => {},
   createProject: async () => {
-    throw new Error('Not implemented in test')
+    throw new Error('Not implemented in test');
   }
-}
+};
 
 const plugins: PluginViewModel = {
-  actions: [{ id: 'terminal:clear', name: 'Clear Terminal', description: 'Clear terminal', surfaces: ['toolbar'] }],
+  actions: [
+    {
+      id: 'terminal:clear',
+      name: 'Clear Terminal',
+      description: 'Clear terminal',
+      surfaces: ['toolbar']
+    }
+  ],
   toolbarActionIds: ['terminal:clear'],
   statusItems: [{ id: 'state', label: 'State', kind: 'session-state' }],
   viewsBySlot: {}
-}
+};
 
 const session: TerminalSessionInfo = {
   id: 'primary',
@@ -43,7 +50,7 @@ const session: TerminalSessionInfo = {
   cwd: '/tmp',
   pid: 123,
   state: 'ready'
-}
+};
 
 describe('AppShell', () => {
   it('renders the toolbar, sidebars, terminal region, and status bar', () => {
@@ -59,13 +66,13 @@ describe('AppShell', () => {
         onToolbarAction={() => {}}
         resolveRendererView={() => null}
       />
-    )
+    );
 
-    expect(screen.getByText('Sessionry')).toBeInTheDocument()
-    expect(screen.getByText('State')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Clear Terminal' })).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-content')).toBeInTheDocument()
-  })
+    expect(screen.getByText('Sessionry')).toBeInTheDocument();
+    expect(screen.getByText('State')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clear Terminal' })).toBeInTheDocument();
+    expect(screen.getByTestId('workspace-content')).toBeInTheDocument();
+  });
 
   it('renders a sidebar slot view when a matching slot view exists', () => {
     const sidebarPlugins: PluginViewModel = {
@@ -82,7 +89,7 @@ describe('AppShell', () => {
           }
         ]
       }
-    }
+    };
 
     render(
       <AppShell
@@ -98,14 +105,13 @@ describe('AppShell', () => {
           component: () => <div data-testid="sidebar-view-renderer">custom sidebar</div>
         })}
       />
-    )
+    );
 
-    expect(screen.getByTestId('sidebar-view-renderer')).toBeInTheDocument()
-    expect(screen.getByTestId('sidebar-view-renderer').closest('[data-plugin-id="nav"]')).toHaveAttribute(
-      'data-plugin-surface',
-      'sidebar'
-    )
-  })
+    expect(screen.getByTestId('sidebar-view-renderer')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('sidebar-view-renderer').closest('[data-plugin-id="nav"]')
+    ).toHaveAttribute('data-plugin-surface', 'sidebar');
+  });
 
   it('renders no sidebar content when a visible side has no registered view', () => {
     const { container } = render(
@@ -120,35 +126,35 @@ describe('AppShell', () => {
         onToolbarAction={() => {}}
         resolveRendererView={() => null}
       />
-    )
+    );
 
-    expect(container.querySelector('.sidebar--right')).toBeNull()
-    expect(container.querySelector('.workspace')).toHaveClass('is-right-hidden')
-    expect(screen.queryByText('No content registered')).not.toBeInTheDocument()
-  })
+    expect(container.querySelector('.sidebar--right')).toBeNull();
+    expect(container.querySelector('.workspace')).toHaveClass('is-right-hidden');
+    expect(screen.queryByText('No content registered')).not.toBeInTheDocument();
+  });
 
   it('renders a multi-view right sidebar host and switches child views with tabs', () => {
     const HostComponent = ({
       childViews,
       resolveRendererView
     }: {
-      childViews: Array<{ id: string; title: string }>
-      resolveRendererView: (viewId: string) => { component: () => React.JSX.Element } | null
+      childViews: Array<{ id: string; title: string }>;
+      resolveRendererView: (viewId: string) => { component: () => React.JSX.Element } | null;
     }) => {
-      const [activeViewId, setActiveViewId] = React.useState(childViews[0]?.id ?? '')
-      const ActiveComponent = resolveRendererView(activeViewId)?.component
+      const [activeViewId, setActiveViewId] = React.useState(childViews[0]?.id ?? '');
+      const ActiveComponent = resolveRendererView(activeViewId)?.component;
 
       return (
         <div>
-          {childViews.map((view) => (
+          {childViews.map(view => (
             <button key={view.id} type="button" onClick={() => setActiveViewId(view.id)}>
               {view.title}
             </button>
           ))}
           {ActiveComponent ? <ActiveComponent /> : null}
         </div>
-      )
-    }
+      );
+    };
 
     const sidebarPlugins: PluginViewModel = {
       ...plugins,
@@ -178,7 +184,7 @@ describe('AppShell', () => {
           }
         ]
       }
-    }
+    };
 
     render(
       <AppShell
@@ -190,28 +196,28 @@ describe('AppShell', () => {
         statusBarVisible
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
-        resolveRendererView={(viewId) => {
+        resolveRendererView={viewId => {
           if (viewId === 'sidebar.right.tabbar') {
-            return { component: HostComponent }
+            return { component: HostComponent };
           }
 
           if (viewId === 'file-browser') {
-            return { component: () => <div data-testid="files-view">files</div> }
+            return { component: () => <div data-testid="files-view">files</div> };
           }
 
           if (viewId === 'pane-hierarchy') {
-            return { component: () => <div data-testid="pane-hierarchy-view">pane hierarchy</div> }
+            return { component: () => <div data-testid="pane-hierarchy-view">pane hierarchy</div> };
           }
 
-          return null
+          return null;
         }}
       />
-    )
+    );
 
-    expect(screen.getByTestId('files-view')).toBeInTheDocument()
+    expect(screen.getByTestId('files-view')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Pane Hierarchy' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Pane Hierarchy' }));
 
-    expect(screen.getByTestId('pane-hierarchy-view')).toBeInTheDocument()
-  })
-})
+    expect(screen.getByTestId('pane-hierarchy-view')).toBeInTheDocument();
+  });
+});

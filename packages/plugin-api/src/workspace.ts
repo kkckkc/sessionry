@@ -1,72 +1,72 @@
-export type EntityMetadataValue = string | number | boolean | null
-export type EntityMetadata = Record<string, EntityMetadataValue>
-export type ViewSlotSelection = Partial<Record<string, string>>
+export type EntityMetadataValue = string | number | boolean | null;
+export type EntityMetadata = Record<string, EntityMetadataValue>;
+export type ViewSlotSelection = Partial<Record<string, string>>;
 
-export type PaneGroupLayout = 'stacked' | 'horizontal' | 'vertical'
-export type PaneType = 'terminal' | (string & {})
+export type PaneGroupLayout = 'stacked' | 'horizontal' | 'vertical';
+export type PaneType = 'terminal' | (string & {});
 
 export interface Project {
-  id: string
-  name: string
-  folder: string
-  metadata: EntityMetadata
-  activeViews: ViewSlotSelection
-  sessionIds: string[]
+  id: string;
+  name: string;
+  folder: string;
+  metadata: EntityMetadata;
+  activeViews: ViewSlotSelection;
+  sessionIds: string[];
 }
 
 export interface Session {
-  id: string
-  projectId: string
-  name: string
-  folder: string
-  rootPaneGroupId: string
-  focusedPaneId?: string
+  id: string;
+  projectId: string;
+  name: string;
+  folder: string;
+  rootPaneGroupId: string;
+  focusedPaneId?: string;
 }
 
 export interface PaneGroupChildPane {
-  kind: 'pane'
-  paneId: string
+  kind: 'pane';
+  paneId: string;
 }
 
 export interface PaneGroupChildGroup {
-  kind: 'group'
-  paneGroupId: string
+  kind: 'group';
+  paneGroupId: string;
 }
 
-export type PaneGroupChild = PaneGroupChildPane | PaneGroupChildGroup
+export type PaneGroupChild = PaneGroupChildPane | PaneGroupChildGroup;
 
 export interface PaneGroup {
-  id: string
-  sessionId: string
-  name: string
-  direction: PaneGroupLayout
-  preferredSizePct?: number
-  activeChildId?: string
-  children: PaneGroupChild[]
+  id: string;
+  sessionId: string;
+  name: string;
+  direction: PaneGroupLayout;
+  preferredSizePct?: number;
+  activeChildId?: string;
+  children: PaneGroupChild[];
 }
 
 export interface Pane {
-  id: string
-  sessionId: string
-  type: PaneType
-  preferredSizePct?: number
-  state: Record<string, unknown>
+  id: string;
+  sessionId: string;
+  type: PaneType;
+  preferredSizePct?: number;
+  state: Record<string, unknown>;
 }
 
-export type ProjectData = Project
-export type SessionData = Session
-export type PaneGroupData = PaneGroup
-export type PaneData = Pane
+export type ProjectData = Project;
+export type SessionData = Session;
+export type PaneGroupData = PaneGroup;
+export type PaneData = Pane;
 
 export interface WorkspaceStateSnapshot {
-  projects: Project[]
-  sessions: Session[]
-  paneGroups: PaneGroup[]
-  panes: Pane[]
-  activeSessionId?: string
+  projects: Project[];
+  sessions: Session[];
+  paneGroups: PaneGroup[];
+  panes: Pane[];
+  activeSessionId?: string;
 }
 
-export type WorkspaceEntityType = 'project' | 'session' | 'paneGroup' | 'pane'
+export type WorkspaceEntityType = 'project' | 'session' | 'paneGroup' | 'pane';
 
 export type WorkspaceEventType =
   | 'project.created'
@@ -82,78 +82,84 @@ export type WorkspaceEventType =
   | 'paneGroup.removed'
   | 'pane.created'
   | 'pane.updated'
-  | 'pane.removed'
+  | 'pane.removed';
 
-interface WorkspaceEventBase<TType extends WorkspaceEventType, TEntityType extends WorkspaceEntityType> {
-  type: TType
-  entityType: TEntityType
-  entityId: string
-  projectId?: string
-  sessionId?: string
-  paneGroupId?: string
+interface WorkspaceEventBase<
+  TType extends WorkspaceEventType,
+  TEntityType extends WorkspaceEntityType
+> {
+  type: TType;
+  entityType: TEntityType;
+  entityId: string;
+  projectId?: string;
+  sessionId?: string;
+  paneGroupId?: string;
 }
 
 export interface ProjectCreatedEvent extends WorkspaceEventBase<'project.created', 'project'> {
-  after: ProjectData
+  after: ProjectData;
 }
 
 export interface ProjectUpdatedEvent extends WorkspaceEventBase<'project.updated', 'project'> {
-  before: ProjectData
-  after: ProjectData
+  before: ProjectData;
+  after: ProjectData;
 }
 
 export interface ProjectRemovedEvent extends WorkspaceEventBase<'project.removed', 'project'> {
-  before: ProjectData
+  before: ProjectData;
 }
 
 export interface SessionCreatedEvent extends WorkspaceEventBase<'session.created', 'session'> {
-  after: SessionData
+  after: SessionData;
 }
 
 export interface SessionActivatedEvent extends WorkspaceEventBase<'session.activated', 'session'> {
-  beforeSessionId?: string
-  afterSessionId: string
+  beforeSessionId?: string;
+  afterSessionId: string;
 }
 
 export interface SessionUpdatedEvent extends WorkspaceEventBase<'session.updated', 'session'> {
-  before: SessionData
-  after: SessionData
+  before: SessionData;
+  after: SessionData;
 }
 
 export interface SessionRemovedEvent extends WorkspaceEventBase<'session.removed', 'session'> {
-  before: SessionData
+  before: SessionData;
 }
 
-export interface PaneGroupCreatedEvent extends WorkspaceEventBase<'paneGroup.created', 'paneGroup'> {
-  after: PaneGroupData
+export interface PaneGroupCreatedEvent
+  extends WorkspaceEventBase<'paneGroup.created', 'paneGroup'> {
+  after: PaneGroupData;
 }
 
-export interface PaneGroupUpdatedEvent extends WorkspaceEventBase<'paneGroup.updated', 'paneGroup'> {
-  before: PaneGroupData
-  after: PaneGroupData
+export interface PaneGroupUpdatedEvent
+  extends WorkspaceEventBase<'paneGroup.updated', 'paneGroup'> {
+  before: PaneGroupData;
+  after: PaneGroupData;
 }
 
 export interface PaneGroupChildrenChangedEvent
   extends WorkspaceEventBase<'paneGroup.childrenChanged', 'paneGroup'> {
-  beforeChildren: PaneGroupChild[]
-  afterChildren: PaneGroupChild[]
+  beforeChildren: PaneGroupChild[];
+  afterChildren: PaneGroupChild[];
 }
 
-export interface PaneGroupRemovedEvent extends WorkspaceEventBase<'paneGroup.removed', 'paneGroup'> {
-  before: PaneGroupData
+export interface PaneGroupRemovedEvent
+  extends WorkspaceEventBase<'paneGroup.removed', 'paneGroup'> {
+  before: PaneGroupData;
 }
 
 export interface PaneCreatedEvent extends WorkspaceEventBase<'pane.created', 'pane'> {
-  after: PaneData
+  after: PaneData;
 }
 
 export interface PaneUpdatedEvent extends WorkspaceEventBase<'pane.updated', 'pane'> {
-  before: PaneData
-  after: PaneData
+  before: PaneData;
+  after: PaneData;
 }
 
 export interface PaneRemovedEvent extends WorkspaceEventBase<'pane.removed', 'pane'> {
-  before: PaneData
+  before: PaneData;
 }
 
 export type WorkspaceEvent =
@@ -170,70 +176,70 @@ export type WorkspaceEvent =
   | PaneGroupRemovedEvent
   | PaneCreatedEvent
   | PaneUpdatedEvent
-  | PaneRemovedEvent
+  | PaneRemovedEvent;
 
 export interface CreateProjectInput {
-  id?: string
-  name: string
-  folder: string
-  metadata?: EntityMetadata
-  activeViews?: ViewSlotSelection
+  id?: string;
+  name: string;
+  folder: string;
+  metadata?: EntityMetadata;
+  activeViews?: ViewSlotSelection;
 }
 
 export interface UpdateProjectInput {
-  name?: string
-  folder?: string
-  metadata?: EntityMetadata
-  activeViews?: ViewSlotSelection
+  name?: string;
+  folder?: string;
+  metadata?: EntityMetadata;
+  activeViews?: ViewSlotSelection;
 }
 
 export interface CreateSessionInput {
-  id?: string
-  projectId: string
-  name: string
-  folder: string
-  rootPaneGroupId?: string
+  id?: string;
+  projectId: string;
+  name: string;
+  folder: string;
+  rootPaneGroupId?: string;
 }
 
 export interface UpdateSessionInput {
-  name?: string
-  folder?: string
-  rootPaneGroupId?: string
-  focusedPaneId?: string
+  name?: string;
+  folder?: string;
+  rootPaneGroupId?: string;
+  focusedPaneId?: string;
 }
 
 export interface CreatePaneGroupInput {
-  id?: string
-  sessionId: string
-  name: string
-  direction: PaneGroupLayout
-  preferredSizePct?: number
-  activeChildId?: string
-  parentPaneGroupId?: string
-  index?: number
+  id?: string;
+  sessionId: string;
+  name: string;
+  direction: PaneGroupLayout;
+  preferredSizePct?: number;
+  activeChildId?: string;
+  parentPaneGroupId?: string;
+  index?: number;
 }
 
 export interface UpdatePaneGroupInput {
-  name?: string
-  direction?: PaneGroupLayout
-  preferredSizePct?: number
-  activeChildId?: string
+  name?: string;
+  direction?: PaneGroupLayout;
+  preferredSizePct?: number;
+  activeChildId?: string;
 }
 
 export interface CreatePaneInput {
-  id?: string
-  sessionId: string
-  type: PaneType
-  preferredSizePct?: number
-  state?: Record<string, unknown>
-  parentPaneGroupId?: string
-  index?: number
+  id?: string;
+  sessionId: string;
+  type: PaneType;
+  preferredSizePct?: number;
+  state?: Record<string, unknown>;
+  parentPaneGroupId?: string;
+  index?: number;
 }
 
 export interface UpdatePaneInput {
-  type?: PaneType
-  preferredSizePct?: number
-  state?: Record<string, unknown>
+  type?: PaneType;
+  preferredSizePct?: number;
+  state?: Record<string, unknown>;
 }
 
 export type WorkspaceCommand =
@@ -251,16 +257,16 @@ export type WorkspaceCommand =
   | { type: 'paneGroup.setChildren'; paneGroupId: string; children: PaneGroupChild[] }
   | { type: 'paneGroup.insertPane'; paneGroupId: string; paneId: string; index?: number }
   | {
-      type: 'paneGroup.insertPaneGroup'
-      paneGroupId: string
-      childPaneGroupId: string
-      index?: number
+      type: 'paneGroup.insertPaneGroup';
+      paneGroupId: string;
+      childPaneGroupId: string;
+      index?: number;
     }
   | {
-      type: 'paneGroup.split'
-      paneGroupId: string
-      direction: Exclude<PaneGroupLayout, 'stacked'>
-      newChild?: PaneGroupChild
+      type: 'paneGroup.split';
+      paneGroupId: string;
+      direction: Exclude<PaneGroupLayout, 'stacked'>;
+      newChild?: PaneGroupChild;
     }
   | { type: 'paneNode.move'; node: PaneGroupChild; targetPaneGroupId: string; index?: number }
   | { type: 'paneNode.remove'; node: PaneGroupChild }
@@ -268,76 +274,76 @@ export type WorkspaceCommand =
   | { type: 'pane.split'; paneId: string; direction: Exclude<PaneGroupLayout, 'stacked'> }
   | { type: 'pane.convertToTabs'; paneId: string }
   | { type: 'pane.update'; paneId: string; input: UpdatePaneInput }
-  | { type: 'pane.remove'; paneId: string }
+  | { type: 'pane.remove'; paneId: string };
 
 export interface WorkspaceCommandResult {
-  entityId?: string
+  entityId?: string;
 }
 
-export type WorkspaceEventListener = (event: WorkspaceEvent) => void
-export type Unsubscribe = () => void
+export type WorkspaceEventListener = (event: WorkspaceEvent) => void;
+export type Unsubscribe = () => void;
 
-export type PaneNodeHandle = PaneGroupHandle | PaneHandle
+export type PaneNodeHandle = PaneGroupHandle | PaneHandle;
 
 export interface ProjectHandle {
-  readonly id: string
-  readonly data: ProjectData
-  readonly sessions: SessionHandle[]
-  update(input: UpdateProjectInput): Promise<void>
-  remove(): Promise<void>
-  createSession(input: Omit<CreateSessionInput, 'projectId'>): Promise<SessionHandle>
+  readonly id: string;
+  readonly data: ProjectData;
+  readonly sessions: SessionHandle[];
+  update(input: UpdateProjectInput): Promise<void>;
+  remove(): Promise<void>;
+  createSession(input: Omit<CreateSessionInput, 'projectId'>): Promise<SessionHandle>;
 }
 
 export interface SessionHandle {
-  readonly id: string
-  readonly data: SessionData
-  readonly project: ProjectHandle
-  readonly rootPaneGroup: PaneGroupHandle
-  activate(): Promise<void>
-  update(input: UpdateSessionInput): Promise<void>
-  setFocusedPane(paneId?: string): Promise<void>
-  remove(): Promise<void>
-  setRootPaneGroup(rootPaneGroupId: string): Promise<void>
-  createPaneGroup(input: Omit<CreatePaneGroupInput, 'sessionId'>): Promise<PaneGroupHandle>
-  createPane(input: Omit<CreatePaneInput, 'sessionId'>): Promise<PaneHandle>
+  readonly id: string;
+  readonly data: SessionData;
+  readonly project: ProjectHandle;
+  readonly rootPaneGroup: PaneGroupHandle;
+  activate(): Promise<void>;
+  update(input: UpdateSessionInput): Promise<void>;
+  setFocusedPane(paneId?: string): Promise<void>;
+  remove(): Promise<void>;
+  setRootPaneGroup(rootPaneGroupId: string): Promise<void>;
+  createPaneGroup(input: Omit<CreatePaneGroupInput, 'sessionId'>): Promise<PaneGroupHandle>;
+  createPane(input: Omit<CreatePaneInput, 'sessionId'>): Promise<PaneHandle>;
 }
 
 export interface PaneGroupHandle {
-  readonly id: string
-  readonly data: PaneGroupData
-  readonly session: SessionHandle
-  readonly children: PaneNodeHandle[]
-  update(input: UpdatePaneGroupInput): Promise<void>
-  setChildren(children: PaneGroupChild[]): Promise<void>
-  insertPane(paneId: string, index?: number): Promise<void>
-  insertPaneGroup(childPaneGroupId: string, index?: number): Promise<void>
-  moveNode(node: PaneGroupChild, index?: number): Promise<void>
-  removeNode(node: PaneGroupChild): Promise<void>
-  remove(): Promise<void>
+  readonly id: string;
+  readonly data: PaneGroupData;
+  readonly session: SessionHandle;
+  readonly children: PaneNodeHandle[];
+  update(input: UpdatePaneGroupInput): Promise<void>;
+  setChildren(children: PaneGroupChild[]): Promise<void>;
+  insertPane(paneId: string, index?: number): Promise<void>;
+  insertPaneGroup(childPaneGroupId: string, index?: number): Promise<void>;
+  moveNode(node: PaneGroupChild, index?: number): Promise<void>;
+  removeNode(node: PaneGroupChild): Promise<void>;
+  remove(): Promise<void>;
   split(
     direction: Exclude<PaneGroupLayout, 'stacked'>,
     newChild?: PaneGroupChild
-  ): Promise<PaneGroupHandle>
+  ): Promise<PaneGroupHandle>;
 }
 
 export interface PaneHandle {
-  readonly id: string
-  readonly data: PaneData
-  readonly session: SessionHandle
-  split(direction: Exclude<PaneGroupLayout, 'stacked'>): Promise<PaneGroupHandle>
-  convertToTabs(): Promise<PaneGroupHandle>
-  update(input: UpdatePaneInput): Promise<void>
-  remove(): Promise<void>
+  readonly id: string;
+  readonly data: PaneData;
+  readonly session: SessionHandle;
+  split(direction: Exclude<PaneGroupLayout, 'stacked'>): Promise<PaneGroupHandle>;
+  convertToTabs(): Promise<PaneGroupHandle>;
+  update(input: UpdatePaneInput): Promise<void>;
+  remove(): Promise<void>;
 }
 
 export interface WorkspaceApi {
-  readonly snapshot: WorkspaceStateSnapshot
-  readonly projects: ProjectHandle[]
-  getProject(id: string): ProjectHandle | null
-  getSession(id: string): SessionHandle | null
-  getPaneGroup(id: string): PaneGroupHandle | null
-  getPane(id: string): PaneHandle | null
-  subscribe(type: WorkspaceEventType, listener: WorkspaceEventListener): Unsubscribe
-  subscribeAll(listener: WorkspaceEventListener): Unsubscribe
-  createProject(input: CreateProjectInput): Promise<ProjectHandle>
+  readonly snapshot: WorkspaceStateSnapshot;
+  readonly projects: ProjectHandle[];
+  getProject(id: string): ProjectHandle | null;
+  getSession(id: string): SessionHandle | null;
+  getPaneGroup(id: string): PaneGroupHandle | null;
+  getPane(id: string): PaneHandle | null;
+  subscribe(type: WorkspaceEventType, listener: WorkspaceEventListener): Unsubscribe;
+  subscribeAll(listener: WorkspaceEventListener): Unsubscribe;
+  createProject(input: CreateProjectInput): Promise<ProjectHandle>;
 }

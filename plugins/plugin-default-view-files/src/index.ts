@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 export const fileBrowserPlugin: AppPlugin = {
   id: 'default-view-files',
@@ -12,4 +12,4 @@ export const fileBrowserPlugin: AppPlugin = {
       isDefault: true
     }
   ]
-}
+};

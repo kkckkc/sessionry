@@ -1,9 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AppSettings, RendererViewRegistration } from '@sessionry/plugin-api'
+import type { AppSettings, RendererViewRegistration } from '@sessionry/plugin-api';
 
-import { SettingsView } from './SettingsView'
+import { SettingsView } from './SettingsView';
 
 const initialSettings: AppSettings = {
   version: 1,
@@ -18,18 +18,18 @@ const initialSettings: AppSettings = {
     confirmSessionClose: true
   },
   plugins: {}
-}
+};
 
 describe('SettingsView', () => {
   const settings = {
     read: vi.fn(async () => initialSettings),
     update: vi.fn(async () => {}),
     onChange: vi.fn(() => () => {})
-  }
+  };
 
   beforeEach(() => {
-    vi.clearAllMocks()
-    settings.read.mockResolvedValue(initialSettings)
+    vi.clearAllMocks();
+    settings.read.mockResolvedValue(initialSettings);
 
     window.terminalApp = {
       showFolderDialog: vi.fn(),
@@ -77,8 +77,8 @@ describe('SettingsView', () => {
       onTerminalData: vi.fn(),
       onTerminalState: vi.fn(),
       onTerminalExit: vi.fn()
-    } as never
-  })
+    } as never;
+  });
 
   it('optimistically updates confirmation toggles and persists the new settings', async () => {
     render(
@@ -87,17 +87,20 @@ describe('SettingsView', () => {
         onClose={() => {}}
         resolveRendererView={(_viewId: string): RendererViewRegistration | null => null}
       />
-    )
+    );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Confirmations' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirmations' }));
 
-    const toggle = await screen.findByRole('switch', { name: 'Confirm pane close' })
-    expect(toggle.closest('[data-plugin-id="app-confirmations"]')).toHaveAttribute('data-plugin-surface', 'settings')
-    expect(toggle).toHaveAttribute('aria-checked', 'true')
+    const toggle = await screen.findByRole('switch', { name: 'Confirm pane close' });
+    expect(toggle.closest('[data-plugin-id="app-confirmations"]')).toHaveAttribute(
+      'data-plugin-surface',
+      'settings'
+    );
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
 
-    fireEvent.click(toggle)
+    fireEvent.click(toggle);
 
-    expect(toggle).toHaveAttribute('aria-checked', 'false')
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
 
     await waitFor(() => {
       expect(settings.update).toHaveBeenCalledWith({
@@ -106,7 +109,7 @@ describe('SettingsView', () => {
           confirmPaneGroupClose: true,
           confirmSessionClose: true
         }
-      })
-    })
-  })
-})
+      });
+    });
+  });
+});

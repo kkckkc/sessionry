@@ -1,54 +1,55 @@
-import { type ReactNode, useState } from 'react'
-import type { IconType } from 'react-icons'
-import * as TbIcons from 'react-icons/tb'
+import { type ReactNode, useState } from 'react';
+import type { IconType } from 'react-icons';
+import * as TbIcons from 'react-icons/tb';
 
-import { Toolbar, ToolbarButton } from '@sessionry/components'
+import { Toolbar, ToolbarButton } from '@sessionry/components';
 
-import type { ActionDescriptor, PluginViewModel, SidebarViewProps } from '@sessionry/plugin-api'
-import type { TerminalSessionInfo } from '@sessionry/plugin-api'
-import { getChildViewsForSlot } from '@sessionry/plugin-api'
-import { resolveActiveView } from '@sessionry/plugin-api'
-import type { RendererViewRegistration } from '@sessionry/plugin-api'
-import type { WorkspaceApi } from '@sessionry/plugin-api'
+import type { ActionDescriptor, PluginViewModel, SidebarViewProps } from '@sessionry/plugin-api';
+import type { TerminalSessionInfo } from '@sessionry/plugin-api';
+import { getChildViewsForSlot } from '@sessionry/plugin-api';
+import { resolveActiveView } from '@sessionry/plugin-api';
+import type { RendererViewRegistration } from '@sessionry/plugin-api';
+import type { WorkspaceApi } from '@sessionry/plugin-api';
 
-import { resolveStatusValue } from '../lib/pluginPanels'
-import { PluginSurface } from './PluginSurface'
+import { resolveStatusValue } from '../lib/pluginPanels';
+import { PluginSurface } from './PluginSurface';
 
 interface AppShellProps {
-  plugins: PluginViewModel
-  workspace: WorkspaceApi
-  session: TerminalSessionInfo | null
-  leftVisible: boolean
-  rightVisible: boolean
-  statusBarVisible: boolean
-  mainContent: ReactNode
-  onToolbarAction: (actionId: string) => void
-  resolveRendererView: (viewId: string) => RendererViewRegistration | null
+  plugins: PluginViewModel;
+  workspace: WorkspaceApi;
+  session: TerminalSessionInfo | null;
+  leftVisible: boolean;
+  rightVisible: boolean;
+  statusBarVisible: boolean;
+  mainContent: ReactNode;
+  onToolbarAction: (actionId: string) => void;
+  resolveRendererView: (viewId: string) => RendererViewRegistration | null;
 }
 
 const resolveTablerIcon = (name: string): IconType | null => {
-  const icon = TbIcons[name as keyof typeof TbIcons]
-  return icon ? (icon as IconType) : null
-}
+  // biome-ignore lint/performance/noDynamicNamespaceImportAccess: Dynamic icon resolution by name is intentional
+  const icon = TbIcons[name as keyof typeof TbIcons];
+  return icon ? (icon as IconType) : null;
+};
 
 const resolveSidebarRegistration = ({
   side,
   plugins,
   resolveRendererView
 }: {
-  side: 'left' | 'right'
-  plugins: PluginViewModel
-  resolveRendererView: (viewId: string) => RendererViewRegistration | null
+  side: 'left' | 'right';
+  plugins: PluginViewModel;
+  resolveRendererView: (viewId: string) => RendererViewRegistration | null;
 }) => {
-  const slotId = `sidebar:${side}`
-  const activeView = resolveActiveView(plugins, slotId)
-  if (!activeView) return null
+  const slotId = `sidebar:${side}`;
+  const activeView = resolveActiveView(plugins, slotId);
+  if (!activeView) return null;
 
   return {
     activeView,
     registration: resolveRendererView(activeView.id)
-  }
-}
+  };
+};
 
 const SidebarView = ({
   pluginId,
@@ -59,14 +60,14 @@ const SidebarView = ({
   workspace,
   resolveRendererView
 }: SidebarViewProps & {
-  pluginId: string
-  slot: string
-  viewId: string
-  registration: RendererViewRegistration | null
+  pluginId: string;
+  slot: string;
+  viewId: string;
+  registration: RendererViewRegistration | null;
 }) => {
-  if (!registration) return null
+  if (!registration) return null;
 
-  const Component = registration.component
+  const Component = registration.component;
 
   return (
     <PluginSurface pluginId={pluginId} surface="sidebar" slot={slot} viewId={viewId}>
@@ -78,11 +79,11 @@ const SidebarView = ({
         childViews={getChildViewsForSlot(plugins, slot)}
       />
     </PluginSurface>
-  )
-}
+  );
+};
 
-const MIN_SIDEBAR_WIDTH = 160
-const MAX_SIDEBAR_WIDTH = 520
+const MIN_SIDEBAR_WIDTH = 160;
+const MAX_SIDEBAR_WIDTH = 520;
 
 const startSidebarResize = (
   side: 'left' | 'right',
@@ -90,27 +91,27 @@ const startSidebarResize = (
   setWidth: (w: number) => void,
   e: React.MouseEvent
 ) => {
-  e.preventDefault()
-  const startX = e.clientX
+  e.preventDefault();
+  const startX = e.clientX;
 
-  document.body.style.cursor = 'ew-resize'
-  document.body.style.userSelect = 'none'
+  document.body.style.cursor = 'ew-resize';
+  document.body.style.userSelect = 'none';
 
   const onMouseMove = (moveEvent: MouseEvent) => {
-    const delta = side === 'left' ? moveEvent.clientX - startX : startX - moveEvent.clientX
-    setWidth(Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, startWidth + delta)))
-  }
+    const delta = side === 'left' ? moveEvent.clientX - startX : startX - moveEvent.clientX;
+    setWidth(Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, startWidth + delta)));
+  };
 
   const onMouseUp = () => {
-    document.removeEventListener('mousemove', onMouseMove)
-    document.removeEventListener('mouseup', onMouseUp)
-    document.body.style.cursor = ''
-    document.body.style.userSelect = ''
-  }
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
 
-  document.addEventListener('mousemove', onMouseMove)
-  document.addEventListener('mouseup', onMouseUp)
-}
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+};
 
 export const AppShell = ({
   plugins,
@@ -123,38 +124,48 @@ export const AppShell = ({
   onToolbarAction,
   resolveRendererView
 }: AppShellProps) => {
-  const [leftWidth, setLeftWidth] = useState(280)
-  const [rightWidth, setRightWidth] = useState(300)
+  const [leftWidth, setLeftWidth] = useState(280);
+  const [rightWidth, setRightWidth] = useState(300);
 
-  const leftSidebarView = resolveSidebarRegistration({ side: 'left', plugins, resolveRendererView })
-  const rightSidebarView = resolveSidebarRegistration({ side: 'right', plugins, resolveRendererView })
-  const leftRegistration = leftSidebarView?.registration ?? null
-  const rightRegistration = rightSidebarView?.registration ?? null
-  const showLeftSidebar = leftVisible
-  const showRightSidebar = rightVisible && rightRegistration !== null
+  const leftSidebarView = resolveSidebarRegistration({
+    side: 'left',
+    plugins,
+    resolveRendererView
+  });
+  const rightSidebarView = resolveSidebarRegistration({
+    side: 'right',
+    plugins,
+    resolveRendererView
+  });
+  const leftRegistration = leftSidebarView?.registration ?? null;
+  const rightRegistration = rightSidebarView?.registration ?? null;
+  const showLeftSidebar = leftVisible;
+  const showRightSidebar = rightVisible && rightRegistration !== null;
 
   const workspaceClassName = [
     'workspace',
     showLeftSidebar ? 'is-left-visible' : 'is-left-hidden',
     showRightSidebar ? 'is-right-visible' : 'is-right-hidden'
-  ].join(' ')
+  ].join(' ');
 
   const gridTemplateColumns = [
     showLeftSidebar ? `${leftWidth}px` : null,
     'minmax(0, 1fr)',
     showRightSidebar ? `${rightWidth}px` : null
-  ].filter(Boolean).join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="app-frame">
       <Toolbar className="app-toolbar" brand="Sessionry" ariaLabel="Terminal actions">
         {plugins.toolbarActionIds
-          .map((actionId) => plugins.actions.find((candidate) => candidate.id === actionId))
+          .map(actionId => plugins.actions.find(candidate => candidate.id === actionId))
           .filter((action): action is ActionDescriptor => action !== undefined)
-          .map((action) => {
-            const Icon = action.icon ? resolveTablerIcon(action.icon) : null
+          .map(action => {
+            const Icon = action.icon ? resolveTablerIcon(action.icon) : null;
             return (
-              <ToolbarButton 
+              <ToolbarButton
                 key={action.id}
                 onClick={() => onToolbarAction(action.id)}
                 tooltip={action.name}
@@ -162,7 +173,7 @@ export const AppShell = ({
               >
                 {Icon ? <Icon size={15} /> : action.name}
               </ToolbarButton>
-            )
+            );
           })}
       </Toolbar>
 
@@ -180,7 +191,7 @@ export const AppShell = ({
             />
             <div
               className="sidebar-resize-handle sidebar-resize-handle--right"
-              onMouseDown={(e) => startSidebarResize('left', leftWidth, setLeftWidth, e)}
+              onMouseDown={e => startSidebarResize('left', leftWidth, setLeftWidth, e)}
             />
           </aside>
         ) : null}
@@ -191,7 +202,7 @@ export const AppShell = ({
           <aside className="sidebar sidebar--right">
             <div
               className="sidebar-resize-handle sidebar-resize-handle--left"
-              onMouseDown={(e) => startSidebarResize('right', rightWidth, setRightWidth, e)}
+              onMouseDown={e => startSidebarResize('right', rightWidth, setRightWidth, e)}
             />
             <SidebarView
               pluginId={rightSidebarView?.activeView.pluginId ?? 'unknown-plugin'}
@@ -208,7 +219,7 @@ export const AppShell = ({
 
       {statusBarVisible && (
         <footer className="status-bar">
-          {plugins.statusItems.map((item) => (
+          {plugins.statusItems.map(item => (
             <div key={item.id} className="item">
               <span>{item.label}</span>
               <span>{resolveStatusValue(item, session)}</span>
@@ -217,5 +228,5 @@ export const AppShell = ({
         </footer>
       )}
     </div>
-  )
-}
+  );
+};

@@ -1,9 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pane, PaneGroup, Session, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type {
+  Pane,
+  PaneGroup,
+  Session,
+  WorkspaceApi,
+  WorkspaceStateSnapshot
+} from '@sessionry/plugin-api';
 
-import { FileBrowserView } from '../src/renderer'
+import { FileBrowserView } from '../src/renderer';
 
 const createWorkspaceStub = () => {
   let snapshot: WorkspaceStateSnapshot = {
@@ -28,22 +34,31 @@ const createWorkspaceStub = () => {
         children: [{ kind: 'pane', paneId: 'pane-terminal' }]
       }
     ],
-    panes: [{ id: 'pane-terminal', sessionId: 'session-1', type: 'terminal', state: { title: 'Terminal' } }],
+    panes: [
+      {
+        id: 'pane-terminal',
+        sessionId: 'session-1',
+        type: 'terminal',
+        state: { title: 'Terminal' }
+      }
+    ],
     activeSessionId: 'session-1'
-  }
-  let nextPaneId = 1
+  };
+  let nextPaneId = 1;
 
-  const findSession = (sessionId: string): Session => snapshot.sessions.find((session) => session.id === sessionId)!
-  const findPaneGroup = (paneGroupId: string): PaneGroup => snapshot.paneGroups.find((paneGroup) => paneGroup.id === paneGroupId)!
-  const findPane = (paneId: string): Pane => snapshot.panes.find((pane) => pane.id === paneId)!
+  const findSession = (sessionId: string): Session =>
+    snapshot.sessions.find(session => session.id === sessionId)!;
+  const findPaneGroup = (paneGroupId: string): PaneGroup =>
+    snapshot.paneGroups.find(paneGroup => paneGroup.id === paneGroupId)!;
+  const findPane = (paneId: string): Pane => snapshot.panes.find(pane => pane.id === paneId)!;
 
   const workspace: WorkspaceApi = {
     get snapshot() {
-      return snapshot
+      return snapshot;
     },
     projects: [],
     getProject: () => null,
-    getSession: (sessionId) =>
+    getSession: sessionId =>
       sessionId === 'session-1'
         ? ({
             id: sessionId,
@@ -51,25 +66,25 @@ const createWorkspaceStub = () => {
             project: null,
             rootPaneGroup: null,
             activate: async () => {},
-            update: async (input) => {
+            update: async input => {
               snapshot = {
                 ...snapshot,
-                sessions: snapshot.sessions.map((session) =>
+                sessions: snapshot.sessions.map(session =>
                   session.id === sessionId ? { ...session, ...input } : session
                 )
-              }
+              };
             },
             setFocusedPane: async (paneId?: string) => {
               snapshot = {
                 ...snapshot,
-                sessions: snapshot.sessions.map((session) =>
+                sessions: snapshot.sessions.map(session =>
                   session.id === sessionId ? { ...session, focusedPaneId: paneId } : session
                 )
-              }
+              };
             },
             remove: async () => {},
             setRootPaneGroup: async () => {},
-            createPaneGroup: async (input) => {
+            createPaneGroup: async input => {
               const paneGroup: PaneGroup = {
                 id: `group-${snapshot.paneGroups.length + 1}`,
                 sessionId,
@@ -78,117 +93,127 @@ const createWorkspaceStub = () => {
                 preferredSizePct: input.preferredSizePct,
                 activeChildId: input.activeChildId,
                 children: []
-              }
+              };
               snapshot = {
                 ...snapshot,
-                paneGroups: [...snapshot.paneGroups, paneGroup].map((group) => {
-                  if (group.id !== input.parentPaneGroupId) return group
-                  const children = [...group.children]
-                  const index = input.index ?? children.length
-                  children.splice(index, 0, { kind: 'group', paneGroupId: paneGroup.id })
-                  return { ...group, children }
+                paneGroups: [...snapshot.paneGroups, paneGroup].map(group => {
+                  if (group.id !== input.parentPaneGroupId) return group;
+                  const children = [...group.children];
+                  const index = input.index ?? children.length;
+                  children.splice(index, 0, { kind: 'group', paneGroupId: paneGroup.id });
+                  return { ...group, children };
                 })
-              }
+              };
 
-              return workspace.getPaneGroup(paneGroup.id)!
+              return workspace.getPaneGroup(paneGroup.id)!;
             },
-            createPane: async (input) => {
+            createPane: async input => {
               const pane: Pane = {
                 id: `pane-code-${nextPaneId++}`,
                 sessionId,
                 type: input.type,
                 preferredSizePct: input.preferredSizePct,
                 state: input.state ?? {}
-              }
+              };
               snapshot = {
                 ...snapshot,
                 panes: [...snapshot.panes, pane],
-                paneGroups: snapshot.paneGroups.map((group) => {
-                  if (group.id !== input.parentPaneGroupId) return group
-                  const children = [...group.children]
-                  const index = input.index ?? children.length
-                  children.splice(index, 0, { kind: 'pane', paneId: pane.id })
-                  return { ...group, children }
+                paneGroups: snapshot.paneGroups.map(group => {
+                  if (group.id !== input.parentPaneGroupId) return group;
+                  const children = [...group.children];
+                  const index = input.index ?? children.length;
+                  children.splice(index, 0, { kind: 'pane', paneId: pane.id });
+                  return { ...group, children };
                 })
-              }
-              return workspace.getPane(pane.id)!
+              };
+              return workspace.getPane(pane.id)!;
             }
-          }) as any
+          } as any)
         : null,
-    getPaneGroup: (paneGroupId) =>
-      snapshot.paneGroups.some((paneGroup) => paneGroup.id === paneGroupId)
+    getPaneGroup: paneGroupId =>
+      snapshot.paneGroups.some(paneGroup => paneGroup.id === paneGroupId)
         ? ({
             id: paneGroupId,
             data: findPaneGroup(paneGroupId),
             session: null,
             children: [],
-            update: async (input) => {
+            update: async input => {
               snapshot = {
                 ...snapshot,
-                paneGroups: snapshot.paneGroups.map((paneGroup) =>
+                paneGroups: snapshot.paneGroups.map(paneGroup =>
                   paneGroup.id === paneGroupId ? { ...paneGroup, ...input } : paneGroup
                 )
-              }
+              };
             },
             setChildren: async () => {},
             insertPane: async () => {},
             insertPaneGroup: async () => {},
             moveNode: async (node, index) => {
-              const sourcePaneGroup = snapshot.paneGroups.find((paneGroup) =>
-                paneGroup.children.some((child) => child.kind === node.kind && (child.kind === 'pane' ? child.paneId : child.paneGroupId) === (node.kind === 'pane' ? node.paneId : node.paneGroupId))
-              )
+              const sourcePaneGroup = snapshot.paneGroups.find(paneGroup =>
+                paneGroup.children.some(
+                  child =>
+                    child.kind === node.kind &&
+                    (child.kind === 'pane' ? child.paneId : child.paneGroupId) ===
+                      (node.kind === 'pane' ? node.paneId : node.paneGroupId)
+                )
+              );
               snapshot = {
                 ...snapshot,
-                paneGroups: snapshot.paneGroups.map((paneGroup) => {
+                paneGroups: snapshot.paneGroups.map(paneGroup => {
                   if (paneGroup.id === sourcePaneGroup?.id) {
                     return {
                       ...paneGroup,
-                      children: paneGroup.children.filter((child) =>
-                        !(child.kind === node.kind && (child.kind === 'pane' ? child.paneId : child.paneGroupId) === (node.kind === 'pane' ? node.paneId : node.paneGroupId))
+                      children: paneGroup.children.filter(
+                        child =>
+                          !(
+                            child.kind === node.kind &&
+                            (child.kind === 'pane' ? child.paneId : child.paneGroupId) ===
+                              (node.kind === 'pane' ? node.paneId : node.paneGroupId)
+                          )
                       )
-                    }
+                    };
                   }
                   if (paneGroup.id === paneGroupId) {
-                    const children = [...paneGroup.children]
-                    children.splice(index ?? children.length, 0, node)
-                    return { ...paneGroup, children }
+                    const children = [...paneGroup.children];
+                    children.splice(index ?? children.length, 0, node);
+                    return { ...paneGroup, children };
                   }
-                  return paneGroup
+                  return paneGroup;
                 })
-              }
+              };
             },
             removeNode: async () => {},
             remove: async () => {}
-          }) as any
+          } as any)
         : null,
-    getPane: (paneId) =>
-      snapshot.panes.some((pane) => pane.id === paneId)
+    getPane: paneId =>
+      snapshot.panes.some(pane => pane.id === paneId)
         ? ({
             id: paneId,
             data: findPane(paneId),
             session: workspace.getSession(findPane(paneId).sessionId)!,
             split: async () => {
-              throw new Error('Not implemented in test')
+              throw new Error('Not implemented in test');
             },
             convertToTabs: async () => {
-              throw new Error('Not implemented in test')
+              throw new Error('Not implemented in test');
             },
             update: async () => {},
             remove: async () => {}
-          }) as any
+          } as any)
         : null,
     subscribe: () => () => {},
     subscribeAll: () => () => {},
     createProject: async () => {
-      throw new Error('Not implemented in test')
+      throw new Error('Not implemented in test');
     }
-  }
+  };
 
   return {
     workspace,
     readSnapshot: () => snapshot
-  }
-}
+  };
+};
 
 describe('FileBrowserView', () => {
   beforeEach(() => {
@@ -199,12 +224,12 @@ describe('FileBrowserView', () => {
           return [
             { name: 'docs', isDirectory: true },
             { name: 'My File.ts', isDirectory: false }
-          ]
+          ];
         }
         if (dirPath === '/tmp/project/docs') {
-          return [{ name: 'Guide.md', isDirectory: false }]
+          return [{ name: 'Guide.md', isDirectory: false }];
         }
-        return []
+        return [];
       }),
       readFile: vi.fn(),
       writeFile: vi.fn(),
@@ -213,9 +238,9 @@ describe('FileBrowserView', () => {
       },
       getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => {
-        if (targetPath === '/tmp/project/My File.ts') return "'My File.ts'"
-        if (targetPath === '/tmp/project/docs') return 'docs'
-        return targetPath
+        if (targetPath === '/tmp/project/My File.ts') return "'My File.ts'";
+        if (targetPath === '/tmp/project/docs') return 'docs';
+        return targetPath;
       }),
       createTerminalSession: vi.fn(),
       sendTerminalInput: vi.fn(),
@@ -256,71 +281,79 @@ describe('FileBrowserView', () => {
       onTerminalData: vi.fn(),
       onTerminalState: vi.fn(),
       onTerminalExit: vi.fn()
-    } as never
-  })
+    } as never;
+  });
 
   it('writes shell-safe relative text for dragged files and directories', async () => {
-    const { workspace } = createWorkspaceStub()
-    render(<FileBrowserView workspace={workspace} />)
+    const { workspace } = createWorkspaceStub();
+    render(<FileBrowserView workspace={workspace} />);
 
-    const fileRow = await screen.findByText('My File.ts')
-    const directoryRow = await screen.findByText('docs')
+    const fileRow = await screen.findByText('My File.ts');
+    const directoryRow = await screen.findByText('docs');
 
     const fileTransfer = {
       effectAllowed: 'none',
       setData: vi.fn()
-    }
-    fireEvent.dragStart(fileRow.closest('.file-tree-row')!, { dataTransfer: fileTransfer })
+    };
+    fireEvent.dragStart(fileRow.closest('.file-tree-row')!, { dataTransfer: fileTransfer });
 
-    expect(window.terminalApp.formatPathForTerminal).toHaveBeenCalledWith('/tmp/project/My File.ts', '/tmp/project')
-    expect(fileTransfer.setData).toHaveBeenCalledWith('text/plain', "'My File.ts'")
-    expect(fileTransfer.effectAllowed).toBe('copy')
+    expect(window.terminalApp.formatPathForTerminal).toHaveBeenCalledWith(
+      '/tmp/project/My File.ts',
+      '/tmp/project'
+    );
+    expect(fileTransfer.setData).toHaveBeenCalledWith('text/plain', "'My File.ts'");
+    expect(fileTransfer.effectAllowed).toBe('copy');
 
-    fireEvent.click(directoryRow.closest('.file-tree-row')!)
+    fireEvent.click(directoryRow.closest('.file-tree-row')!);
     await waitFor(() => {
-      expect(window.terminalApp.readDirectory).toHaveBeenCalledWith('/tmp/project/docs')
-    })
+      expect(window.terminalApp.readDirectory).toHaveBeenCalledWith('/tmp/project/docs');
+    });
 
     const directoryTransfer = {
       effectAllowed: 'none',
       setData: vi.fn()
-    }
-    fireEvent.dragStart(directoryRow.closest('.file-tree-row')!, { dataTransfer: directoryTransfer })
+    };
+    fireEvent.dragStart(directoryRow.closest('.file-tree-row')!, {
+      dataTransfer: directoryTransfer
+    });
 
-    expect(window.terminalApp.formatPathForTerminal).toHaveBeenCalledWith('/tmp/project/docs', '/tmp/project')
-    expect(directoryTransfer.setData).toHaveBeenCalledWith('text/plain', 'docs')
-    expect(directoryTransfer.effectAllowed).toBe('copy')
-  })
+    expect(window.terminalApp.formatPathForTerminal).toHaveBeenCalledWith(
+      '/tmp/project/docs',
+      '/tmp/project'
+    );
+    expect(directoryTransfer.setData).toHaveBeenCalledWith('text/plain', 'docs');
+    expect(directoryTransfer.effectAllowed).toBe('copy');
+  });
 
   it('opens and then reuses a code pane on file double click', async () => {
-    const { workspace, readSnapshot } = createWorkspaceStub()
-    render(<FileBrowserView workspace={workspace} />)
+    const { workspace, readSnapshot } = createWorkspaceStub();
+    render(<FileBrowserView workspace={workspace} />);
 
-    const fileRow = await screen.findByText('My File.ts')
+    const fileRow = await screen.findByText('My File.ts');
 
-    fireEvent.doubleClick(fileRow.closest('.file-tree-row')!)
+    fireEvent.doubleClick(fileRow.closest('.file-tree-row')!);
 
     await waitFor(() => {
-      const snapshot = readSnapshot()
-      const codePane = snapshot.panes.find((pane) => pane.type === 'code')
-      expect(codePane).toBeDefined()
+      const snapshot = readSnapshot();
+      const codePane = snapshot.panes.find(pane => pane.type === 'code');
+      expect(codePane).toBeDefined();
       expect(codePane?.state).toMatchObject({
         title: 'My File.ts',
         filePath: '/tmp/project/My File.ts'
-      })
-      expect(snapshot.paneGroups[0]?.activeChildId).toBe(codePane?.id)
-      expect(snapshot.sessions[0]?.focusedPaneId).toBe(codePane?.id)
-    })
+      });
+      expect(snapshot.paneGroups[0]?.activeChildId).toBe(codePane?.id);
+      expect(snapshot.sessions[0]?.focusedPaneId).toBe(codePane?.id);
+    });
 
-    const firstCodePaneId = readSnapshot().panes.find((pane) => pane.type === 'code')?.id
+    const firstCodePaneId = readSnapshot().panes.find(pane => pane.type === 'code')?.id;
 
-    fireEvent.doubleClick(fileRow.closest('.file-tree-row')!)
+    fireEvent.doubleClick(fileRow.closest('.file-tree-row')!);
 
     await waitFor(() => {
-      const snapshot = readSnapshot()
-      expect(snapshot.panes.filter((pane) => pane.type === 'code')).toHaveLength(1)
-      expect(snapshot.paneGroups[0]?.activeChildId).toBe(firstCodePaneId)
-      expect(snapshot.sessions[0]?.focusedPaneId).toBe(firstCodePaneId)
-    })
-  })
-})
+      const snapshot = readSnapshot();
+      expect(snapshot.panes.filter(pane => pane.type === 'code')).toHaveLength(1);
+      expect(snapshot.paneGroups[0]?.activeChildId).toBe(firstCodePaneId);
+      expect(snapshot.sessions[0]?.focusedPaneId).toBe(firstCodePaneId);
+    });
+  });
+});

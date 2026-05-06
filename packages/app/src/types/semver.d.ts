@@ -1,1 +1,1 @@
-declare module 'semver'
+declare module 'semver';

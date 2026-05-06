@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 export const defaultWorkspacePanePlugin: AppPlugin = {
   id: 'plugin-default-view-workspace',
@@ -11,6 +11,6 @@ export const defaultWorkspacePanePlugin: AppPlugin = {
       isDefault: true
     }
   ]
-}
+};
 
-export default defaultWorkspacePanePlugin
+export default defaultWorkspacePanePlugin;

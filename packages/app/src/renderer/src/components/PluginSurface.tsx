@@ -1,16 +1,23 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from 'react';
 
 interface PluginSurfaceProps {
-  pluginId: string
-  surface: 'sidebar' | 'workspace' | 'pane' | 'settings'
-  children: ReactNode
-  className?: string
-  slot?: string
-  viewId?: string
+  pluginId: string;
+  surface: 'sidebar' | 'workspace' | 'pane' | 'settings';
+  children: ReactNode;
+  className?: string;
+  slot?: string;
+  viewId?: string;
 }
 
-export const PluginSurface = ({ pluginId, surface, children, className, slot, viewId }: PluginSurfaceProps) => {
-  const classes = ['plugin-surface', className].filter(Boolean).join(' ')
+export const PluginSurface = ({
+  pluginId,
+  surface,
+  children,
+  className,
+  slot,
+  viewId
+}: PluginSurfaceProps) => {
+  const classes = ['plugin-surface', className].filter(Boolean).join(' ');
 
   return (
     <div
@@ -22,5 +29,5 @@ export const PluginSurface = ({ pluginId, surface, children, className, slot, vi
     >
       {children}
     </div>
-  )
-}
+  );
+};

@@ -1,13 +1,13 @@
-import type { RendererAppPlugin } from '@sessionry/plugin-api'
+import type { RendererAppPlugin } from '@sessionry/plugin-api';
 
-import { TerminalPaneView } from './TerminalPaneView'
-import { TerminalSettingsView } from './SettingsView'
-import { terminalPanePlugin } from '.'
+import { TerminalPaneView } from './TerminalPaneView';
+import { TerminalSettingsView } from './SettingsView';
+import { terminalPanePlugin } from '.';
 
-const terminalView = terminalPanePlugin.views?.[0]
+const terminalView = terminalPanePlugin.views?.[0];
 
 if (!terminalView) {
-  throw new Error('terminalPanePlugin must register a pane view.')
+  throw new Error('terminalPanePlugin must register a pane view.');
 }
 
 export const terminalPaneRendererPlugin: RendererAppPlugin = {
@@ -21,12 +21,14 @@ export const terminalPaneRendererPlugin: RendererAppPlugin = {
       component: TerminalPaneView
     }
   ],
-  settingsView: terminalPanePlugin.settingsView ? {
-    ...terminalPanePlugin.settingsView,
-    component: TerminalSettingsView
-  } : undefined
-}
+  settingsView: terminalPanePlugin.settingsView
+    ? {
+        ...terminalPanePlugin.settingsView,
+        component: TerminalSettingsView
+      }
+    : undefined
+};
 
-export { TerminalPaneView }
+export { TerminalPaneView };
 
-export default terminalPaneRendererPlugin
+export default terminalPaneRendererPlugin;

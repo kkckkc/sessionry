@@ -1,14 +1,19 @@
 /// <reference types="@testing-library/jest-dom" />
-import * as React from 'react'
+import * as React from 'react';
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-import type { PaneViewProps, PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api'
+import type {
+  PaneViewProps,
+  PluginViewModel,
+  WorkspaceApi,
+  WorkspaceStateSnapshot
+} from '@sessionry/plugin-api';
 
-import { WorkspacePaneTree } from '../src/WorkspacePaneTree'
+import { WorkspacePaneTree } from '../src/WorkspacePaneTree';
 
-const paneRendererSpy = vi.fn()
+const paneRendererSpy = vi.fn();
 
 const plugins: PluginViewModel = {
   actions: [],
@@ -26,11 +31,11 @@ const plugins: PluginViewModel = {
       }
     ]
   }
-}
+};
 
 const paneRendererRegistration = {
   component: (props: PaneViewProps) => {
-    paneRendererSpy(props)
+    paneRendererSpy(props);
     return (
       <div data-testid="terminal-view">
         <button type="button" data-testid="terminal-focus-target">
@@ -38,15 +43,13 @@ const paneRendererRegistration = {
         </button>
         <span data-testid="terminal-visible">{String(props.visible)}</span>
       </div>
-    )
+    );
   }
-}
+};
 
-const createWorkspaceStub = (
-  overrides: Partial<WorkspaceApi> = {}
-): WorkspaceApi => ({
+const createWorkspaceStub = (overrides: Partial<WorkspaceApi> = {}): WorkspaceApi => ({
   get snapshot() {
-    return snapshot
+    return snapshot;
   },
   projects: [],
   getProject: () => null,
@@ -56,14 +59,31 @@ const createWorkspaceStub = (
   subscribe: () => () => {},
   subscribeAll: () => () => {},
   createProject: async () => {
-    throw new Error('Not implemented in test')
+    throw new Error('Not implemented in test');
   },
   ...overrides
-})
+});
 
 const snapshot: WorkspaceStateSnapshot = {
-  projects: [{ id: 'project-1', name: 'Project', folder: '/tmp/project', metadata: {}, activeViews: {}, sessionIds: ['session-1'] }],
-  sessions: [{ id: 'session-1', projectId: 'project-1', name: 'Session', folder: '/tmp/project', rootPaneGroupId: 'root' }],
+  projects: [
+    {
+      id: 'project-1',
+      name: 'Project',
+      folder: '/tmp/project',
+      metadata: {},
+      activeViews: {},
+      sessionIds: ['session-1']
+    }
+  ],
+  sessions: [
+    {
+      id: 'session-1',
+      projectId: 'project-1',
+      name: 'Session',
+      folder: '/tmp/project',
+      rootPaneGroupId: 'root'
+    }
+  ],
   paneGroups: [
     {
       id: 'root',
@@ -113,14 +133,44 @@ const snapshot: WorkspaceStateSnapshot = {
     }
   ],
   panes: [
-    { id: 'pane-terminal', sessionId: 'session-1', type: 'terminal', preferredSizePct: 50, state: { title: 'Terminal' } },
-    { id: 'pane-activity', sessionId: 'session-1', type: 'activity', preferredSizePct: 50, state: { title: 'Activity' } },
-    { id: 'pane-outline', sessionId: 'session-1', type: 'outline', preferredSizePct: 45, state: { title: 'Outline' } },
-    { id: 'pane-inspector', sessionId: 'session-1', type: 'inspector', preferredSizePct: 60, state: { title: 'Inspector' } },
-    { id: 'pane-problems', sessionId: 'session-1', type: 'problems', preferredSizePct: 40, state: { title: 'Problems' } }
+    {
+      id: 'pane-terminal',
+      sessionId: 'session-1',
+      type: 'terminal',
+      preferredSizePct: 50,
+      state: { title: 'Terminal' }
+    },
+    {
+      id: 'pane-activity',
+      sessionId: 'session-1',
+      type: 'activity',
+      preferredSizePct: 50,
+      state: { title: 'Activity' }
+    },
+    {
+      id: 'pane-outline',
+      sessionId: 'session-1',
+      type: 'outline',
+      preferredSizePct: 45,
+      state: { title: 'Outline' }
+    },
+    {
+      id: 'pane-inspector',
+      sessionId: 'session-1',
+      type: 'inspector',
+      preferredSizePct: 60,
+      state: { title: 'Inspector' }
+    },
+    {
+      id: 'pane-problems',
+      sessionId: 'session-1',
+      type: 'problems',
+      preferredSizePct: 40,
+      state: { title: 'Problems' }
+    }
   ],
   activeSessionId: 'session-1'
-}
+};
 
 const nestedSplitInTabsSnapshot: WorkspaceStateSnapshot = {
   ...snapshot,
@@ -169,7 +219,7 @@ const nestedSplitInTabsSnapshot: WorkspaceStateSnapshot = {
       ]
     }
   ]
-}
+};
 
 describe('WorkspacePaneTree', () => {
   it('renders horizontal, vertical, and stacked groups with preferred sizes', () => {
@@ -180,42 +230,46 @@ describe('WorkspacePaneTree', () => {
         resolveRendererView={() => paneRendererRegistration}
         clearSignal={0}
       />
-    )
+    );
 
-    expect(screen.getByTestId('group-root').querySelector('.workspace-split')).toHaveClass('is-horizontal')
-    expect(screen.getByTestId('group-right-column').querySelector('.workspace-split')).toHaveClass('is-vertical')
-    expect(screen.getByRole('tablist', { name: 'Editors tabs' })).toBeInTheDocument()
-    expect(screen.getByRole('tablist', { name: 'Inspectors tabs' })).toBeInTheDocument()
-    expect(screen.getByTestId('group-left-tabs')).toHaveStyle({ flexBasis: '58%' })
-    expect(screen.getByTestId('pane-pane-outline')).toHaveStyle({ flexBasis: '45%' })
-    expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
-    expect(screen.getByTestId('pane-pane-terminal')).toHaveClass('is-bare')
-    expect(screen.getByTestId('pane-pane-terminal').querySelector('.header')).toBeNull()
-    expect(screen.getByTestId('pane-pane-outline').querySelector('.header')).toBeNull()
-  })
+    expect(screen.getByTestId('group-root').querySelector('.workspace-split')).toHaveClass(
+      'is-horizontal'
+    );
+    expect(screen.getByTestId('group-right-column').querySelector('.workspace-split')).toHaveClass(
+      'is-vertical'
+    );
+    expect(screen.getByRole('tablist', { name: 'Editors tabs' })).toBeInTheDocument();
+    expect(screen.getByRole('tablist', { name: 'Inspectors tabs' })).toBeInTheDocument();
+    expect(screen.getByTestId('group-left-tabs')).toHaveStyle({ flexBasis: '58%' });
+    expect(screen.getByTestId('pane-pane-outline')).toHaveStyle({ flexBasis: '45%' });
+    expect(screen.getByTestId('terminal-view')).toBeInTheDocument();
+    expect(screen.getByTestId('pane-pane-terminal')).toHaveClass('is-bare');
+    expect(screen.getByTestId('pane-pane-terminal').querySelector('.header')).toBeNull();
+    expect(screen.getByTestId('pane-pane-outline').querySelector('.header')).toBeNull();
+  });
 
   it('moves nested split-group actions into the parent tab row and hides the nested header', async () => {
     const Harness = () => {
-      const [currentSnapshot, setCurrentSnapshot] = React.useState(nestedSplitInTabsSnapshot)
+      const [currentSnapshot, setCurrentSnapshot] = React.useState(nestedSplitInTabsSnapshot);
       const workspace = React.useMemo(
         () =>
           createWorkspaceStub({
             get snapshot() {
-              return currentSnapshot
+              return currentSnapshot;
             },
-            getPaneGroup: (paneGroupId) =>
+            getPaneGroup: paneGroupId =>
               ({
                 id: paneGroupId,
-                data: currentSnapshot.paneGroups.find((paneGroup) => paneGroup.id === paneGroupId)!,
+                data: currentSnapshot.paneGroups.find(paneGroup => paneGroup.id === paneGroupId)!,
                 session: null,
                 children: [],
-                update: async (input) => {
-                  setCurrentSnapshot((value) => ({
+                update: async input => {
+                  setCurrentSnapshot(value => ({
                     ...value,
-                    paneGroups: value.paneGroups.map((paneGroup) =>
+                    paneGroups: value.paneGroups.map(paneGroup =>
                       paneGroup.id === paneGroupId ? { ...paneGroup, ...input } : paneGroup
                     )
-                  }))
+                  }));
                 },
                 setChildren: async () => {},
                 insertPane: async () => {},
@@ -226,7 +280,7 @@ describe('WorkspacePaneTree', () => {
               }) as any
           }),
         [currentSnapshot]
-      )
+      );
 
       return (
         <WorkspacePaneTree
@@ -235,54 +289,58 @@ describe('WorkspacePaneTree', () => {
           resolveRendererView={() => paneRendererRegistration}
           clearSignal={0}
         />
-      )
-    }
+      );
+    };
 
-    render(<Harness />)
+    render(<Harness />);
 
-    const leftTabsGroup = screen.getByTestId('group-left-tabs')
-    const tabBarActions = leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions')
-    const sideColumnGroup = screen.getByTestId('group-side-column')
+    const leftTabsGroup = screen.getByTestId('group-left-tabs');
+    const tabBarActions = leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions');
+    const sideColumnGroup = screen.getByTestId('group-side-column');
 
-    expect(tabBarActions).not.toBeNull()
-    expect(sideColumnGroup.querySelector(':scope > .header')).toBeNull()
-    expect(screen.getByRole('tablist', { name: 'Editors tabs' })).toBeInTheDocument()
-    expect(tabBarActions?.querySelector('[aria-label="Close pane group"]')).not.toBeNull()
+    expect(tabBarActions).not.toBeNull();
+    expect(sideColumnGroup.querySelector(':scope > .header')).toBeNull();
+    expect(screen.getByRole('tablist', { name: 'Editors tabs' })).toBeInTheDocument();
+    expect(tabBarActions?.querySelector('[aria-label="Close pane group"]')).not.toBeNull();
     expect(
-      leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions [aria-label="Split horizontal"]')
-    ).not.toBeNull()
+      leftTabsGroup.querySelector(
+        ':scope > .tab-bar-row > .tab-bar-actions [aria-label="Split horizontal"]'
+      )
+    ).not.toBeNull();
 
-    fireEvent.click(screen.getByRole('tab', { name: /Terminal/ }))
+    fireEvent.click(screen.getByRole('tab', { name: /Terminal/ }));
 
     await waitFor(() => {
       expect(
-        leftTabsGroup.querySelector(':scope > .tab-bar-row > .tab-bar-actions [aria-label="Split horizontal"]')
-      ).not.toBeNull()
-    })
-  })
+        leftTabsGroup.querySelector(
+          ':scope > .tab-bar-row > .tab-bar-actions [aria-label="Split horizontal"]'
+        )
+      ).not.toBeNull();
+    });
+  });
 
   it('switches active tab content through the model callback and passes visibility to the pane renderer', () => {
     const Harness = () => {
-      const [currentSnapshot, setCurrentSnapshot] = React.useState(snapshot)
+      const [currentSnapshot, setCurrentSnapshot] = React.useState(snapshot);
       const workspace = React.useMemo(
         () =>
           createWorkspaceStub({
             get snapshot() {
-              return currentSnapshot
+              return currentSnapshot;
             },
-            getPaneGroup: (paneGroupId) =>
+            getPaneGroup: paneGroupId =>
               ({
                 id: paneGroupId,
-                data: currentSnapshot.paneGroups.find((paneGroup) => paneGroup.id === paneGroupId)!,
+                data: currentSnapshot.paneGroups.find(paneGroup => paneGroup.id === paneGroupId)!,
                 session: null,
                 children: [],
-                update: async (input) => {
-                  setCurrentSnapshot((value) => ({
+                update: async input => {
+                  setCurrentSnapshot(value => ({
                     ...value,
-                    paneGroups: value.paneGroups.map((paneGroup) =>
+                    paneGroups: value.paneGroups.map(paneGroup =>
                       paneGroup.id === paneGroupId ? { ...paneGroup, ...input } : paneGroup
                     )
-                  }))
+                  }));
                 },
                 setChildren: async () => {},
                 insertPane: async () => {},
@@ -292,8 +350,8 @@ describe('WorkspacePaneTree', () => {
                 remove: async () => {}
               }) as unknown as PaneGroupHandle
           }),
-        [currentSnapshot.paneGroups]
-      )
+        [currentSnapshot.paneGroups, currentSnapshot]
+      );
 
       return (
         <WorkspacePaneTree
@@ -302,51 +360,57 @@ describe('WorkspacePaneTree', () => {
           resolveRendererView={() => paneRendererRegistration}
           clearSignal={0}
         />
-      )
-    }
+      );
+    };
 
-    render(<Harness />)
+    render(<Harness />);
 
-    expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
-    expect(screen.getByTestId('terminal-visible')).toHaveTextContent('true')
+    expect(screen.getByTestId('terminal-view')).toBeInTheDocument();
+    expect(screen.getByTestId('terminal-visible')).toHaveTextContent('true');
     expect(
-      screen.getByRole('article', { name: 'Terminal', hidden: true }).closest('.workspace-stacked-panel')
-    ).not.toHaveAttribute('hidden')
+      screen
+        .getByRole('article', { name: 'Terminal', hidden: true })
+        .closest('.workspace-stacked-panel')
+    ).not.toHaveAttribute('hidden');
 
-    fireEvent.click(screen.getByRole('tab', { name: /Activity/ }))
+    fireEvent.click(screen.getByRole('tab', { name: /Activity/ }));
 
-    expect(screen.getByTestId('terminal-view')).toBeInTheDocument()
-    expect(screen.getByTestId('terminal-visible')).toHaveTextContent('false')
+    expect(screen.getByTestId('terminal-view')).toBeInTheDocument();
+    expect(screen.getByTestId('terminal-visible')).toHaveTextContent('false');
     expect(
-      screen.getByRole('article', { name: 'Activity', hidden: true }).closest('.workspace-stacked-panel')
-    ).not.toHaveAttribute('hidden')
+      screen
+        .getByRole('article', { name: 'Activity', hidden: true })
+        .closest('.workspace-stacked-panel')
+    ).not.toHaveAttribute('hidden');
     expect(
-      screen.getByRole('article', { name: 'Terminal', hidden: true }).closest('.workspace-stacked-panel')
-    ).toHaveAttribute('hidden')
-  })
+      screen
+        .getByRole('article', { name: 'Terminal', hidden: true })
+        .closest('.workspace-stacked-panel')
+    ).toHaveAttribute('hidden');
+  });
 
   it('restores focus to the last focused element when returning to a tab', async () => {
     const Harness = () => {
-      const [currentSnapshot, setCurrentSnapshot] = React.useState(snapshot)
+      const [currentSnapshot, setCurrentSnapshot] = React.useState(snapshot);
       const workspace = React.useMemo(
         () =>
           createWorkspaceStub({
             get snapshot() {
-              return currentSnapshot
+              return currentSnapshot;
             },
-            getPaneGroup: (paneGroupId) =>
+            getPaneGroup: paneGroupId =>
               ({
                 id: paneGroupId,
-                data: currentSnapshot.paneGroups.find((paneGroup) => paneGroup.id === paneGroupId)!,
+                data: currentSnapshot.paneGroups.find(paneGroup => paneGroup.id === paneGroupId)!,
                 session: null,
                 children: [],
-                update: async (input) => {
-                  setCurrentSnapshot((value) => ({
+                update: async input => {
+                  setCurrentSnapshot(value => ({
                     ...value,
-                    paneGroups: value.paneGroups.map((paneGroup) =>
+                    paneGroups: value.paneGroups.map(paneGroup =>
                       paneGroup.id === paneGroupId ? { ...paneGroup, ...input } : paneGroup
                     )
-                  }))
+                  }));
                 },
                 setChildren: async () => {},
                 insertPane: async () => {},
@@ -356,8 +420,8 @@ describe('WorkspacePaneTree', () => {
                 remove: async () => {}
               }) as unknown as PaneGroupHandle
           }),
-        [currentSnapshot.paneGroups]
-      )
+        [currentSnapshot.paneGroups, currentSnapshot]
+      );
 
       return (
         <WorkspacePaneTree
@@ -366,27 +430,27 @@ describe('WorkspacePaneTree', () => {
           resolveRendererView={() => paneRendererRegistration}
           clearSignal={0}
         />
-      )
-    }
+      );
+    };
 
-    render(<Harness />)
+    render(<Harness />);
 
-    const terminalFocusTarget = screen.getByTestId('terminal-focus-target')
-    terminalFocusTarget.focus()
-    expect(document.activeElement).toBe(terminalFocusTarget)
+    const terminalFocusTarget = screen.getByTestId('terminal-focus-target');
+    terminalFocusTarget.focus();
+    expect(document.activeElement).toBe(terminalFocusTarget);
 
-    fireEvent.click(screen.getByRole('tab', { name: /Activity/ }))
-    fireEvent.click(screen.getByRole('tab', { name: /Terminal/ }))
+    fireEvent.click(screen.getByRole('tab', { name: /Activity/ }));
+    fireEvent.click(screen.getByRole('tab', { name: /Terminal/ }));
 
     await waitFor(() => {
-      expect(document.activeElement).toBe(terminalFocusTarget)
-    })
-  })
+      expect(document.activeElement).toBe(terminalFocusTarget);
+    });
+  });
 
   it('tracks the focused pane on focus events', async () => {
-    const setFocusedPane = vi.fn(async () => {})
+    const setFocusedPane = vi.fn(async () => {});
     const workspace = createWorkspaceStub({
-      getSession: (sessionId) =>
+      getSession: sessionId =>
         sessionId === 'session-1'
           ? ({
               id: sessionId,
@@ -399,14 +463,14 @@ describe('WorkspacePaneTree', () => {
               remove: async () => {},
               setRootPaneGroup: async () => {},
               createPaneGroup: async () => {
-                throw new Error('Not implemented in test')
+                throw new Error('Not implemented in test');
               },
               createPane: async () => {
-                throw new Error('Not implemented in test')
+                throw new Error('Not implemented in test');
               }
-            }) as any
+            } as any)
           : null
-    })
+    });
 
     render(
       <WorkspacePaneTree
@@ -415,27 +479,27 @@ describe('WorkspacePaneTree', () => {
         resolveRendererView={() => paneRendererRegistration}
         clearSignal={0}
       />
-    )
+    );
 
-    fireEvent.focus(screen.getByTestId('terminal-focus-target'))
+    fireEvent.focus(screen.getByTestId('terminal-focus-target'));
 
     await waitFor(() => {
-      expect(setFocusedPane).toHaveBeenCalledWith('pane-terminal')
-    })
-  })
+      expect(setFocusedPane).toHaveBeenCalledWith('pane-terminal');
+    });
+  });
 
   it('initializes a new split at 50/50 when splitting the active pane', async () => {
-    const split = vi.fn(async () => ({ id: 'group-created' }))
+    const split = vi.fn(async () => ({ id: 'group-created' }));
 
     const workspace = createWorkspaceStub({
-      getPane: (paneId) =>
+      getPane: paneId =>
         paneId === 'pane-terminal'
           ? ({
               id: paneId,
               split
-            }) as any
+            } as any)
           : null
-    })
+    });
 
     render(
       <WorkspacePaneTree
@@ -444,19 +508,19 @@ describe('WorkspacePaneTree', () => {
         resolveRendererView={() => paneRendererRegistration}
         clearSignal={0}
       />
-    )
+    );
 
     const splitButton = screen
       .getByTestId('pane-pane-terminal')
-      .querySelector('button[aria-label="Split horizontal"]') as HTMLButtonElement | null
+      .querySelector('button[aria-label="Split horizontal"]') as HTMLButtonElement | null;
 
-    expect(splitButton).not.toBeNull()
-    fireEvent.click(splitButton!)
+    expect(splitButton).not.toBeNull();
+    fireEvent.click(splitButton!);
 
     await waitFor(() => {
-      expect(split).toHaveBeenCalledWith('horizontal')
-    })
-  })
+      expect(split).toHaveBeenCalledWith('horizontal');
+    });
+  });
 
   it('falls back to placeholder content when no pane renderer is registered', () => {
     render(
@@ -466,9 +530,9 @@ describe('WorkspacePaneTree', () => {
         resolveRendererView={() => null}
         clearSignal={0}
       />
-    )
+    );
 
-    expect(screen.queryByTestId('terminal-view')).not.toBeInTheDocument()
-    expect(screen.getAllByText('Workspace content preview')).toHaveLength(5)
-  })
-})
+    expect(screen.queryByTestId('terminal-view')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Workspace content preview')).toHaveLength(5);
+  });
+});

@@ -76,7 +76,15 @@
 .status-bar__progress-text {
   font-size: var(--caption-font-size);
   font-weight: var(--caption-font-weight);
-  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    SF Mono,
+    Menlo,
+    Monaco,
+    Consolas,
+    Liberation Mono,
+    monospace;
   flex-shrink: 0;
 }
 
@@ -147,7 +155,7 @@
   .status-bar {
     padding: var(--space-4);
   }
-  
+
   .status-bar__message {
     font-size: var(--caption-font-size);
   }

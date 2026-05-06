@@ -1,9 +1,9 @@
-import type { ThemeDefinition } from '@sessionry/plugin-api'
+import type { ThemeDefinition } from '@sessionry/plugin-api';
 
 export const oneDarkTheme: ThemeDefinition = {
   id: 'one-dark',
   name: 'One Dark',
-  description: 'Atom\'s iconic One Dark theme',
+  description: "Atom's iconic One Dark theme",
   author: 'Atom',
   ansi: {
     background: '#282c34',
@@ -56,4 +56,4 @@ export const oneDarkTheme: ThemeDefinition = {
     inserted: '#98c379',
     invalid: '#e06c75'
   }
-}
+};

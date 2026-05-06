@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 export const corePlugin: AppPlugin = {
   id: 'core',
@@ -16,7 +16,7 @@ export const corePlugin: AppPlugin = {
         return {
           status: 'completed',
           effects: [{ type: 'layout.toggle-left' }]
-        }
+        };
       }
     },
     {
@@ -31,7 +31,7 @@ export const corePlugin: AppPlugin = {
         return {
           status: 'completed',
           effects: [{ type: 'layout.toggle-right' }]
-        }
+        };
       }
     },
     {
@@ -42,18 +42,18 @@ export const corePlugin: AppPlugin = {
       category: 'Application',
       defaultKeybinding: 'C-,',
       surfaces: ['toolbar', 'palette'],
-      run: async (context) => {
-        const activeProject = context.workspace.getProject(context.activeProjectId!)
-        if (!activeProject) return { status: 'completed' }
+      run: async context => {
+        const activeProject = context.workspace.getProject(context.activeProjectId!);
+        if (!activeProject) return { status: 'completed' };
 
         await activeProject.update({
           activeViews: {
             ...activeProject.data.activeViews,
             workspace: 'view.settings'
           }
-        })
+        });
 
-        return { status: 'completed' }
+        return { status: 'completed' };
       }
     },
     {
@@ -61,18 +61,18 @@ export const corePlugin: AppPlugin = {
       name: 'Show Default Workspace View',
       description: 'Return to the default workspace view',
       category: 'Workspace',
-      run: async (context) => {
-        const activeProject = context.workspace.getProject(context.activeProjectId!)
-        if (!activeProject) return { status: 'completed' }
+      run: async context => {
+        const activeProject = context.workspace.getProject(context.activeProjectId!);
+        if (!activeProject) return { status: 'completed' };
 
         await activeProject.update({
           activeViews: {
             ...activeProject.data.activeViews,
             workspace: undefined
           }
-        })
+        });
 
-        return { status: 'completed' }
+        return { status: 'completed' };
       }
     }
   ],
@@ -83,4 +83,4 @@ export const corePlugin: AppPlugin = {
       slot: 'workspace'
     }
   ]
-}
+};

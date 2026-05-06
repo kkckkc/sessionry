@@ -1,4 +1,4 @@
-import type { ThemeDefinition } from '@sessionry/plugin-api'
+import type { ThemeDefinition } from '@sessionry/plugin-api';
 
 export const solarizedDarkTheme: ThemeDefinition = {
   id: 'solarized-dark',
@@ -56,4 +56,4 @@ export const solarizedDarkTheme: ThemeDefinition = {
     inserted: '#859900',
     invalid: '#dc322f'
   }
-}
+};

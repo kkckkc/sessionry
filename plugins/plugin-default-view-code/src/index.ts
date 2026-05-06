@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 export const codePanePlugin: AppPlugin = {
   id: 'plugin-default-view-code',
@@ -12,6 +12,6 @@ export const codePanePlugin: AppPlugin = {
       isDefault: true
     }
   ]
-}
+};
 
-export default codePanePlugin
+export default codePanePlugin;

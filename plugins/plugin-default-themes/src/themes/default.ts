@@ -1,4 +1,4 @@
-import type { ThemeDefinition } from '@sessionry/plugin-api'
+import type { ThemeDefinition } from '@sessionry/plugin-api';
 
 export const defaultTheme: ThemeDefinition = {
   id: 'default',
@@ -56,4 +56,4 @@ export const defaultTheme: ThemeDefinition = {
     inserted: '#97e98b',
     invalid: '#ff7b72'
   }
-}
+};

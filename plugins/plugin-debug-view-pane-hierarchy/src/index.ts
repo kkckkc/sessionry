@@ -1,4 +1,4 @@
-import type { AppPlugin } from '@sessionry/plugin-api'
+import type { AppPlugin } from '@sessionry/plugin-api';
 
 export const plugin: AppPlugin = {
   id: 'debug-view-pane-hierarchy',
@@ -11,6 +11,6 @@ export const plugin: AppPlugin = {
       icon: 'TbBug'
     }
   ]
-}
+};
 
-export default plugin
+export default plugin;
