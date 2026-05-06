@@ -355,7 +355,196 @@ const StackedPaneGroup = ({
   )
 }
 
+interface WorkspacePaneProps {
+  pane: Pane
+  child: PaneGroupChild | null
+  isVisible: boolean
+  withStackedGroupTitleBalance: boolean
+  nestedInStackedPaneGroup: boolean
+  plugins: WorkspaceViewProps['plugins']
+  workspace: WorkspaceViewProps['workspace']
+  resolveRendererView: WorkspaceViewProps['resolveRendererView']
+  clearSignal: WorkspaceViewProps['clearSignal']
+  activeTerminalPaneId: string | null
+  onPaneFocus: (paneId: string) => void
+  onSplitPane: (paneId: string, direction: 'horizontal' | 'vertical') => void
+  onConvertToTabs: (paneId: string) => void
+  onRemovePaneNode: (node: PaneGroupChild) => void
+}
 
+const WorkspacePane = ({
+  pane,
+  child,
+  isVisible,
+  withStackedGroupTitleBalance,
+  nestedInStackedPaneGroup,
+  plugins,
+  workspace,
+  resolveRendererView,
+  clearSignal,
+  activeTerminalPaneId,
+  onPaneFocus,
+  onSplitPane,
+  onConvertToTabs,
+  onRemovePaneNode
+}: WorkspacePaneProps) => {
+  const [customPaneActions, setCustomPaneActions] = useState<Array<{ id: string; icon: ReactNode; label: string; onClick: () => void; disabled?: boolean }>>([])
+
+  const handleRegisterPaneActions = useCallback((actions: Array<{ id: string; icon: ReactNode; label: string; onClick: () => void; disabled?: boolean }>) => {
+    setCustomPaneActions(actions)
+  }, [])
+
+  const handleTitleClick = () => {
+    // DOM-based focus for panes
+    const paneElement = document.querySelector(`[data-testid="pane-${pane.id}"] .body`)
+    if (paneElement instanceof HTMLElement) {
+      const focusable = paneElement.querySelector<HTMLElement>('input, textarea, [tabindex]:not([tabindex="-1"])')
+      if (focusable) {
+        focusable.focus()
+      } else {
+        paneElement.focus()
+      }
+    }
+  }
+
+  const title = getPaneTitle(pane)
+  const description = getPaneDescription(pane)
+  const isLiveTerminal = pane.type === 'terminal' && pane.id === activeTerminalPaneId
+  const slot = `pane:${pane.type}`
+  const paneView = resolveActiveView(plugins, slot)
+  const paneRenderer = paneView ? resolveRendererView(paneView.id) : null
+  const PaneRenderer = paneRenderer?.component
+
+  return (
+    <article
+      className={'pane is-bare'}
+      style={getPreferredSizeStyle(pane.preferredSizePct)}
+      aria-label={title}
+      data-testid={`pane-${pane.id}`}
+      onFocusCapture={() => onPaneFocus(pane.id)}
+    >
+      {withStackedGroupTitleBalance ? (
+        <div
+          className={`workspace-title-balance${nestedInStackedPaneGroup ? ' is-nested-stacked-pane-group' : ''}`}
+          aria-hidden="true"
+        />
+      ) : null}
+      <PaneTitle
+        title={title}
+        isDirty={pane.state.isDirty === true}
+        onClick={handleTitleClick}
+        actions={
+          child ? (
+            <>
+              {customPaneActions.map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  aria-label={action.label}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                >
+                  {action.icon}
+                </button>
+              ))}
+              <button
+                type="button"
+                aria-label="Split horizontal"
+                onClick={() => onSplitPane(pane.id, 'horizontal')}
+              >
+                <TbLayoutColumns size={13} />
+              </button>
+              <button
+                type="button"
+                aria-label="Split vertical"
+                onClick={() => onSplitPane(pane.id, 'vertical')}
+              >
+                <TbLayoutRows size={13} />
+              </button>
+              <button
+                type="button"
+                aria-label="Convert to tabs"
+                onClick={() => onConvertToTabs(pane.id)}
+              >
+                <TbLayoutNavbar size={13} />
+              </button>
+              <button
+                type="button"
+                aria-label="Close pane"
+                onClick={() => onRemovePaneNode(child)}
+              >
+                ×
+              </button>
+            </>
+          ) : (
+            <>
+              {customPaneActions.map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  aria-label={action.label}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                >
+                  {action.icon}
+                </button>
+              ))}
+              <button
+                type="button"
+                aria-label="Split horizontal"
+                onClick={() => onSplitPane(pane.id, 'horizontal')}
+              >
+                <TbLayoutColumns size={13} />
+              </button>
+              <button
+                type="button"
+                aria-label="Split vertical"
+                onClick={() => onSplitPane(pane.id, 'vertical')}
+              >
+                <TbLayoutRows size={13} />
+              </button>
+              <button
+                type="button"
+                aria-label="Convert to tabs"
+                onClick={() => onConvertToTabs(pane.id)}
+              >
+                <TbLayoutNavbar size={13} />
+              </button>
+            </>
+          )
+        }
+      />
+      <div className="body" tabIndex={-1}>
+        {PaneRenderer ? (
+          <div
+            className="plugin-surface"
+            data-plugin-id={paneView?.pluginId}
+            data-plugin-surface="pane"
+            data-plugin-slot={paneView?.slot}
+            data-plugin-view-id={paneView?.id}
+          >
+            <PaneRenderer
+              plugins={plugins}
+              workspace={workspace}
+              resolveRendererView={resolveRendererView}
+              slot={slot}
+              childViews={getChildViewsForSlot(plugins, slot)}
+              pane={pane}
+              clearSignal={clearSignal}
+              visible={isVisible}
+              onRegisterPaneActions={handleRegisterPaneActions}
+            />
+          </div>
+        ) : (
+          <div className="placeholder">
+            <p>{description ?? 'Workspace content preview'}</p>
+            <span>{isLiveTerminal ? 'Connecting terminal…' : 'Bootstrap pane content'}</span>
+          </div>
+        )}
+      </div>
+    </article>
+  )
+}
 
 export const WorkspacePaneTree = ({
   plugins,
@@ -484,171 +673,6 @@ export const WorkspacePaneTree = ({
     })
   }
 
-  const renderPane = (
-    pane: Pane,
-    child: PaneGroupChild | null = null,
-    isVisible = true,
-    withStackedGroupTitleBalance = false,
-    nestedInStackedPaneGroup = false
-  ) => {
-    const title = getPaneTitle(pane)
-    const description = getPaneDescription(pane)
-    const isLiveTerminal = pane.type === 'terminal' && pane.id === activeTerminalPaneId
-    const slot = `pane:${pane.type}`
-    const paneView = resolveActiveView(plugins, slot)
-    const paneRenderer = paneView ? resolveRendererView(paneView.id) : null
-    const PaneRenderer = paneRenderer?.component
-    const [customPaneActions, setCustomPaneActions] = useState<Array<{ id: string; icon: ReactNode; label: string; onClick: () => void; disabled?: boolean }>>([])
-
-    const handleRegisterPaneActions = useCallback((actions: Array<{ id: string; icon: ReactNode; label: string; onClick: () => void; disabled?: boolean }>) => {
-      setCustomPaneActions(actions)
-    }, [])
-
-    const handleTitleClick = () => {
-      // DOM-based focus for panes
-      const paneElement = document.querySelector(`[data-testid="pane-${pane.id}"] .body`)
-      if (paneElement instanceof HTMLElement) {
-        const focusable = paneElement.querySelector<HTMLElement>('input, textarea, [tabindex]:not([tabindex="-1"])')
-        if (focusable) {
-          focusable.focus()
-        } else {
-          paneElement.focus()
-        }
-      }
-    }
-
-    return (
-      <article
-        key={pane.id}
-        className={'pane is-bare'}
-        style={getPreferredSizeStyle(pane.preferredSizePct)}
-        aria-label={title}
-        data-testid={`pane-${pane.id}`}
-        onFocusCapture={() => handlePaneFocus(pane.id)}
-      >
-        {withStackedGroupTitleBalance ? (
-          <div
-            className={`workspace-title-balance${nestedInStackedPaneGroup ? ' is-nested-stacked-pane-group' : ''}`}
-            aria-hidden="true"
-          />
-        ) : null}
-        <PaneTitle
-          title={title}
-          isDirty={pane.state.isDirty === true}
-          onClick={handleTitleClick}
-          actions={
-            child ? (
-              <>
-                {customPaneActions.map((action) => (
-                  <button
-                    key={action.id}
-                    type="button"
-                    aria-label={action.label}
-                    onClick={action.onClick}
-                    disabled={action.disabled}
-                  >
-                    {action.icon}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  aria-label="Split horizontal"
-                  onClick={() => handleSplitPane(pane.id, 'horizontal')}
-                >
-                  <TbLayoutColumns size={13} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Split vertical"
-                  onClick={() => handleSplitPane(pane.id, 'vertical')}
-                >
-                  <TbLayoutRows size={13} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Convert to tabs"
-                  onClick={() => handleConvertToTabs(pane.id)}
-                >
-                  <TbLayoutNavbar size={13} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Close pane"
-                  onClick={() => handleRemovePaneNode(child)}
-                >
-                  ×
-                </button>
-              </>
-            ) : (
-              <>
-                {customPaneActions.map((action) => (
-                  <button
-                    key={action.id}
-                    type="button"
-                    aria-label={action.label}
-                    onClick={action.onClick}
-                    disabled={action.disabled}
-                  >
-                    {action.icon}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  aria-label="Split horizontal"
-                  onClick={() => handleSplitPane(pane.id, 'horizontal')}
-                >
-                  <TbLayoutColumns size={13} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Split vertical"
-                  onClick={() => handleSplitPane(pane.id, 'vertical')}
-                >
-                  <TbLayoutRows size={13} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Convert to tabs"
-                  onClick={() => handleConvertToTabs(pane.id)}
-                >
-                  <TbLayoutNavbar size={13} />
-                </button>
-              </>
-            )
-          }
-        />
-        <div className="body" tabIndex={-1}>
-          {PaneRenderer ? (
-            <div
-              className="plugin-surface"
-              data-plugin-id={paneView?.pluginId}
-              data-plugin-surface="pane"
-              data-plugin-slot={paneView?.slot}
-              data-plugin-view-id={paneView?.id}
-            >
-              <PaneRenderer
-                plugins={plugins}
-                workspace={workspace}
-                resolveRendererView={resolveRendererView}
-                slot={slot}
-                childViews={getChildViewsForSlot(plugins, slot)}
-                pane={pane}
-                clearSignal={clearSignal}
-                visible={isVisible}
-                onRegisterPaneActions={handleRegisterPaneActions}
-              />
-            </div>
-          ) : (
-            <div className="placeholder">
-              <p>{description ?? 'Workspace content preview'}</p>
-              <span>{isLiveTerminal ? 'Connecting terminal…' : 'Bootstrap pane content'}</span>
-            </div>
-          )}
-        </div>
-      </article>
-    )
-  }
-
   const renderNode = (
     child: PaneGroupChild,
     inStack = false,
@@ -656,14 +680,32 @@ export const WorkspacePaneTree = ({
     withStackedGroupTitleBalance = false,
     nestedInStackedPaneGroup = false
   ) =>
-    child.kind === 'pane'
-      ? renderPane(paneById.get(child.paneId) ?? {
+    child.kind === 'pane' ? (
+      <WorkspacePane
+        key={child.paneId}
+        pane={paneById.get(child.paneId) ?? {
           id: child.paneId,
           sessionId: activeSession.id,
           type: 'unknown',
           state: {}
-        }, inStack ? null : child, isVisible, withStackedGroupTitleBalance, nestedInStackedPaneGroup)
-      : renderGroup(groupById.get(child.paneGroupId), withStackedGroupTitleBalance, nestedInStackedPaneGroup)
+        }}
+        child={inStack ? null : child}
+        isVisible={isVisible}
+        withStackedGroupTitleBalance={withStackedGroupTitleBalance}
+        nestedInStackedPaneGroup={nestedInStackedPaneGroup}
+        plugins={plugins}
+        workspace={workspace}
+        resolveRendererView={resolveRendererView}
+        clearSignal={clearSignal}
+        activeTerminalPaneId={activeTerminalPaneId}
+        onPaneFocus={handlePaneFocus}
+        onSplitPane={handleSplitPane}
+        onConvertToTabs={handleConvertToTabs}
+        onRemovePaneNode={handleRemovePaneNode}
+      />
+    ) : (
+      renderGroup(groupById.get(child.paneGroupId), withStackedGroupTitleBalance, nestedInStackedPaneGroup)
+    )
 
   const renderGroup = (
     paneGroup?: PaneGroup,
