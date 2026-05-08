@@ -42,6 +42,7 @@ export interface TerminalAppBridge {
   readDirectory: (dirPath: string) => Promise<{ name: string; isDirectory: boolean }[]>;
   readFile: (filePath: string) => Promise<string>;
   writeFile: (filePath: string, content: string) => Promise<void>;
+  openExternal: (url: string) => Promise<void>;
   vcs: {
     getStatus: (dirPath: string, options?: { bypassCache?: boolean }) => Promise<ResolvedVcsStatus | null>;
     getDiff: (dirPath: string, file: VcsFileStatus) => Promise<string | null>;

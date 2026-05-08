@@ -1,7 +1,7 @@
 import './styles.css';
 
 import { useState, useEffect, useRef } from 'react';
-import type { FormEvent } from 'react';
+import type { ChangeEvent, FormEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
 import type {
   RendererAppPlugin,
   ResolvedVcsStatus,
@@ -135,7 +135,7 @@ const VcsRepositorySummary = ({
               <button
                 type="button"
                 className="vcs-branch-menu-btn"
-                onClick={e => {
+                onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   setMenuOpen(o => !o);
                 }}
@@ -153,7 +153,7 @@ const VcsRepositorySummary = ({
                     <button
                       type="button"
                       className="vcs-branch-menu-item"
-                      onClick={e => {
+                      onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
                         e.stopPropagation();
                         setMenuOpen(false);
                         onCreateBranch();
@@ -166,7 +166,7 @@ const VcsRepositorySummary = ({
                   <button
                     type="button"
                     className="vcs-branch-menu-item"
-                    onClick={e => {
+                  onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation();
                       setMenuOpen(false);
                       onRefresh?.();
@@ -596,10 +596,10 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           <DialogContent>
             <Input
               value={newBranchName}
-              onChange={(e) => setNewBranchName(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setNewBranchName(e.target.value)}
               placeholder="Branch name"
               autoFocus
-              onKeyDown={(e) => {
+              onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'Enter' && newBranchName.trim()) {
                   void handleConfirmCreateBranch();
                 }
@@ -677,10 +677,10 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         <DialogContent>
           <Input
             value={newBranchName}
-            onChange={(e) => setNewBranchName(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setNewBranchName(e.target.value)}
             placeholder="Branch name"
             autoFocus
-            onKeyDown={(e) => {
+            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'Enter' && newBranchName.trim()) {
                 void handleConfirmCreateBranch();
               }

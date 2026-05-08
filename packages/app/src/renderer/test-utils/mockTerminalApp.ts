@@ -69,6 +69,7 @@ export function createMockTerminalApp(
     readDirectory: vi.fn().mockResolvedValue([]),
     readFile: vi.fn().mockResolvedValue(''),
     writeFile: vi.fn().mockResolvedValue(undefined),
+    openExternal: vi.fn().mockResolvedValue(undefined),
     vcs: {
       getStatus: vi.fn().mockResolvedValue(null),
       getDiff: vi.fn().mockResolvedValue(null),
