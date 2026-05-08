@@ -43,7 +43,7 @@ export interface TerminalAppBridge {
   readFile: (filePath: string) => Promise<string>;
   writeFile: (filePath: string, content: string) => Promise<void>;
   vcs: {
-    getStatus: (dirPath: string) => Promise<ResolvedVcsStatus | null>;
+    getStatus: (dirPath: string, options?: { bypassCache?: boolean }) => Promise<ResolvedVcsStatus | null>;
     getDiff: (dirPath: string, file: VcsFileStatus) => Promise<string | null>;
   };
   getPathForDroppedFile: (file: File) => string;

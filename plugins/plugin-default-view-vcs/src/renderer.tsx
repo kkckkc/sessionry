@@ -1,6 +1,6 @@
 import './styles.css';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type {
   RendererAppPlugin,
   ResolvedVcsStatus,
@@ -78,7 +78,27 @@ const CHECK_DOT_CLASS: Record<string, string> = {
   pending: 'vcs-check-dot--pending'
 };
 
-const VcsRepositorySummary = ({ repository }: { repository?: VcsRepositoryInfo | null }) => {
+const VcsRepositorySummary = ({
+  repository,
+  onRefresh
+}: {
+  repository?: VcsRepositoryInfo | null;
+  onRefresh?: () => void;
+}) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [menuOpen]);
+
   if (!repository?.branch && !repository?.pullRequest) {
     return null;
   }
@@ -104,6 +124,40 @@ const VcsRepositorySummary = ({ repository }: { repository?: VcsRepositoryInfo |
           <span className="vcs-branch-name" title={repository.branch}>
             {repository.branch}
           </span>
+          {onRefresh && (
+            <div className="vcs-branch-menu-container" ref={menuRef}>
+              <button
+                type="button"
+                className="vcs-branch-menu-btn"
+                onClick={e => {
+                  e.stopPropagation();
+                  setMenuOpen(o => !o);
+                }}
+                title="More options"
+              >
+                <svg viewBox="0 0 16 4" fill="currentColor" width="10" height="3">
+                  <circle cx="2" cy="2" r="1.5" />
+                  <circle cx="8" cy="2" r="1.5" />
+                  <circle cx="14" cy="2" r="1.5" />
+                </svg>
+              </button>
+              {menuOpen && (
+                <div className="vcs-branch-menu">
+                  <button
+                    type="button"
+                    className="vcs-branch-menu-item"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setMenuOpen(false);
+                      onRefresh();
+                    }}
+                  >
+                    Refresh
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -178,6 +232,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const [files, setFiles] = useState<VcsFileStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setRefreshKey] = useState(0);
+  const [manualRefreshKey, setManualRefreshKey] = useState(0);
 
   // Subscribe to workspace changes
   useEffect(() => workspace.subscribeAll(() => setRefreshKey(k => k + 1)), [workspace]);
@@ -192,7 +247,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   useEffect(() => {
     let cancelled = false;
 
-    const loadFileStatus = async (options: { showLoading: boolean }) => {
+    const loadFileStatus = async (options: { showLoading: boolean; bypassCache?: boolean }) => {
       if (!activeSessionFolder) {
         setStatus(null);
         setFiles([]);
@@ -204,7 +259,9 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         setLoading(true);
       }
 
-      const status = await window.terminalApp.vcs.getStatus(activeSessionFolder);
+      const status = await window.terminalApp.vcs.getStatus(activeSessionFolder, {
+        bypassCache: options.bypassCache
+      });
 
       if (!cancelled) {
         setStatus(status);
@@ -213,7 +270,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       }
     };
 
-    void loadFileStatus({ showLoading: true });
+    void loadFileStatus({ showLoading: manualRefreshKey === 0, bypassCache: manualRefreshKey > 0 });
 
     // Refresh repository metadata and file status while this session is active.
     const intervalId = setInterval(() => {
@@ -224,7 +281,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       cancelled = true;
       clearInterval(intervalId);
     };
-  }, [activeSessionFolder]);
+  }, [activeSessionFolder, manualRefreshKey]);
 
   const openCodePane = async (state: Record<string, unknown>) => {
     if (!activeSession) return;
@@ -358,7 +415,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   if (files.length === 0) {
     return (
       <div className="vcs-view">
-        <VcsRepositorySummary repository={status?.repository} />
+        <VcsRepositorySummary repository={status?.repository} onRefresh={() => setManualRefreshKey(k => k + 1)} />
         <div className="vcs-header">
           <span className="vcs-title">Changes</span>
           <span className="vcs-count">{files.length}</span>
@@ -372,7 +429,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
 
   return (
     <div className="vcs-view">
-      <VcsRepositorySummary repository={status?.repository} />
+      <VcsRepositorySummary repository={status?.repository} onRefresh={() => setManualRefreshKey(k => k + 1)} />
       <div className="vcs-header">
         <span className="vcs-title">Changes</span>
         <span className="vcs-count">{files.length}</span>

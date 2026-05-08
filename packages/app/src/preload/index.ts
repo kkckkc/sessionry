@@ -82,7 +82,8 @@ const api = {
   writeFile: (filePath: string, content: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.writeFile, filePath, content),
   vcs: {
-    getStatus: (dirPath: string) => ipcRenderer.invoke(IPC_CHANNELS.vcsStatus, dirPath),
+    getStatus: (dirPath: string, options?: { bypassCache?: boolean }) =>
+      ipcRenderer.invoke(IPC_CHANNELS.vcsStatus, dirPath, ...(options ? [options] : [])),
     getDiff: (dirPath: string, file: VcsFileStatus) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsDiff, dirPath, file)
   },

@@ -232,18 +232,21 @@ export const createGitVcsProvider = (run: ExecFileLike = execFileAsync): VcsProv
   name: 'Git',
   priority: 100,
   async getStatus(folder) {
-    const active = await isGitRepository(folder, run);
-    if (!active) {
-      return { active: false };
-    }
-
     try {
-      const [statsResult, statusResult, branch] = await Promise.all([
-        run('git', ['diff', '--shortstat'], { cwd: folder }),
-        run('git', ['status', '-b', '--porcelain=v1'], { cwd: folder }),
+      const [active, branch] = await Promise.all([
+        isGitRepository(folder, run),
         getGitBranchName(folder, run)
       ]);
-      const pullRequest = branch ? await getGitPullRequest(folder, run) : null;
+
+      if (!active) {
+        return { active: false };
+      }
+
+      const [statsResult, statusResult, pullRequest] = await Promise.all([
+        run('git', ['diff', '--shortstat'], { cwd: folder }),
+        run('git', ['status', '-b', '--porcelain=v1'], { cwd: folder }),
+        branch ? getGitPullRequest(folder, run) : null
+      ]);
 
       const statusOutput = String(statusResult.stdout);
       const lines = statusOutput.split('\n');
