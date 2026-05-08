@@ -15,7 +15,7 @@ interface RegisteredProvider extends VcsProviderDefinition {
 
 export interface VcsService {
   registerProvider: (provider: VcsProviderDefinition) => void;
-  getStatus: (folder: string) => Promise<ResolvedVcsStatus | null>;
+  getStatus: (folder: string, options?: { bypassCache?: boolean }) => Promise<ResolvedVcsStatus | null>;
   getDiff: (folder: string, file: VcsFileStatus) => Promise<string | null>;
 }
 
@@ -42,10 +42,10 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       });
       cache.clear();
     },
-    getStatus: async folder => {
+    getStatus: async (folder, options) => {
       const cached = cache.get(folder);
       const currentTime = now();
-      if (cached && cached.expiresAt > currentTime) {
+      if (!options?.bypassCache && cached && cached.expiresAt > currentTime) {
         return cached.value;
       }
 

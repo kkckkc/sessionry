@@ -210,8 +210,8 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.writeFile, (_event, filePath: string, content: string) =>
     fs.writeFileSync(filePath, content, 'utf-8')
   );
-  ipcMain.handle(IPC_CHANNELS.vcsStatus, (_event, dirPath: string) =>
-    vcsService.getStatus(dirPath)
+  ipcMain.handle(IPC_CHANNELS.vcsStatus, (_event, dirPath: string, options?: { bypassCache?: boolean }) =>
+    vcsService.getStatus(dirPath, options)
   );
   ipcMain.handle(IPC_CHANNELS.vcsDiff, (_event, dirPath: string, file) =>
     vcsService.getDiff(dirPath, file)
