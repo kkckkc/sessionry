@@ -59,7 +59,7 @@ describe('SettingsView', () => {
       settings,
       themes: {
         getTheme: vi.fn(),
-        getAllThemes: vi.fn(),
+        getAllThemes: vi.fn(async () => []),
         getThemeIds: vi.fn()
       },
       plugins: {

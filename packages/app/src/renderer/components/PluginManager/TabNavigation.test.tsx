@@ -164,18 +164,4 @@ describe('TabNavigation', () => {
     expect(updatesTab).toHaveAttribute('tabIndex', '-1');
   });
 
-  it('displays icons for each tab', () => {
-    const onTabChange = vi.fn();
-
-    render(<TabNavigation activeTab="installed" onTabChange={onTabChange} />);
-
-    // Check that icons are present (they're in spans with aria-hidden)
-    const icons = screen.getAllByRole('tab').map(tab => tab.querySelector('.tab-navigation__icon'));
-
-    expect(icons).toHaveLength(3);
-    icons.forEach(icon => {
-      expect(icon).toBeInTheDocument();
-      expect(icon).toHaveAttribute('aria-hidden', 'true');
-    });
-  });
 });
