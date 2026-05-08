@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -196,6 +196,7 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.workspaceCommand, (_event, command: WorkspaceCommand) =>
     workspaceStore.executeCommand(command)
   );
+  ipcMain.handle(IPC_CHANNELS.openExternal, (_event, url: string) => shell.openExternal(url));
   ipcMain.handle(IPC_CHANNELS.showFolderDialog, () =>
     dialog.showOpenDialog(mainWindow!, { properties: ['openDirectory', 'createDirectory'] })
   );

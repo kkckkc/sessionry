@@ -164,6 +164,7 @@ describe('TerminalPaneView', () => {
     document.documentElement.style.setProperty('--term-selection', 'rgba(122, 176, 255, 0.24)');
     document.documentElement.style.setProperty('--term-blue', '#7ab0ff');
     window.terminalApp = {
+      openExternal: vi.fn(),
       showFolderDialog: vi.fn(),
       readDirectory: vi.fn(),
       readFile: vi.fn(),

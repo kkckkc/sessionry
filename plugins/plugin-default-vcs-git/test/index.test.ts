@@ -4,6 +4,7 @@ import {
   createGitVcsProvider,
   getGitFileDiff,
   parseGhPullRequest,
+  parseGitBranchLine,
   parseGitShortStat,
   parseGitStatusPorcelain
 } from '../src/index';
@@ -38,6 +39,37 @@ describe('parseGitStatusPorcelain', () => {
   });
 });
 
+describe('parseGitBranchLine', () => {
+  it('parses upstream, ahead, and behind from a branch tracking line', () => {
+    expect(parseGitBranchLine('## feature/vcs...origin/feature/vcs [ahead 3, behind 1]')).toEqual({
+      upstream: 'origin/feature/vcs',
+      ahead: 3,
+      behind: 1
+    });
+  });
+
+  it('parses ahead-only tracking info', () => {
+    expect(parseGitBranchLine('## main...origin/main [ahead 2]')).toEqual({
+      upstream: 'origin/main',
+      ahead: 2,
+      behind: 0
+    });
+  });
+
+  it('parses a branch with no ahead/behind info', () => {
+    expect(parseGitBranchLine('## main...origin/main')).toEqual({
+      upstream: 'origin/main',
+      ahead: 0,
+      behind: 0
+    });
+  });
+
+  it('returns empty object for non-branch lines', () => {
+    expect(parseGitBranchLine('## HEAD (no branch)')).toEqual({});
+    expect(parseGitBranchLine(' M src/app.ts')).toEqual({});
+  });
+});
+
 describe('parseGhPullRequest', () => {
   it('parses GitHub CLI pull request JSON', () => {
     expect(
@@ -50,6 +82,48 @@ describe('parseGhPullRequest', () => {
       url: 'https://github.com/acme/app/pull/42',
       headRefName: 'feature/vcs'
     });
+  });
+
+  it('parses open PR state', () => {
+    expect(
+      parseGhPullRequest('{"number":1,"title":"Fix","state":"OPEN","isDraft":false}')
+    ).toMatchObject({ state: 'open' });
+  });
+
+  it('parses draft PR state', () => {
+    expect(
+      parseGhPullRequest('{"number":1,"title":"Fix","state":"OPEN","isDraft":true}')
+    ).toMatchObject({ state: 'draft' });
+  });
+
+  it('parses merged PR state', () => {
+    expect(parseGhPullRequest('{"number":1,"title":"Fix","state":"MERGED"}')).toMatchObject({
+      state: 'merged'
+    });
+  });
+
+  it('derives passing checks from statusCheckRollup', () => {
+    expect(
+      parseGhPullRequest(
+        '{"number":1,"title":"Fix","statusCheckRollup":[{"state":"SUCCESS"},{"state":"SUCCESS"}]}'
+      )
+    ).toMatchObject({ checks: 'passing' });
+  });
+
+  it('derives failing checks from statusCheckRollup', () => {
+    expect(
+      parseGhPullRequest(
+        '{"number":1,"title":"Fix","statusCheckRollup":[{"state":"SUCCESS"},{"state":"FAILURE"}]}'
+      )
+    ).toMatchObject({ checks: 'failing' });
+  });
+
+  it('parses reviewer count from reviewRequests', () => {
+    expect(
+      parseGhPullRequest(
+        '{"number":1,"title":"Fix","reviewRequests":[{"login":"alice"},{"login":"bob"}]}'
+      )
+    ).toMatchObject({ reviewers: 2 });
   });
 
   it('returns null for invalid pull request JSON', () => {
@@ -76,7 +150,7 @@ describe('createGitVcsProvider', () => {
         stderr: ''
       })
       .mockResolvedValueOnce({
-        stdout: ' M src/app.ts\n?? notes/todo.md\n',
+        stdout: '## main\n M src/app.ts\n?? notes/todo.md\n',
         stderr: ''
       });
     const provider = createGitVcsProvider(run);
@@ -104,7 +178,7 @@ describe('createGitVcsProvider', () => {
         stderr: ''
       })
       .mockResolvedValueOnce({
-        stdout: ' M src/app.ts\n',
+        stdout: '## feature/vcs...origin/feature/vcs [ahead 3, behind 1]\n M src/app.ts\n',
         stderr: ''
       })
       .mockResolvedValueOnce({
@@ -113,7 +187,7 @@ describe('createGitVcsProvider', () => {
       })
       .mockResolvedValueOnce({
         stdout:
-          '{"number":42,"title":"Add branch metadata","url":"https://github.com/acme/app/pull/42","headRefName":"feature/vcs"}',
+          '{"number":42,"title":"Add branch metadata","url":"https://github.com/acme/app/pull/42","headRefName":"feature/vcs","state":"OPEN","isDraft":false}',
         stderr: ''
       });
     const provider = createGitVcsProvider(run);
@@ -132,8 +206,12 @@ describe('createGitVcsProvider', () => {
           number: 42,
           title: 'Add branch metadata',
           url: 'https://github.com/acme/app/pull/42',
-          headRefName: 'feature/vcs'
-        }
+          headRefName: 'feature/vcs',
+          state: 'open'
+        },
+        upstream: 'origin/feature/vcs',
+        ahead: 3,
+        behind: 1
       }
     });
   });

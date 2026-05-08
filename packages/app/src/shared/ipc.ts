@@ -23,6 +23,7 @@ export const IPC_CHANNELS = {
   settingsUpdate: 'settings:update',
 
   // File System
+  openExternal: 'fs:open-external',
   showFolderDialog: 'fs:show-folder-dialog',
   readDirectory: 'fs:read-directory',
   readFile: 'fs:read-file',

@@ -25,6 +25,7 @@ export interface UserPluginRendererInfo {
 }
 
 export interface TerminalAppBridge {
+  openExternal: (url: string) => Promise<void>;
   showFolderDialog: () => Promise<{ canceled: boolean; filePaths: string[] }>;
   readDirectory: (dirPath: string) => Promise<{ name: string; isDirectory: boolean }[]>;
   readFile: (filePath: string) => Promise<string>;

@@ -218,6 +218,7 @@ const createWorkspaceStub = () => {
 describe('FileBrowserView', () => {
   beforeEach(() => {
     window.terminalApp = {
+      openExternal: vi.fn(),
       showFolderDialog: vi.fn(),
       readDirectory: vi.fn(async (dirPath: string) => {
         if (dirPath === '/tmp/project') {

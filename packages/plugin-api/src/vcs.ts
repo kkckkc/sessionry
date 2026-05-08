@@ -15,11 +15,17 @@ export interface VcsPullRequest {
   title: string;
   url?: string;
   headRefName?: string;
+  state?: 'open' | 'draft' | 'merged' | 'closed';
+  checks?: 'passing' | 'failing' | 'pending';
+  reviewers?: number;
 }
 
 export interface VcsRepositoryInfo {
   branch?: string;
   pullRequest?: VcsPullRequest | null;
+  ahead?: number;
+  behind?: number;
+  upstream?: string;
 }
 
 export interface VcsStatusResult {

@@ -58,28 +58,118 @@ const getPaneParentGroup = (workspace: SidebarViewProps['workspace'], paneId: st
     paneGroup.children.some(child => child.kind === 'pane' && child.paneId === paneId)
   );
 
+const PR_STATE_CLASS: Record<string, string> = {
+  open: 'vcs-pr-badge--open',
+  draft: 'vcs-pr-badge--draft',
+  merged: 'vcs-pr-badge--merged',
+  closed: 'vcs-pr-badge--closed'
+};
+
+const PR_STATE_LABEL: Record<string, string> = {
+  open: 'Open',
+  draft: 'Draft',
+  merged: 'Merged',
+  closed: 'Closed'
+};
+
+const CHECK_DOT_CLASS: Record<string, string> = {
+  passing: 'vcs-check-dot--passing',
+  failing: 'vcs-check-dot--failing',
+  pending: 'vcs-check-dot--pending'
+};
+
 const VcsRepositorySummary = ({ repository }: { repository?: VcsRepositoryInfo | null }) => {
   if (!repository?.branch && !repository?.pullRequest) {
     return null;
   }
 
+  const pr = repository.pullRequest;
+  const hasSyncInfo =
+    repository.ahead !== undefined || repository.behind !== undefined || repository.upstream;
+
   return (
-    <dl className="vcs-repository">
+    <div className="vcs-repository">
       {repository.branch && (
-        <div className="vcs-repository-row">
-          <dt>Branch</dt>
-          <dd title={repository.branch}>{repository.branch}</dd>
+        <div className="vcs-branch-row">
+          <svg className="vcs-branch-icon" viewBox="0 0 16 16" fill="none">
+            <circle cx="5" cy="4" r="1.5" stroke="currentColor" strokeWidth="1.25" />
+            <circle cx="11" cy="12" r="1.5" stroke="currentColor" strokeWidth="1.25" />
+            <path
+              d="M5 5.5v2C5 9.43 6.57 11 8.5 11H9.5"
+              stroke="currentColor"
+              strokeWidth="1.25"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="vcs-branch-name" title={repository.branch}>
+            {repository.branch}
+          </span>
         </div>
       )}
-      {repository.pullRequest && (
-        <div className="vcs-repository-row">
-          <dt>PR</dt>
-          <dd title={repository.pullRequest.url ?? repository.pullRequest.title}>
-            #{repository.pullRequest.number} {repository.pullRequest.title}
-          </dd>
+
+      {hasSyncInfo && (
+        <div className="vcs-sync-status">
+          {repository.ahead !== undefined && (
+            <span className="vcs-sync-item">
+              <span className="vcs-sync-arrow--ahead">↑</span>
+              {repository.ahead}
+            </span>
+          )}
+          {repository.behind !== undefined && (
+            <span className="vcs-sync-item">
+              <span className="vcs-sync-arrow--behind">↓</span>
+              {repository.behind}
+            </span>
+          )}
+          {repository.upstream && (
+            <span className="vcs-upstream" title={repository.upstream}>
+              {repository.upstream}
+            </span>
+          )}
         </div>
       )}
-    </dl>
+
+      {pr && (
+        <>
+          <div className="vcs-divider" />
+          <div
+            className={`vcs-pr-section${pr.url ? ' vcs-pr-section--link' : ''}`}
+            onClick={
+              pr.url
+                ? () => {
+                    void window.terminalApp.openExternal(pr.url!);
+                  }
+                : undefined
+            }
+          >
+            <div className="vcs-pr-header">
+              <span className="vcs-pr-label">Pull Request</span>
+              {pr.state && (
+                <span className={`vcs-pr-badge ${PR_STATE_CLASS[pr.state] ?? ''}`}>
+                  {PR_STATE_LABEL[pr.state] ?? pr.state}
+                </span>
+              )}
+              <span className="vcs-pr-spacer" />
+              <span className="vcs-pr-number">#{pr.number}</span>
+            </div>
+            <div className="vcs-pr-title" title={pr.title}>
+              {pr.title}
+            </div>
+            {(pr.checks ?? pr.reviewers !== undefined) && (
+              <div className="vcs-pr-meta">
+                {pr.checks && (
+                  <span className="vcs-pr-checks">
+                    <span className={`vcs-check-dot ${CHECK_DOT_CLASS[pr.checks] ?? ''}`} />
+                    checks {pr.checks}
+                  </span>
+                )}
+                {pr.reviewers !== undefined && <span>{pr.reviewers} reviewers</span>}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 
@@ -268,11 +358,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   if (files.length === 0) {
     return (
       <div className="vcs-view">
+        <VcsRepositorySummary repository={status?.repository} />
         <div className="vcs-header">
           <span className="vcs-title">Changes</span>
           <span className="vcs-count">{files.length}</span>
         </div>
-        <VcsRepositorySummary repository={status?.repository} />
         <div className="vcs-empty vcs-empty--inline">
           <p>No changes</p>
         </div>
@@ -282,11 +372,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
 
   return (
     <div className="vcs-view">
+      <VcsRepositorySummary repository={status?.repository} />
       <div className="vcs-header">
         <span className="vcs-title">Changes</span>
         <span className="vcs-count">{files.length}</span>
       </div>
-      <VcsRepositorySummary repository={status?.repository} />
       <ul className="vcs-file-list">
         {files.map((file, index) => (
           <li key={index} className="vcs-file-item">
