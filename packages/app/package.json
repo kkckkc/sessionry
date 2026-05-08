@@ -12,7 +12,24 @@
     "preview": "electron-vite preview",
     "postinstall": "node scripts/fix-node-pty.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run -c vitest.config.ts"
+    "test": "vitest run -c vitest.config.ts",
+    "package": "pnpm build && electron-builder build"
+  },
+  "build": {
+    "appId": "com.sessionry.app",
+    "productName": "Sessionry",
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "files": [
+      "out/**/*"
+    ]
   },
   "dependencies": {
     "@base-ui/react": "1.4.1",
@@ -24,9 +41,9 @@
     "@sessionry/plugin-default-view-code": "workspace:*",
     "@sessionry/plugin-default-view-files": "workspace:*",
     "@sessionry/plugin-default-view-left-sidebar": "workspace:*",
-    "@sessionry/plugin-default-view-vcs": "workspace:*",
     "@sessionry/plugin-default-view-sidebar-tabbar": "workspace:*",
     "@sessionry/plugin-default-view-terminal": "workspace:*",
+    "@sessionry/plugin-default-view-vcs": "workspace:*",
     "@sessionry/plugin-default-view-workspace": "workspace:*",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
@@ -47,6 +64,7 @@
     "@types/react-dom": "latest",
     "@types/tar": "^7.0.87",
     "@vitejs/plugin-react": "^5.1.0",
+    "electron-builder": "^26.8.1",
     "electron-vite": "latest",
     "jsdom": "latest",
     "typescript": "latest",

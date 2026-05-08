@@ -79,7 +79,7 @@ export const TerminalPaneView = ({
   workspace,
   pane,
   // biome-ignore lint/correctness/noUnusedFunctionParameters: Reserved for future terminal clear functionality
-  clearSignal,
+  clearSignal: _clearSignal,
   visible = true,
   onRegisterFocusHandler
 }: PaneViewProps) => {
