@@ -43,6 +43,7 @@ export interface InputProps {
    * Change handler
    */
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onKeyPress?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 
   /**
@@ -89,6 +90,7 @@ export const Input = ({
   value,
   defaultValue,
   onChange,
+  onKeyDown,
   onKeyPress,
   onValueChange,
   disabled = false,
@@ -114,6 +116,7 @@ export const Input = ({
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
+        onKeyDown={onKeyDown}
         onKeyPress={onKeyPress}
         onValueChange={onValueChange}
         disabled={disabled}
