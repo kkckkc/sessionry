@@ -1,9 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ActionExecutionResult, PluginViewModel } from '@sessionry/plugin-api';
-import type { TerminalSessionInfo } from '@sessionry/plugin-api';
-import type { WorkspaceStateSnapshot } from '@sessionry/plugin-api';
+import type { PluginViewModel, TerminalSessionInfo, WorkspaceStateSnapshot } from '@sessionry/plugin-api';
+import { createMockTerminalApp } from '../test-utils/mockTerminalApp';
 
 vi.mock('@sessionry/plugin-default-view-workspace/renderer', () => ({
   WorkspacePaneTree: () => <div data-testid="workspace-tree-view">workspace tree</div>,
@@ -175,81 +174,43 @@ const snapshot: WorkspaceStateSnapshot = {
 describe('App', () => {
   const onTerminalState = vi.fn(() => () => {});
   const onWorkspaceEvent = vi.fn(() => () => {});
-  const settings = {
-    read: vi.fn(async () => ({
-      version: 1 as const,
-      theme: 'system' as const,
-      colorTheme: 'default' as const,
-      terminalBgOverride: false,
-      terminalBgColor: '#000000',
-      statusBarVisible: true,
-      confirmations: {
-        confirmPaneClose: true,
-        confirmPaneGroupClose: true,
-        confirmSessionClose: true
-      },
-      plugins: {}
-    })),
-    update: vi.fn(async () => {}),
-    onChange: vi.fn(() => () => {})
-  };
-  const pluginsBridge = {
-    search: vi.fn(async () => []),
-    install: vi.fn(async () => ({ success: true })),
-    uninstall: vi.fn(async () => true),
-    update: vi.fn(async () => ({ success: true })),
-    list: vi.fn(async () => []),
-    enable: vi.fn(async () => ({ success: true })),
-    disable: vi.fn(async () => ({ success: true })),
-    checkUpdates: vi.fn(async () => []),
-    onInstallProgress: vi.fn(() => () => {}),
-    onUpdateProgress: vi.fn(() => () => {})
-  };
+  const settingsRead = vi.fn(async () => ({
+    version: 1 as const,
+    theme: 'system' as const,
+    colorTheme: 'default' as const,
+    terminalBgOverride: false,
+    terminalBgColor: '#000000',
+    statusBarVisible: true,
+    confirmations: {
+      confirmPaneClose: true,
+      confirmPaneGroupClose: true,
+      confirmSessionClose: true
+    },
+    plugins: {}
+  }));
+  const settingsUpdate = vi.fn(async () => {});
+  const settingsOnChange = vi.fn(() => () => {});
 
   beforeEach(() => {
     vi.resetModules();
-    settings.read.mockClear();
-    settings.update.mockClear();
-    settings.onChange.mockClear();
-    window.terminalApp = {
-      openExternal: vi.fn(),
-      showFolderDialog: vi.fn(),
-      getPathForDroppedFile: vi.fn(),
-      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
+    settingsRead.mockClear();
+    settingsUpdate.mockClear();
+    settingsOnChange.mockClear();
+    
+    window.terminalApp = createMockTerminalApp({
       createTerminalSession: vi.fn(async () => terminalSession),
-      sendTerminalInput: vi.fn(),
-      resizeTerminal: vi.fn(),
-      readDirectory: vi.fn(async () => []),
-      readFile: vi.fn(),
-      writeFile: vi.fn(),
-      vcs: {
-        getStatus: vi.fn(async () => null),
-        getDiff: vi.fn(async () => null),
-        stageFiles: vi.fn(async () => {}),
-        commit: vi.fn(async () => {})
-      },
       getPluginModel: vi.fn(async () => pluginModel),
-      getUserPluginRenderers: vi.fn(async () => []),
-      actions: {
-        list: vi.fn(async () => []),
-        execute: vi.fn(async (): Promise<ActionExecutionResult> => ({ status: 'completed' }))
-      },
       workspace: {
         read: vi.fn(() => snapshot),
-        executeCommand: vi.fn(async () => ({})),
         onEvent: onWorkspaceEvent
       },
-      settings,
-      themes: {
-        getTheme: vi.fn(),
-        getAllThemes: vi.fn(),
-        getThemeIds: vi.fn()
+      settings: {
+        read: settingsRead,
+        update: settingsUpdate,
+        onChange: settingsOnChange
       },
-      plugins: pluginsBridge,
-      onTerminalData: vi.fn(() => () => {}),
-      onTerminalState,
-      onTerminalExit: vi.fn(() => () => {})
-    };
+      onTerminalState
+    });
   });
 
   afterEach(() => {
@@ -269,23 +230,8 @@ describe('App', () => {
   it('activates a session from sidebar interactions through workspace commands', async () => {
     const executeCommand = vi.fn(async () => ({}));
 
-    window.terminalApp = {
-      openExternal: vi.fn(),
-      showFolderDialog: vi.fn(),
-      getPathForDroppedFile: vi.fn(),
-      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
+    window.terminalApp = createMockTerminalApp({
       createTerminalSession: vi.fn(async () => terminalSession),
-      sendTerminalInput: vi.fn(),
-      resizeTerminal: vi.fn(),
-      readDirectory: vi.fn(async () => []),
-      readFile: vi.fn(),
-      writeFile: vi.fn(),
-      vcs: {
-        getStatus: vi.fn(async () => null),
-        getDiff: vi.fn(async () => null),
-        stageFiles: vi.fn(async () => {}),
-        commit: vi.fn(async () => {})
-      },
       getPluginModel: vi.fn(
         async (): Promise<PluginViewModel> => ({
           ...pluginModel,
@@ -304,27 +250,18 @@ describe('App', () => {
           }
         })
       ),
-      getUserPluginRenderers: vi.fn(async () => []),
-      actions: {
-        list: vi.fn(async () => []),
-        execute: vi.fn(async (): Promise<ActionExecutionResult> => ({ status: 'completed' }))
-      },
       workspace: {
         read: vi.fn(() => snapshot),
         executeCommand,
         onEvent: onWorkspaceEvent
       },
-      settings,
-      themes: {
-        getTheme: vi.fn(),
-        getAllThemes: vi.fn(),
-        getThemeIds: vi.fn()
+      settings: {
+        read: settingsRead,
+        update: settingsUpdate,
+        onChange: settingsOnChange
       },
-      plugins: pluginsBridge,
-      onTerminalData: vi.fn(() => () => {}),
-      onTerminalState,
-      onTerminalExit: vi.fn(() => () => {})
-    };
+      onTerminalState
+    });
 
     const { App } = await import('./App');
 
@@ -343,23 +280,8 @@ describe('App', () => {
   });
 
   it('runs toolbar actions through the action bridge', async () => {
-    window.terminalApp = {
-      openExternal: vi.fn(),
-      showFolderDialog: vi.fn(),
-      getPathForDroppedFile: vi.fn(),
-      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
+    window.terminalApp = createMockTerminalApp({
       createTerminalSession: vi.fn(async () => terminalSession),
-      sendTerminalInput: vi.fn(),
-      resizeTerminal: vi.fn(),
-      readDirectory: vi.fn(async () => []),
-      readFile: vi.fn(),
-      writeFile: vi.fn(),
-      vcs: {
-        getStatus: vi.fn(async () => null),
-        getDiff: vi.fn(async () => null),
-        stageFiles: vi.fn(async () => {}),
-        commit: vi.fn(async () => {})
-      },
       getPluginModel: vi.fn(
         async (): Promise<PluginViewModel> => ({
           ...pluginModel,
@@ -390,7 +312,6 @@ describe('App', () => {
           toolbarActionIds: ['session:create']
         })
       ),
-      getUserPluginRenderers: vi.fn(async () => []),
       actions: {
         list: vi.fn(async () => []),
         execute: vi
@@ -427,20 +348,15 @@ describe('App', () => {
       },
       workspace: {
         read: vi.fn(() => snapshot),
-        executeCommand: vi.fn(async () => ({})),
         onEvent: onWorkspaceEvent
       },
-      settings,
-      themes: {
-        getTheme: vi.fn(),
-        getAllThemes: vi.fn(),
-        getThemeIds: vi.fn()
+      settings: {
+        read: settingsRead,
+        update: settingsUpdate,
+        onChange: settingsOnChange
       },
-      plugins: pluginsBridge,
-      onTerminalData: vi.fn(() => () => {}),
-      onTerminalState,
-      onTerminalExit: vi.fn(() => () => {})
-    };
+      onTerminalState
+    });
 
     const { App } = await import('./App');
 

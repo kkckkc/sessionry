@@ -221,4 +221,23 @@ describe('createVcsService', () => {
     expect(commit).toHaveBeenCalledWith('/tmp/project', 'Add sidebar commits');
     expect(getStatus).toHaveBeenCalledTimes(2);
   });
+
+  it('creates a branch and clears cached status', async () => {
+    const service = createVcsService();
+    const getStatus = vi.fn(async () => ({ active: true }));
+    const createBranch = vi.fn(async () => {});
+    service.registerProvider({
+      id: 'git',
+      name: 'Git',
+      getStatus,
+      createBranch
+    });
+
+    await service.getStatus('/tmp/project');
+    await service.createBranch('/tmp/project', 'feature/sidebar-menu');
+    await service.getStatus('/tmp/project');
+
+    expect(createBranch).toHaveBeenCalledWith('/tmp/project', 'feature/sidebar-menu');
+    expect(getStatus).toHaveBeenCalledTimes(2);
+  });
 });

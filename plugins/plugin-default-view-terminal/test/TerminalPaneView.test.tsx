@@ -2,6 +2,7 @@ import { act, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PaneViewProps, TerminalSessionInfo, WorkspaceApi } from '@sessionry/plugin-api';
+import { createMockTerminalApp } from '../../../packages/app/src/renderer/test-utils/mockTerminalApp';
 
 const fitMock = vi.fn();
 const clearMock = vi.fn();
@@ -163,18 +164,7 @@ describe('TerminalPaneView', () => {
     document.documentElement.style.setProperty('--term-cursor', '#ffcb6b');
     document.documentElement.style.setProperty('--term-selection', 'rgba(122, 176, 255, 0.24)');
     document.documentElement.style.setProperty('--term-blue', '#7ab0ff');
-    window.terminalApp = {
-      openExternal: vi.fn(),
-      showFolderDialog: vi.fn(),
-      readDirectory: vi.fn(),
-      readFile: vi.fn(),
-      writeFile: vi.fn(),
-      vcs: {
-        getStatus: vi.fn(async () => null),
-        getDiff: vi.fn(async () => null),
-        stageFiles: vi.fn(async () => {}),
-        commit: vi.fn(async () => {})
-      },
+    window.terminalApp = createMockTerminalApp({
       getPathForDroppedFile: vi.fn((file: File) => `/tmp/${file.name}`),
       formatPathForTerminal: vi.fn((targetPath: string, sessionRoot?: string) => {
         if (!sessionRoot) return targetPath;
@@ -183,48 +173,11 @@ describe('TerminalPaneView', () => {
           : targetPath;
       }),
       createTerminalSession: vi.fn().mockResolvedValue(makeSession('hello')),
-      sendTerminalInput: vi.fn(),
-      resizeTerminal: vi.fn(),
-      getPluginModel: vi.fn(),
-      getUserPluginRenderers: vi.fn(),
-      actions: {
-        list: vi.fn(),
-        execute: vi.fn()
-      },
-      workspace: {
-        read: vi.fn(),
-        executeCommand: vi.fn(),
-        onEvent: vi.fn()
-      },
-      settings: {
-        read: vi.fn(),
-        update: vi.fn(),
-        onChange: vi.fn(() => () => {})
-      },
-      themes: {
-        getTheme: vi.fn(),
-        getAllThemes: vi.fn(),
-        getThemeIds: vi.fn()
-      },
-      plugins: {
-        search: vi.fn(),
-        install: vi.fn(),
-        uninstall: vi.fn(),
-        update: vi.fn(),
-        list: vi.fn(),
-        enable: vi.fn(),
-        disable: vi.fn(),
-        checkUpdates: vi.fn(),
-        onInstallProgress: vi.fn(() => () => {}),
-        onUpdateProgress: vi.fn(() => () => {})
-      },
       onTerminalData: vi.fn(callback => {
         onTerminalDataCallbacks.push(callback);
         return () => {};
-      }),
-      onTerminalState: vi.fn(() => () => {}),
-      onTerminalExit: vi.fn(() => () => {})
-    };
+      })
+    });
   });
 
   it('writes the historical buffer from createTerminalSession on mount', async () => {

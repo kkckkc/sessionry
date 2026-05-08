@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { PluginViewModel, WorkspaceApi, WorkspaceStateSnapshot } from '@sessionry/plugin-api';
+import { createMockTerminalApp } from '../../../packages/app/src/renderer/test-utils/mockTerminalApp';
 
 import projectSessionsSidebarRendererPlugin from '../src/renderer';
 
@@ -46,8 +47,7 @@ const snapshot: WorkspaceStateSnapshot = {
 
 describe('ProjectSessionsSidebarView', () => {
   it('renders project sessions, shows git diff stats, and activates the clicked session', async () => {
-    window.terminalApp = {
-      openExternal: vi.fn(),
+    window.terminalApp = createMockTerminalApp({
       vcs: {
         getStatus: vi.fn(async (folder: string) =>
           folder === '/tmp/alpha'
@@ -66,7 +66,7 @@ describe('ProjectSessionsSidebarView', () => {
           }
         }))
       }
-    } as never;
+    });
 
     const activate = vi.fn(async () => {});
     const getSession = vi.fn((id: string) =>

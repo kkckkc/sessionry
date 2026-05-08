@@ -519,6 +519,9 @@ importers:
 
   plugins/plugin-default-view-vcs:
     dependencies:
+      '@sessionry/components':
+        specifier: workspace:*
+        version: link:../../packages/components
       '@sessionry/plugin-api':
         specifier: workspace:*
         version: link:../../packages/plugin-api

@@ -89,7 +89,9 @@ const api = {
     stageFiles: (dirPath: string, files: VcsFileStatus[]) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsStageFiles, dirPath, files),
     commit: (dirPath: string, message: string) =>
-      ipcRenderer.invoke(IPC_CHANNELS.vcsCommit, dirPath, message)
+      ipcRenderer.invoke(IPC_CHANNELS.vcsCommit, dirPath, message),
+    createBranch: (dirPath: string, branchName: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.vcsCreateBranch, dirPath, branchName)
   },
   getPathForDroppedFile: (file: File): string => webUtils.getPathForFile(file),
   formatPathForTerminal,
