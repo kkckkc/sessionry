@@ -3,7 +3,7 @@
  */
 
 import '@testing-library/jest-dom';
-import { createMockTerminalApp } from '../test-utils/mockTerminalApp';
+import { createMockTerminalApp } from '../../test-utils/mockTerminalApp';
 
 // Mock Electron IPC using centralized mock factory
 global.window = global.window || {};

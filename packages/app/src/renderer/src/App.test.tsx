@@ -1,9 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ActionExecutionResult, PluginViewModel } from '@sessionry/plugin-api';
-import type { TerminalSessionInfo } from '@sessionry/plugin-api';
-import type { WorkspaceStateSnapshot } from '@sessionry/plugin-api';
+import type { PluginViewModel, TerminalSessionInfo, WorkspaceStateSnapshot } from '@sessionry/plugin-api';
 import { createMockTerminalApp } from '../test-utils/mockTerminalApp';
 
 vi.mock('@sessionry/plugin-default-view-workspace/renderer', () => ({
