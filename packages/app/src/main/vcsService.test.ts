@@ -137,6 +137,42 @@ describe('createVcsService', () => {
     });
   });
 
+  it('preserves provider repository metadata in the resolved status', async () => {
+    const service = createVcsService();
+    service.registerProvider({
+      id: 'git',
+      name: 'Git',
+      getStatus: vi.fn(async () => ({
+        active: true,
+        repository: {
+          branch: 'feature/vcs',
+          pullRequest: {
+            number: 42,
+            title: 'Add branch metadata',
+            url: 'https://github.com/acme/app/pull/42',
+            headRefName: 'feature/vcs'
+          }
+        }
+      }))
+    });
+
+    await expect(service.getStatus('/tmp/project')).resolves.toEqual({
+      providerId: 'git',
+      providerName: 'Git',
+      stats: null,
+      files: [],
+      repository: {
+        branch: 'feature/vcs',
+        pullRequest: {
+          number: 42,
+          title: 'Add branch metadata',
+          url: 'https://github.com/acme/app/pull/42',
+          headRefName: 'feature/vcs'
+        }
+      }
+    });
+  });
+
   it('returns diffs from the first active provider that supports them', async () => {
     const service = createVcsService();
     service.registerProvider({

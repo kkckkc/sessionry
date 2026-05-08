@@ -10,10 +10,29 @@ export interface VcsFileStatus {
   oldPath?: string;
 }
 
+export interface VcsPullRequest {
+  number: number;
+  title: string;
+  url?: string;
+  headRefName?: string;
+  state?: 'open' | 'draft' | 'merged' | 'closed';
+  checks?: 'passing' | 'failing' | 'pending';
+  reviewers?: number;
+}
+
+export interface VcsRepositoryInfo {
+  branch?: string;
+  pullRequest?: VcsPullRequest | null;
+  ahead?: number;
+  behind?: number;
+  upstream?: string;
+}
+
 export interface VcsStatusResult {
   active: boolean;
   stats?: VcsStats | null;
   files?: VcsFileStatus[];
+  repository?: VcsRepositoryInfo | null;
 }
 
 export interface ResolvedVcsStatus {
@@ -21,6 +40,7 @@ export interface ResolvedVcsStatus {
   providerName: string;
   stats: VcsStats | null;
   files: VcsFileStatus[];
+  repository?: VcsRepositoryInfo | null;
 }
 
 export interface VcsProviderDefinition {

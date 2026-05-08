@@ -1,9 +1,17 @@
 import './styles.css';
 
 import { useState, useEffect } from 'react';
-import type { RendererAppPlugin, SidebarViewProps, VcsFileStatus } from '@sessionry/plugin-api';
+import type {
+  RendererAppPlugin,
+  ResolvedVcsStatus,
+  SidebarViewProps,
+  VcsFileStatus,
+  VcsRepositoryInfo
+} from '@sessionry/plugin-api';
 
 import { vcsViewPlugin } from '.';
+
+const ACTIVE_SESSION_REFRESH_INTERVAL_MS = 60_000;
 
 const getFileTitle = (filePath: string): string =>
   filePath.split(/[\\/]/).filter(Boolean).pop() ?? filePath;
@@ -50,7 +58,123 @@ const getPaneParentGroup = (workspace: SidebarViewProps['workspace'], paneId: st
     paneGroup.children.some(child => child.kind === 'pane' && child.paneId === paneId)
   );
 
+const PR_STATE_CLASS: Record<string, string> = {
+  open: 'vcs-pr-badge--open',
+  draft: 'vcs-pr-badge--draft',
+  merged: 'vcs-pr-badge--merged',
+  closed: 'vcs-pr-badge--closed'
+};
+
+const PR_STATE_LABEL: Record<string, string> = {
+  open: 'Open',
+  draft: 'Draft',
+  merged: 'Merged',
+  closed: 'Closed'
+};
+
+const CHECK_DOT_CLASS: Record<string, string> = {
+  passing: 'vcs-check-dot--passing',
+  failing: 'vcs-check-dot--failing',
+  pending: 'vcs-check-dot--pending'
+};
+
+const VcsRepositorySummary = ({ repository }: { repository?: VcsRepositoryInfo | null }) => {
+  if (!repository?.branch && !repository?.pullRequest) {
+    return null;
+  }
+
+  const pr = repository.pullRequest;
+  const hasSyncInfo =
+    repository.ahead !== undefined || repository.behind !== undefined || repository.upstream;
+
+  return (
+    <div className="vcs-repository">
+      {repository.branch && (
+        <div className="vcs-branch-row">
+          <svg className="vcs-branch-icon" viewBox="0 0 16 16" fill="none">
+            <circle cx="5" cy="4" r="1.5" stroke="currentColor" strokeWidth="1.25" />
+            <circle cx="11" cy="12" r="1.5" stroke="currentColor" strokeWidth="1.25" />
+            <path
+              d="M5 5.5v2C5 9.43 6.57 11 8.5 11H9.5"
+              stroke="currentColor"
+              strokeWidth="1.25"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="vcs-branch-name" title={repository.branch}>
+            {repository.branch}
+          </span>
+        </div>
+      )}
+
+      {hasSyncInfo && (
+        <div className="vcs-sync-status">
+          {repository.ahead !== undefined && (
+            <span className="vcs-sync-item">
+              <span className="vcs-sync-arrow--ahead">↑</span>
+              {repository.ahead}
+            </span>
+          )}
+          {repository.behind !== undefined && (
+            <span className="vcs-sync-item">
+              <span className="vcs-sync-arrow--behind">↓</span>
+              {repository.behind}
+            </span>
+          )}
+          {repository.upstream && (
+            <span className="vcs-upstream" title={repository.upstream}>
+              {repository.upstream}
+            </span>
+          )}
+        </div>
+      )}
+
+      {pr && (
+        <>
+          <div className="vcs-divider" />
+          <div
+            className={`vcs-pr-section${pr.url ? ' vcs-pr-section--link' : ''}`}
+            onClick={
+              pr.url
+                ? () => {
+                    void window.terminalApp.openExternal(pr.url!);
+                  }
+                : undefined
+            }
+          >
+            <div className="vcs-pr-header">
+              <span className="vcs-pr-label">Pull Request</span>
+              {pr.state && (
+                <span className={`vcs-pr-badge ${PR_STATE_CLASS[pr.state] ?? ''}`}>
+                  {PR_STATE_LABEL[pr.state] ?? pr.state}
+                </span>
+              )}
+              <span className="vcs-pr-spacer" />
+              <span className="vcs-pr-number">#{pr.number}</span>
+            </div>
+            <div className="vcs-pr-title" title={pr.title}>
+              {pr.title}
+            </div>
+            {(pr.checks ?? pr.reviewers !== undefined) && (
+              <div className="vcs-pr-meta">
+                {pr.checks && (
+                  <span className="vcs-pr-checks">
+                    <span className={`vcs-check-dot ${CHECK_DOT_CLASS[pr.checks] ?? ''}`} />
+                    checks {pr.checks}
+                  </span>
+                )}
+                {pr.reviewers !== undefined && <span>{pr.reviewers} reviewers</span>}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const VcsView = ({ workspace }: SidebarViewProps) => {
+  const [status, setStatus] = useState<ResolvedVcsStatus | null>(null);
   const [files, setFiles] = useState<VcsFileStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setRefreshKey] = useState(0);
@@ -62,39 +186,45 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const activeSession = workspace.snapshot.sessions.find(
     s => s.id === workspace.snapshot.activeSessionId
   );
+  const activeSessionFolder = activeSession?.folder;
 
   // Load VCS file status
   useEffect(() => {
     let cancelled = false;
 
-    const loadFileStatus = async () => {
-      if (!activeSession) {
+    const loadFileStatus = async (options: { showLoading: boolean }) => {
+      if (!activeSessionFolder) {
+        setStatus(null);
         setFiles([]);
         setLoading(false);
         return;
       }
 
-      setLoading(true);
-      const status = await window.terminalApp.vcs.getStatus(activeSession.folder);
+      if (options.showLoading) {
+        setLoading(true);
+      }
+
+      const status = await window.terminalApp.vcs.getStatus(activeSessionFolder);
 
       if (!cancelled) {
+        setStatus(status);
         setFiles(status?.files ?? []);
         setLoading(false);
       }
     };
 
-    void loadFileStatus();
+    void loadFileStatus({ showLoading: true });
 
-    // Refresh every 5 seconds
+    // Refresh repository metadata and file status while this session is active.
     const intervalId = setInterval(() => {
-      void loadFileStatus();
-    }, 5000);
+      void loadFileStatus({ showLoading: false });
+    }, ACTIVE_SESSION_REFRESH_INTERVAL_MS);
 
     return () => {
       cancelled = true;
       clearInterval(intervalId);
     };
-  }, [activeSession?.id, activeSession?.folder]);
+  }, [activeSessionFolder]);
 
   const openCodePane = async (state: Record<string, unknown>) => {
     if (!activeSession) return;
@@ -228,7 +358,12 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   if (files.length === 0) {
     return (
       <div className="vcs-view">
-        <div className="vcs-empty">
+        <VcsRepositorySummary repository={status?.repository} />
+        <div className="vcs-header">
+          <span className="vcs-title">Changes</span>
+          <span className="vcs-count">{files.length}</span>
+        </div>
+        <div className="vcs-empty vcs-empty--inline">
           <p>No changes</p>
         </div>
       </div>
@@ -237,6 +372,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
 
   return (
     <div className="vcs-view">
+      <VcsRepositorySummary repository={status?.repository} />
       <div className="vcs-header">
         <span className="vcs-title">Changes</span>
         <span className="vcs-count">{files.length}</span>

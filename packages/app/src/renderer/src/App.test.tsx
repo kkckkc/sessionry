@@ -212,6 +212,7 @@ describe('App', () => {
     settings.update.mockClear();
     settings.onChange.mockClear();
     window.terminalApp = {
+      openExternal: vi.fn(),
       showFolderDialog: vi.fn(),
       getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
@@ -267,6 +268,7 @@ describe('App', () => {
     const executeCommand = vi.fn(async () => ({}));
 
     window.terminalApp = {
+      openExternal: vi.fn(),
       showFolderDialog: vi.fn(),
       getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
@@ -338,6 +340,7 @@ describe('App', () => {
 
   it('runs toolbar actions through the action bridge', async () => {
     window.terminalApp = {
+      openExternal: vi.fn(),
       showFolderDialog: vi.fn(),
       getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => targetPath),

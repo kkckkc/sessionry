@@ -47,6 +47,7 @@ const snapshot: WorkspaceStateSnapshot = {
 describe('ProjectSessionsSidebarView', () => {
   it('renders project sessions, shows git diff stats, and activates the clicked session', async () => {
     window.terminalApp = {
+      openExternal: vi.fn(),
       vcs: {
         getStatus: vi.fn(async (folder: string) =>
           folder === '/tmp/alpha'

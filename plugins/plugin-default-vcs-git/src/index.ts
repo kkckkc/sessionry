@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import type {
   AppPlugin,
   MainPluginContext,
+  VcsPullRequest,
   VcsProviderDefinition,
   VcsStats,
   VcsFileStatus
@@ -23,7 +24,7 @@ type ExecFileError = Error & {
 type ExecFileLike = (
   file: string,
   args: string[],
-  options: { cwd: string }
+  options: { cwd: string; timeout?: number }
 ) => Promise<ExecFileResult>;
 
 const execFileAsync = promisify(execFile) as ExecFileLike;
@@ -67,6 +68,76 @@ export const parseGitStatusPorcelain = (stdout: string): VcsFileStatus[] => {
 
     return { path, status: status.trim() || '??' };
   });
+};
+
+export const parseGitBranchLine = (
+  line: string
+): { upstream?: string; ahead?: number; behind?: number } => {
+  // Format: ## branch...upstream [ahead X, behind Y]
+  const match = line.match(/^## \S+\.\.\.(\S+)(?:\s+\[([^\]]+)\])?/);
+  if (!match) return {};
+
+  const upstream = match[1];
+  const trackInfo = match[2] ?? '';
+  const aheadMatch = trackInfo.match(/ahead (\d+)/);
+  const behindMatch = trackInfo.match(/behind (\d+)/);
+
+  return {
+    upstream,
+    ahead: aheadMatch ? Number(aheadMatch[1]) : 0,
+    behind: behindMatch ? Number(behindMatch[1]) : 0
+  };
+};
+
+export const parseGhPullRequest = (stdout: string): VcsPullRequest | null => {
+  try {
+    const value = JSON.parse(stdout) as {
+      number?: unknown;
+      title?: unknown;
+      url?: unknown;
+      headRefName?: unknown;
+      state?: unknown;
+      isDraft?: unknown;
+      statusCheckRollup?: Array<{ state?: string; conclusion?: string }>;
+      reviewRequests?: unknown[];
+    };
+    if (typeof value.number !== 'number') {
+      return null;
+    }
+
+    let state: VcsPullRequest['state'];
+    if (typeof value.state === 'string') {
+      if (value.state === 'MERGED') state = 'merged';
+      else if (value.state === 'CLOSED') state = 'closed';
+      else if (value.isDraft) state = 'draft';
+      else state = 'open';
+    }
+
+    let checks: VcsPullRequest['checks'];
+    if (Array.isArray(value.statusCheckRollup) && value.statusCheckRollup.length > 0) {
+      const states = value.statusCheckRollup.map(c => c?.state ?? c?.conclusion ?? '');
+      if (states.some(s => s === 'FAILURE' || s === 'ERROR')) checks = 'failing';
+      else if (states.some(s => s === 'PENDING' || s === 'IN_PROGRESS' || s === 'QUEUED'))
+        checks = 'pending';
+      else if (states.some(s => s === 'SUCCESS')) checks = 'passing';
+    }
+
+    const reviewers = Array.isArray(value.reviewRequests) ? value.reviewRequests.length : undefined;
+
+    return {
+      number: value.number,
+      title: typeof value.title === 'string' ? value.title : `#${value.number}`,
+      ...(typeof value.url === 'string' && value.url.length > 0 ? { url: value.url } : {}),
+      ...(typeof value.headRefName === 'string' && value.headRefName.length > 0
+        ? { headRefName: value.headRefName }
+        : {}),
+      ...(state !== undefined ? { state } : {}),
+      ...(checks !== undefined ? { checks } : {}),
+      ...(reviewers !== undefined ? { reviewers } : {})
+    };
+  } catch {
+    return null;
+  }
 };
 
 const runDiffCommand = async (
@@ -116,6 +187,37 @@ export const getGitFileDiff = async (
   return diff.length > 0 ? `${diff}\n` : null;
 };
 
+const getGitBranchName = async (folder: string, run: ExecFileLike): Promise<string | undefined> => {
+  try {
+    const result = await run('git', ['branch', '--show-current'], { cwd: folder });
+    const branch = String(result.stdout).trim();
+    return branch.length > 0 ? branch : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const getGitPullRequest = async (
+  folder: string,
+  run: ExecFileLike
+): Promise<VcsPullRequest | null> => {
+  try {
+    const result = await run(
+      'gh',
+      [
+        'pr',
+        'view',
+        '--json',
+        'number,title,url,headRefName,state,isDraft,statusCheckRollup,reviewRequests'
+      ],
+      { cwd: folder, timeout: 5_000 }
+    );
+    return parseGhPullRequest(String(result.stdout));
+  } catch {
+    return null;
+  }
+};
+
 const isGitRepository = async (folder: string, run: ExecFileLike): Promise<boolean> => {
   try {
     const result = await run('git', ['rev-parse', '--is-inside-work-tree'], { cwd: folder });
@@ -136,15 +238,32 @@ export const createGitVcsProvider = (run: ExecFileLike = execFileAsync): VcsProv
     }
 
     try {
-      const [statsResult, statusResult] = await Promise.all([
+      const [statsResult, statusResult, branch] = await Promise.all([
         run('git', ['diff', '--shortstat'], { cwd: folder }),
-        run('git', ['status', '--porcelain=v1'], { cwd: folder })
+        run('git', ['status', '-b', '--porcelain=v1'], { cwd: folder }),
+        getGitBranchName(folder, run)
       ]);
+      const pullRequest = branch ? await getGitPullRequest(folder, run) : null;
+
+      const statusOutput = String(statusResult.stdout);
+      const lines = statusOutput.split('\n');
+      const branchLine = lines.find(l => l.startsWith('## ')) ?? '';
+      const fileLines = lines.filter(l => !l.startsWith('## ')).join('\n');
+      const branchMeta = parseGitBranchLine(branchLine);
 
       return {
         active: true,
         stats: parseGitShortStat(String(statsResult.stdout)),
-        files: parseGitStatusPorcelain(String(statusResult.stdout))
+        files: parseGitStatusPorcelain(fileLines),
+        ...(branch
+          ? {
+              repository: {
+                branch,
+                pullRequest,
+                ...branchMeta
+              }
+            }
+          : {})
       };
     } catch {
       return { active: false };

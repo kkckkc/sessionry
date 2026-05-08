@@ -67,7 +67,8 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
             providerId: provider.id,
             providerName: provider.name,
             stats: status.stats ?? null,
-            files: status.files ?? []
+            files: status.files ?? [],
+            ...(status.repository ? { repository: status.repository } : {})
           };
           break;
         } catch {}

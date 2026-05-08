@@ -72,6 +72,7 @@ const api = {
       return () => ipcRenderer.removeListener(IPC_CHANNELS.workspaceEvent, wrapped);
     }
   },
+  openExternal: (url: string): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.openExternal, url),
   showFolderDialog: (): Promise<{ canceled: boolean; filePaths: string[] }> =>
     ipcRenderer.invoke(IPC_CHANNELS.showFolderDialog),
   readDirectory: (dirPath: string): Promise<{ name: string; isDirectory: boolean }[]> =>
