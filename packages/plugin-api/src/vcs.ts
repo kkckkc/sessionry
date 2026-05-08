@@ -7,6 +7,8 @@ export interface VcsStats {
 export interface VcsFileStatus {
   path: string;
   status: string;
+  stagedStatus?: string;
+  unstagedStatus?: string;
   oldPath?: string;
 }
 
@@ -49,6 +51,8 @@ export interface VcsProviderDefinition {
   priority?: number;
   getStatus: (folder: string) => Promise<VcsStatusResult> | VcsStatusResult;
   getDiff?: (folder: string, file: VcsFileStatus) => Promise<string | null> | string | null;
+  stageFiles?: (folder: string, files: VcsFileStatus[]) => Promise<void> | void;
+  commit?: (folder: string, message: string) => Promise<void> | void;
 }
 
 export interface VcsRegistryApi {

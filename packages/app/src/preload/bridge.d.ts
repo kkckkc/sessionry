@@ -45,6 +45,8 @@ export interface TerminalAppBridge {
   vcs: {
     getStatus: (dirPath: string, options?: { bypassCache?: boolean }) => Promise<ResolvedVcsStatus | null>;
     getDiff: (dirPath: string, file: VcsFileStatus) => Promise<string | null>;
+    stageFiles: (dirPath: string, files: VcsFileStatus[]) => Promise<void>;
+    commit: (dirPath: string, message: string) => Promise<void>;
   };
   getPathForDroppedFile: (file: File) => string;
   formatPathForTerminal: (targetPath: string, sessionRoot?: string) => string;

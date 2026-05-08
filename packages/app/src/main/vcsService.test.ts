@@ -186,4 +186,39 @@ describe('createVcsService', () => {
       'diff --git a/file.ts b/file.ts\n'
     );
   });
+
+  it('stages files with the first active provider that supports staging', async () => {
+    const service = createVcsService();
+    const stageFiles = vi.fn(async () => {});
+    service.registerProvider({
+      id: 'git',
+      name: 'Git',
+      getStatus: vi.fn(async () => ({ active: true })),
+      stageFiles
+    });
+
+    const files = [{ path: 'file.ts', status: 'M', unstagedStatus: 'M' }];
+    await service.stageFiles('/tmp/project', files);
+
+    expect(stageFiles).toHaveBeenCalledWith('/tmp/project', files);
+  });
+
+  it('commits changes and clears cached status', async () => {
+    const service = createVcsService();
+    const getStatus = vi.fn(async () => ({ active: true }));
+    const commit = vi.fn(async () => {});
+    service.registerProvider({
+      id: 'git',
+      name: 'Git',
+      getStatus,
+      commit
+    });
+
+    await service.getStatus('/tmp/project');
+    await service.commit('/tmp/project', 'Add sidebar commits');
+    await service.getStatus('/tmp/project');
+
+    expect(commit).toHaveBeenCalledWith('/tmp/project', 'Add sidebar commits');
+    expect(getStatus).toHaveBeenCalledTimes(2);
+  });
 });

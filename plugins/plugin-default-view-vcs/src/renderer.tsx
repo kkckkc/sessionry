@@ -1,6 +1,7 @@
 import './styles.css';
 
 import { useState, useEffect, useRef } from 'react';
+import type { FormEvent } from 'react';
 import type {
   RendererAppPlugin,
   ResolvedVcsStatus,
@@ -233,6 +234,9 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const [loading, setLoading] = useState(true);
   const [, setRefreshKey] = useState(0);
   const [manualRefreshKey, setManualRefreshKey] = useState(0);
+  const [commitMessage, setCommitMessage] = useState('');
+  const [isMutating, setIsMutating] = useState(false);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   // Subscribe to workspace changes
   useEffect(() => workspace.subscribeAll(() => setRefreshKey(k => k + 1)), [workspace]);
@@ -242,6 +246,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     s => s.id === workspace.snapshot.activeSessionId
   );
   const activeSessionFolder = activeSession?.folder;
+  const refreshVcsStatus = () => setManualRefreshKey(k => k + 1);
 
   // Load VCS file status
   useEffect(() => {
@@ -392,6 +397,121 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     return 'status-unknown';
   };
 
+  const isStagedFile = (file: VcsFileStatus): boolean => Boolean(file.stagedStatus);
+  const isUnstagedFile = (file: VcsFileStatus): boolean =>
+    Boolean(file.unstagedStatus) || (!file.stagedStatus && file.status.length > 0);
+
+  const stagedFiles = files.filter(isStagedFile);
+  const unstagedFiles = files.filter(isUnstagedFile);
+  const canCommit = stagedFiles.length > 0 && commitMessage.trim().length > 0 && !isMutating;
+
+  const handleStageFiles = async (targetFiles: VcsFileStatus[]) => {
+    if (!activeSessionFolder || targetFiles.length === 0) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.stageFiles(activeSessionFolder, targetFiles);
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to stage files.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const handleCommit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!activeSessionFolder || !canCommit) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.commit(activeSessionFolder, commitMessage);
+      setCommitMessage('');
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to commit changes.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const renderFileList = (
+    sectionFiles: VcsFileStatus[],
+    options: { kind: 'staged' | 'unstaged'; canStage?: boolean }
+  ) => (
+    <ul className="vcs-file-list">
+      {sectionFiles.map((file, index) => {
+        const displayStatus =
+          options.kind === 'staged'
+            ? file.stagedStatus ?? file.status
+            : file.unstagedStatus ?? file.status;
+
+        return (
+          <li
+            key={`${options.kind}:${file.oldPath ?? ''}:${file.path}:${index}`}
+            className="vcs-file-item"
+          >
+            <button
+              type="button"
+              className="vcs-file-button"
+              onDoubleClick={() => {
+                void handleFileDoubleClick(file);
+              }}
+              title={getStatusLabel(displayStatus)}
+            >
+              <span className={`vcs-status ${getStatusClass(displayStatus)}`}>
+                {displayStatus}
+              </span>
+              <span className="vcs-file-path">
+                {file.oldPath ? (
+                  <>
+                    <span className="vcs-old-path">{file.oldPath}</span>
+                    <span className="vcs-arrow"> → </span>
+                    <span>{file.path}</span>
+                  </>
+                ) : (
+                  file.path
+                )}
+              </span>
+            </button>
+            {options.canStage && (
+              <button
+                type="button"
+                className="vcs-file-action"
+                onClick={() => {
+                  void handleStageFiles([file]);
+                }}
+                disabled={isMutating}
+                title="Stage file"
+                aria-label={`Stage ${file.path}`}
+              >
+                +
+              </button>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+
+  const commitForm = (
+    <form className="vcs-commit" onSubmit={event => void handleCommit(event)}>
+      <textarea
+        className="vcs-commit-message"
+        value={commitMessage}
+        onChange={event => setCommitMessage(event.target.value)}
+        placeholder="Commit message"
+        rows={3}
+      />
+      {mutationError && <div className="vcs-error">{mutationError}</div>}
+      <button type="submit" className="vcs-commit-button" disabled={!canCommit}>
+        {isMutating ? 'Working...' : `Commit ${stagedFiles.length || ''}`.trim()}
+      </button>
+    </form>
+  );
+
   if (!activeSession) {
     return (
       <div className="vcs-view">
@@ -415,52 +535,69 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   if (files.length === 0) {
     return (
       <div className="vcs-view">
-        <VcsRepositorySummary repository={status?.repository} onRefresh={() => setManualRefreshKey(k => k + 1)} />
+        <VcsRepositorySummary repository={status?.repository} onRefresh={refreshVcsStatus} />
         <div className="vcs-header">
           <span className="vcs-title">Changes</span>
           <span className="vcs-count">{files.length}</span>
         </div>
-        <div className="vcs-empty vcs-empty--inline">
-          <p>No changes</p>
+        <div className="vcs-changes-scroll">
+          <div className="vcs-empty vcs-empty--inline">
+            <p>No changes</p>
+          </div>
         </div>
+        {commitForm}
       </div>
     );
   }
 
   return (
     <div className="vcs-view">
-      <VcsRepositorySummary repository={status?.repository} onRefresh={() => setManualRefreshKey(k => k + 1)} />
+      <VcsRepositorySummary repository={status?.repository} onRefresh={refreshVcsStatus} />
       <div className="vcs-header">
         <span className="vcs-title">Changes</span>
         <span className="vcs-count">{files.length}</span>
       </div>
-      <ul className="vcs-file-list">
-        {files.map((file, index) => (
-          <li key={index} className="vcs-file-item">
-            <button
-              type="button"
-              className="vcs-file-button"
-              onDoubleClick={() => {
-                void handleFileDoubleClick(file);
-              }}
-              title={getStatusLabel(file.status)}
-            >
-              <span className={`vcs-status ${getStatusClass(file.status)}`}>{file.status}</span>
-              <span className="vcs-file-path">
-                {file.oldPath ? (
-                  <>
-                    <span className="vcs-old-path">{file.oldPath}</span>
-                    <span className="vcs-arrow"> → </span>
-                    <span>{file.path}</span>
-                  </>
-                ) : (
-                  file.path
-                )}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="vcs-changes-scroll">
+        <section className="vcs-change-section">
+          <div className="vcs-section-header">
+            <span>Staged</span>
+            <span className="vcs-section-count">{stagedFiles.length}</span>
+          </div>
+          {stagedFiles.length > 0 ? (
+            renderFileList(stagedFiles, { kind: 'staged' })
+          ) : (
+            <p className="vcs-section-empty">No staged changes</p>
+          )}
+        </section>
+        <section className="vcs-change-section">
+          <div className="vcs-section-header vcs-section-header--with-action">
+            <div className="vcs-section-title">
+              <span>Unstaged</span>
+              <span className="vcs-section-count">{unstagedFiles.length}</span>
+            </div>
+            <div className="vcs-section-action">
+              {unstagedFiles.length > 0 && (
+                <button
+                  type="button"
+                  className="vcs-stage-all-button"
+                  onClick={() => {
+                    void handleStageFiles(unstagedFiles);
+                  }}
+                  disabled={isMutating}
+                >
+                  Stage All
+                </button>
+              )}
+            </div>
+          </div>
+          {unstagedFiles.length > 0 ? (
+            renderFileList(unstagedFiles, { kind: 'unstaged', canStage: true })
+          ) : (
+            <p className="vcs-section-empty">No unstaged changes</p>
+          )}
+        </section>
+      </div>
+      {commitForm}
     </div>
   );
 };

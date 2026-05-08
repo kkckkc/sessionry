@@ -30,6 +30,8 @@ export const IPC_CHANNELS = {
   writeFile: 'fs:write-file',
   vcsStatus: 'vcs:status',
   vcsDiff: 'vcs:diff',
+  vcsStageFiles: 'vcs:stage-files',
+  vcsCommit: 'vcs:commit',
 
   // Themes
   themesList: 'themes:list',
