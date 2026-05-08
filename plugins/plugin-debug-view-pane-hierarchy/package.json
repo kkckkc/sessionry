@@ -8,7 +8,6 @@
     "./renderer": "./src/renderer.tsx"
   },
   "scripts": {
-    "test": "vitest run -c vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

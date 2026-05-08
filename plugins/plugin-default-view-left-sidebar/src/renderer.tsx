@@ -265,10 +265,6 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
 
   useEffect(() => workspace.subscribeAll(() => setRefreshKey(k => k + 1)), [workspace]);
 
-  const _sessionSignature = workspace.snapshot.sessions
-    .map(session => `${session.id}:${session.folder}`)
-    .join('|');
-
   useEffect(() => {
     let cancelled = false;
 
