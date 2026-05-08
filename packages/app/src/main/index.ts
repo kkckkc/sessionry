@@ -222,6 +222,9 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.vcsCommit, (_event, dirPath: string, message: string) =>
     vcsService.commit(dirPath, message)
   );
+  ipcMain.handle(IPC_CHANNELS.vcsCreateBranch, (_event, dirPath: string, branchName: string) =>
+    vcsService.createBranch(dirPath, branchName)
+  );
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read());
   ipcMain.on(IPC_CHANNELS.settingsRead, event => {
     event.returnValue = settingsStore.read();

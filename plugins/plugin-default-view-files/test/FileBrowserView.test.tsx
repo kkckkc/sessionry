@@ -8,6 +8,7 @@ import type {
   WorkspaceApi,
   WorkspaceStateSnapshot
 } from '@sessionry/plugin-api';
+import { createMockTerminalApp } from '../../../packages/app/src/renderer/test-utils/mockTerminalApp';
 
 import { FileBrowserView } from '../src/renderer';
 
@@ -217,9 +218,7 @@ const createWorkspaceStub = () => {
 
 describe('FileBrowserView', () => {
   beforeEach(() => {
-    window.terminalApp = {
-      openExternal: vi.fn(),
-      showFolderDialog: vi.fn(),
+    window.terminalApp = createMockTerminalApp({
       readDirectory: vi.fn(async (dirPath: string) => {
         if (dirPath === '/tmp/project') {
           return [
@@ -232,57 +231,12 @@ describe('FileBrowserView', () => {
         }
         return [];
       }),
-      readFile: vi.fn(),
-      writeFile: vi.fn(),
-      vcs: {
-        getStatus: vi.fn(async () => null)
-      },
-      getPathForDroppedFile: vi.fn(),
       formatPathForTerminal: vi.fn((targetPath: string) => {
         if (targetPath === '/tmp/project/My File.ts') return "'My File.ts'";
         if (targetPath === '/tmp/project/docs') return 'docs';
         return targetPath;
-      }),
-      createTerminalSession: vi.fn(),
-      sendTerminalInput: vi.fn(),
-      resizeTerminal: vi.fn(),
-      getPluginModel: vi.fn(),
-      getUserPluginRenderers: vi.fn(),
-      actions: {
-        list: vi.fn(),
-        execute: vi.fn()
-      },
-      workspace: {
-        read: vi.fn(),
-        executeCommand: vi.fn(),
-        onEvent: vi.fn()
-      },
-      settings: {
-        read: vi.fn(),
-        update: vi.fn(),
-        onChange: vi.fn()
-      },
-      themes: {
-        getTheme: vi.fn(),
-        getAllThemes: vi.fn(),
-        getThemeIds: vi.fn()
-      },
-      plugins: {
-        search: vi.fn(),
-        install: vi.fn(),
-        uninstall: vi.fn(),
-        update: vi.fn(),
-        list: vi.fn(),
-        enable: vi.fn(),
-        disable: vi.fn(),
-        checkUpdates: vi.fn(),
-        onInstallProgress: vi.fn(() => () => {}),
-        onUpdateProgress: vi.fn(() => () => {})
-      },
-      onTerminalData: vi.fn(),
-      onTerminalState: vi.fn(),
-      onTerminalExit: vi.fn()
-    } as never;
+      })
+    });
   });
 
   it('writes shell-safe relative text for dragged files and directories', async () => {

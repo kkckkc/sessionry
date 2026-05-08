@@ -53,6 +53,7 @@ export interface VcsProviderDefinition {
   getDiff?: (folder: string, file: VcsFileStatus) => Promise<string | null> | string | null;
   stageFiles?: (folder: string, files: VcsFileStatus[]) => Promise<void> | void;
   commit?: (folder: string, message: string) => Promise<void> | void;
+  createBranch?: (folder: string, branchName: string) => Promise<void> | void;
 }
 
 export interface VcsRegistryApi {

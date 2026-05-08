@@ -19,6 +19,7 @@ export interface VcsService {
   getDiff: (folder: string, file: VcsFileStatus) => Promise<string | null>;
   stageFiles: (folder: string, files: VcsFileStatus[]) => Promise<void>;
   commit: (folder: string, message: string) => Promise<void>;
+  createBranch: (folder: string, branchName: string) => Promise<void>;
 }
 
 export interface CreateVcsServiceOptions {
@@ -130,6 +131,15 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       }
 
       await provider.commit(folder, message);
+      cache.delete(folder);
+    },
+    createBranch: async (folder, branchName) => {
+      const provider = getSortedProviders().find(provider => Boolean(provider.createBranch));
+      if (!provider?.createBranch) {
+        throw new Error('No VCS provider supports creating branches.');
+      }
+
+      await provider.createBranch(folder, branchName);
       cache.delete(folder);
     }
   };

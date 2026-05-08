@@ -9,6 +9,7 @@ import type {
   VcsFileStatus,
   VcsRepositoryInfo
 } from '@sessionry/plugin-api';
+import { Dialog, DialogHeader, DialogContent, DialogFooter, Button, Input } from '@sessionry/components';
 
 import { vcsViewPlugin } from '.';
 
@@ -81,10 +82,14 @@ const CHECK_DOT_CLASS: Record<string, string> = {
 
 const VcsRepositorySummary = ({
   repository,
-  onRefresh
+  onRefresh,
+  onCreateBranch,
+  isMutating
 }: {
   repository?: VcsRepositoryInfo | null;
   onRefresh?: () => void;
+  onCreateBranch?: () => void;
+  isMutating?: boolean;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -125,7 +130,7 @@ const VcsRepositorySummary = ({
           <span className="vcs-branch-name" title={repository.branch}>
             {repository.branch}
           </span>
-          {onRefresh && (
+          {(onRefresh || onCreateBranch) && (
             <div className="vcs-branch-menu-container" ref={menuRef}>
               <button
                 type="button"
@@ -144,14 +149,29 @@ const VcsRepositorySummary = ({
               </button>
               {menuOpen && (
                 <div className="vcs-branch-menu">
+                  {onCreateBranch && (
+                    <button
+                      type="button"
+                      className="vcs-branch-menu-item"
+                      onClick={e => {
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        onCreateBranch();
+                      }}
+                      disabled={isMutating}
+                    >
+                      Create Branch...
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="vcs-branch-menu-item"
                     onClick={e => {
                       e.stopPropagation();
                       setMenuOpen(false);
-                      onRefresh();
+                      onRefresh?.();
                     }}
+                    disabled={isMutating}
                   >
                     Refresh
                   </button>
@@ -237,6 +257,8 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const [commitMessage, setCommitMessage] = useState('');
   const [isMutating, setIsMutating] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [showCreateBranchDialog, setShowCreateBranchDialog] = useState(false);
+  const [newBranchName, setNewBranchName] = useState('');
 
   // Subscribe to workspace changes
   useEffect(() => workspace.subscribeAll(() => setRefreshKey(k => k + 1)), [workspace]);
@@ -437,6 +459,28 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     }
   };
 
+  const handleCreateBranch = () => {
+    if (!activeSessionFolder || isMutating) return;
+    setNewBranchName('');
+    setShowCreateBranchDialog(true);
+  };
+
+  const handleConfirmCreateBranch = async () => {
+    if (!activeSessionFolder || isMutating || !newBranchName.trim()) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    setShowCreateBranchDialog(false);
+    try {
+      await window.terminalApp.vcs.createBranch(activeSessionFolder, newBranchName.trim());
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to create branch.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
   const renderFileList = (
     sectionFiles: VcsFileStatus[],
     options: { kind: 'staged' | 'unstaged'; canStage?: boolean }
@@ -535,28 +579,58 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   if (files.length === 0) {
     return (
       <div className="vcs-view">
-        <VcsRepositorySummary repository={status?.repository} onRefresh={refreshVcsStatus} />
-        <div className="vcs-header">
-          <span className="vcs-title">Changes</span>
-          <span className="vcs-count">{files.length}</span>
-        </div>
+        <VcsRepositorySummary
+          repository={status?.repository}
+          onRefresh={refreshVcsStatus}
+          onCreateBranch={handleCreateBranch}
+          isMutating={isMutating}
+        />
         <div className="vcs-changes-scroll">
           <div className="vcs-empty vcs-empty--inline">
             <p>No changes</p>
           </div>
         </div>
         {commitForm}
+        <Dialog open={showCreateBranchDialog} onOpenChange={setShowCreateBranchDialog}>
+          <DialogHeader title="Create New Branch" />
+          <DialogContent>
+            <Input
+              value={newBranchName}
+              onChange={(e) => setNewBranchName(e.target.value)}
+              placeholder="Branch name"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newBranchName.trim()) {
+                  void handleConfirmCreateBranch();
+                }
+              }}
+            />
+          </DialogContent>
+          <DialogFooter>
+            <Button onClick={() => setShowCreateBranchDialog(false)} variant="ghost">
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void handleConfirmCreateBranch()}
+              disabled={!newBranchName.trim() || isMutating}
+              variant="primary"
+            >
+              Create
+            </Button>
+          </DialogFooter>
+        </Dialog>
       </div>
     );
   }
 
   return (
     <div className="vcs-view">
-      <VcsRepositorySummary repository={status?.repository} onRefresh={refreshVcsStatus} />
-      <div className="vcs-header">
-        <span className="vcs-title">Changes</span>
-        <span className="vcs-count">{files.length}</span>
-      </div>
+      <VcsRepositorySummary
+        repository={status?.repository}
+        onRefresh={refreshVcsStatus}
+        onCreateBranch={handleCreateBranch}
+        isMutating={isMutating}
+      />
       <div className="vcs-changes-scroll">
         <section className="vcs-change-section">
           <div className="vcs-section-header">
@@ -598,6 +672,34 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         </section>
       </div>
       {commitForm}
+      <Dialog open={showCreateBranchDialog} onOpenChange={setShowCreateBranchDialog}>
+        <DialogHeader title="Create New Branch" />
+        <DialogContent>
+          <Input
+            value={newBranchName}
+            onChange={(e) => setNewBranchName(e.target.value)}
+            placeholder="Branch name"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && newBranchName.trim()) {
+                void handleConfirmCreateBranch();
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogFooter>
+          <Button onClick={() => setShowCreateBranchDialog(false)} variant="ghost">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => void handleConfirmCreateBranch()}
+            disabled={!newBranchName.trim() || isMutating}
+            variant="primary"
+          >
+            Create
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </div>
   );
 };

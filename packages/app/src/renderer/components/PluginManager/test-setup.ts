@@ -3,25 +3,8 @@
  */
 
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { createMockTerminalApp } from '../test-utils/mockTerminalApp';
 
-// Mock Electron IPC
+// Mock Electron IPC using centralized mock factory
 global.window = global.window || {};
-global.window.terminalApp = {
-  vcs: {
-    getStatus: vi.fn(),
-    getDiff: vi.fn()
-  },
-  plugins: {
-    search: vi.fn(),
-    install: vi.fn(),
-    uninstall: vi.fn(),
-    update: vi.fn(),
-    list: vi.fn(),
-    enable: vi.fn(),
-    disable: vi.fn(),
-    checkUpdates: vi.fn(),
-    onInstallProgress: vi.fn(() => () => {}),
-    onUpdateProgress: vi.fn(() => () => {})
-  }
-} as never;
+global.window.terminalApp = createMockTerminalApp();

@@ -47,6 +47,7 @@ export interface TerminalAppBridge {
     getDiff: (dirPath: string, file: VcsFileStatus) => Promise<string | null>;
     stageFiles: (dirPath: string, files: VcsFileStatus[]) => Promise<void>;
     commit: (dirPath: string, message: string) => Promise<void>;
+    createBranch: (dirPath: string, branchName: string) => Promise<void>;
   };
   getPathForDroppedFile: (file: File) => string;
   formatPathForTerminal: (targetPath: string, sessionRoot?: string) => string;

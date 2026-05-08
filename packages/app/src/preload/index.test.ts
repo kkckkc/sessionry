@@ -40,6 +40,7 @@ describe('preload workspace bridge', () => {
     await api.vcs.getDiff('/tmp/project', { path: 'src/index.ts', status: 'M' });
     await api.vcs.stageFiles('/tmp/project', [{ path: 'src/index.ts', status: 'M' }]);
     await api.vcs.commit('/tmp/project', 'Add VCS commit controls');
+    await api.vcs.createBranch('/tmp/project', 'feature/sidebar-menu');
 
     expect(invoke).toHaveBeenCalledWith('actions:list');
     expect(invoke).toHaveBeenCalledWith('actions:execute', {
@@ -65,6 +66,11 @@ describe('preload workspace bridge', () => {
       'vcs:commit',
       '/tmp/project',
       'Add VCS commit controls'
+    );
+    expect(invoke).toHaveBeenCalledWith(
+      'vcs:create-branch',
+      '/tmp/project',
+      'feature/sidebar-menu'
     );
     expect(api.getPathForDroppedFile({ name: 'My File.txt' } as File)).toBe('/tmp/My File.txt');
     expect(getPathForFile).toHaveBeenCalledWith({ name: 'My File.txt' });

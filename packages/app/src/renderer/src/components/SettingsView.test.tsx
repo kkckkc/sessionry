@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppSettings, RendererViewRegistration } from '@sessionry/plugin-api';
+import { createMockTerminalApp } from '../../test-utils/mockTerminalApp';
 
 import { SettingsView } from './SettingsView';
 
@@ -21,63 +22,24 @@ const initialSettings: AppSettings = {
 };
 
 describe('SettingsView', () => {
-  const settings = {
-    read: vi.fn(async () => initialSettings),
-    update: vi.fn(async () => {}),
-    onChange: vi.fn(() => () => {})
-  };
+  const settingsRead = vi.fn(async () => initialSettings);
+  const settingsUpdate = vi.fn(async () => {});
+  const settingsOnChange = vi.fn(() => () => {});
 
   beforeEach(() => {
     vi.clearAllMocks();
-    settings.read.mockResolvedValue(initialSettings);
+    settingsRead.mockResolvedValue(initialSettings);
 
-    window.terminalApp = {
-      showFolderDialog: vi.fn(),
-      getPathForDroppedFile: vi.fn(),
-      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
-      readDirectory: vi.fn(),
-      readFile: vi.fn(),
-      writeFile: vi.fn(),
-      vcs: {
-        getStatus: vi.fn(async () => null),
-        getDiff: vi.fn(async () => null)
+    window.terminalApp = createMockTerminalApp({
+      settings: {
+        read: settingsRead,
+        update: settingsUpdate,
+        onChange: settingsOnChange
       },
-      createTerminalSession: vi.fn(),
-      sendTerminalInput: vi.fn(),
-      resizeTerminal: vi.fn(),
-      getPluginModel: vi.fn(),
-      getUserPluginRenderers: vi.fn(),
-      actions: {
-        list: vi.fn(),
-        execute: vi.fn()
-      },
-      workspace: {
-        read: vi.fn(),
-        executeCommand: vi.fn(),
-        onEvent: vi.fn()
-      },
-      settings,
       themes: {
-        getTheme: vi.fn(),
-        getAllThemes: vi.fn(async () => []),
-        getThemeIds: vi.fn()
-      },
-      plugins: {
-        search: vi.fn(),
-        install: vi.fn(),
-        uninstall: vi.fn(),
-        update: vi.fn(),
-        list: vi.fn(),
-        enable: vi.fn(),
-        disable: vi.fn(),
-        checkUpdates: vi.fn(),
-        onInstallProgress: vi.fn(() => () => {}),
-        onUpdateProgress: vi.fn(() => () => {})
-      },
-      onTerminalData: vi.fn(),
-      onTerminalState: vi.fn(),
-      onTerminalExit: vi.fn()
-    } as never;
+        getAllThemes: vi.fn(async () => [])
+      }
+    });
   });
 
   it('optimistically updates confirmation toggles and persists the new settings', async () => {
@@ -103,7 +65,7 @@ describe('SettingsView', () => {
     expect(toggle).toHaveAttribute('aria-checked', 'false');
 
     await waitFor(() => {
-      expect(settings.update).toHaveBeenCalledWith({
+      expect(settingsUpdate).toHaveBeenCalledWith({
         confirmations: {
           confirmPaneClose: false,
           confirmPaneGroupClose: true,

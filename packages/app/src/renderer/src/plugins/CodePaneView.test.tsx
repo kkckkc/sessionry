@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PaneViewProps, WorkspaceApi } from '@sessionry/plugin-api';
 import { CodePaneView } from '@sessionry/plugin-default-view-code/renderer';
+import { createMockTerminalApp } from '../../test-utils/mockTerminalApp';
 
 const workspace: WorkspaceApi = {
   get snapshot() {
@@ -117,57 +118,10 @@ describe('CodePaneView', () => {
         }) as DOMRect;
     }
 
-    window.terminalApp = {
-      showFolderDialog: vi.fn(),
-      readDirectory: vi.fn(),
+    window.terminalApp = createMockTerminalApp({
       readFile: vi.fn().mockResolvedValue('export const value = 1\n'),
-      writeFile: vi.fn().mockResolvedValue(undefined),
-      vcs: {
-        getStatus: vi.fn(async () => null),
-        getDiff: vi.fn(async () => null)
-      },
-      getPathForDroppedFile: vi.fn(),
-      formatPathForTerminal: vi.fn((targetPath: string) => targetPath),
-      createTerminalSession: vi.fn(),
-      sendTerminalInput: vi.fn(),
-      resizeTerminal: vi.fn(),
-      getPluginModel: vi.fn(),
-      getUserPluginRenderers: vi.fn(),
-      actions: {
-        list: vi.fn(),
-        execute: vi.fn()
-      },
-      workspace: {
-        read: vi.fn(),
-        executeCommand: vi.fn(),
-        onEvent: vi.fn()
-      },
-      settings: {
-        read: vi.fn(),
-        update: vi.fn(),
-        onChange: vi.fn(() => () => {})
-      },
-      themes: {
-        getTheme: vi.fn(async () => undefined),
-        getAllThemes: vi.fn(async () => []),
-        getThemeIds: vi.fn(async () => [])
-      },
-      plugins: {
-        search: vi.fn(),
-        install: vi.fn(),
-        uninstall: vi.fn(),
-        update: vi.fn(),
-        list: vi.fn(),
-        enable: vi.fn(),
-        disable: vi.fn(),
-        checkUpdates: vi.fn(),
-        onInstallProgress: vi.fn(() => () => {}),
-        onUpdateProgress: vi.fn(() => () => {})
-      },
-      onTerminalData: vi.fn(),
-      onTerminalState: vi.fn(),
-      onTerminalExit: vi.fn()
-    } as never;
+      writeFile: vi.fn().mockResolvedValue(undefined)
+    });
   });
 
   it('loads file content and renders the editor', async () => {

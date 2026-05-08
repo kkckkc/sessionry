@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createGitVcsProvider,
   commitGitChanges,
+  createGitBranch,
   getGitFileDiff,
   parseGhPullRequest,
   parseGitBranchLine,
@@ -314,5 +315,35 @@ describe('createGitVcsProvider', () => {
     expect(run).toHaveBeenCalledWith('git', ['commit', '-m', 'Add VCS sidebar commits'], {
       cwd: '/tmp/project'
     });
+  });
+
+  it('creates and checks out a trimmed branch name', async () => {
+    const run = vi.fn(async () => ({ stdout: '', stderr: '' }));
+
+    await createGitBranch('/tmp/project', '  feature/sidebar-menu  ', run);
+
+    expect(run).toHaveBeenNthCalledWith(
+      1,
+      'git',
+      ['check-ref-format', '--branch', 'feature/sidebar-menu'],
+      { cwd: '/tmp/project' }
+    );
+    expect(run).toHaveBeenNthCalledWith(2, 'git', ['checkout', '-b', 'feature/sidebar-menu'], {
+      cwd: '/tmp/project'
+    });
+  });
+
+  it('rejects invalid branch names before checkout', async () => {
+    const run = vi.fn(async () => {
+      throw new Error('invalid ref');
+    });
+
+    await expect(createGitBranch('/tmp/project', 'bad..branch', run)).rejects.toThrow(
+      'Invalid branch name.'
+    );
+    expect(run).toHaveBeenCalledWith('git', ['check-ref-format', '--branch', 'bad..branch'], {
+      cwd: '/tmp/project'
+    });
+    expect(run).toHaveBeenCalledTimes(1);
   });
 });

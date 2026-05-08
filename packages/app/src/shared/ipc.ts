@@ -32,6 +32,7 @@ export const IPC_CHANNELS = {
   vcsDiff: 'vcs:diff',
   vcsStageFiles: 'vcs:stage-files',
   vcsCommit: 'vcs:commit',
+  vcsCreateBranch: 'vcs:create-branch',
 
   // Themes
   themesList: 'themes:list',

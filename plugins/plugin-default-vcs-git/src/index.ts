@@ -253,6 +253,25 @@ export const commitGitChanges = async (
   await run('git', ['commit', '-m', trimmedMessage], { cwd: folder });
 };
 
+export const createGitBranch = async (
+  folder: string,
+  branchName: string,
+  run: ExecFileLike
+): Promise<void> => {
+  const trimmedBranchName = branchName.trim();
+  if (trimmedBranchName.length === 0) {
+    throw new Error('Branch name is required.');
+  }
+
+  try {
+    await run('git', ['check-ref-format', '--branch', trimmedBranchName], { cwd: folder });
+  } catch {
+    throw new Error('Invalid branch name.');
+  }
+
+  await run('git', ['checkout', '-b', trimmedBranchName], { cwd: folder });
+};
+
 const getGitBranchName = async (folder: string, run: ExecFileLike): Promise<string | undefined> => {
   try {
     const result = await run('git', ['branch', '--show-current'], { cwd: folder });
@@ -382,6 +401,9 @@ export const createGitVcsProvider = (
     },
     async commit(folder, message) {
       await commitGitChanges(folder, message, run);
+    },
+    async createBranch(folder, branchName) {
+      await createGitBranch(folder, branchName, run);
     }
   };
 };
