@@ -78,7 +78,6 @@ const getTerminalTheme = async (): Promise<ITheme> => {
 export const TerminalPaneView = ({
   workspace,
   pane,
-  // biome-ignore lint/correctness/noUnusedFunctionParameters: Reserved for future terminal clear functionality
   clearSignal: _clearSignal,
   visible = true,
   onRegisterFocusHandler
