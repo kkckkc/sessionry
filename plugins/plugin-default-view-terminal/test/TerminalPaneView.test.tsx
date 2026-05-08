@@ -405,10 +405,12 @@ describe('TerminalPaneView', () => {
     document.documentElement.style.setProperty('--term-blue', '#1d4ed8');
 
     const observer = mutationObserverInstances[0];
-    observer.callback(
-      [{ attributeName: 'class' } as MutationRecord],
-      observer as unknown as MutationObserver
-    );
+    await act(async () => {
+      observer.callback(
+        [{ attributeName: 'class' } as MutationRecord],
+        observer as unknown as MutationObserver
+      );
+    });
 
     expect(terminal?.options.theme).toMatchObject({
       background: '#fafafa',
