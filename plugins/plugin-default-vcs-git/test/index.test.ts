@@ -2,11 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   createGitVcsProvider,
+  commitGitChanges,
   getGitFileDiff,
   parseGhPullRequest,
   parseGitBranchLine,
   parseGitShortStat,
-  parseGitStatusPorcelain
+  parseGitStatusPorcelain,
+  stageGitFiles
 } from '../src/index';
 
 describe('parseGitShortStat', () => {
@@ -32,9 +34,18 @@ describe('parseGitStatusPorcelain', () => {
     expect(
       parseGitStatusPorcelain(' M src/app.ts\n?? notes/todo.md\nR  old.ts -> new.ts\n')
     ).toEqual([
-      { path: 'src/app.ts', status: 'M' },
-      { path: 'notes/todo.md', status: '??' },
-      { path: 'new.ts', status: 'R', oldPath: 'old.ts' }
+      { path: 'src/app.ts', status: 'M', unstagedStatus: 'M' },
+      { path: 'notes/todo.md', status: '??', unstagedStatus: '??' },
+      { path: 'new.ts', status: 'R', stagedStatus: 'R', oldPath: 'old.ts' }
+    ]);
+  });
+
+  it('preserves staged and unstaged status columns', () => {
+    expect(parseGitStatusPorcelain('M  staged.ts\nMM both.ts\nA  added.ts\n D deleted.ts\n')).toEqual([
+      { path: 'staged.ts', status: 'M', stagedStatus: 'M' },
+      { path: 'both.ts', status: 'MM', stagedStatus: 'M', unstagedStatus: 'M' },
+      { path: 'added.ts', status: 'A', stagedStatus: 'A' },
+      { path: 'deleted.ts', status: 'D', unstagedStatus: 'D' }
     ]);
   });
 });
@@ -164,8 +175,8 @@ describe('createGitVcsProvider', () => {
         deletions: 3
       },
       files: [
-        { path: 'src/app.ts', status: 'M' },
-        { path: 'notes/todo.md', status: '??' }
+        { path: 'src/app.ts', status: 'M', unstagedStatus: 'M' },
+        { path: 'notes/todo.md', status: '??', unstagedStatus: '??' }
       ]
     });
   });
@@ -197,7 +208,7 @@ describe('createGitVcsProvider', () => {
         insertions: 4,
         deletions: 0
       },
-      files: [{ path: 'src/app.ts', status: 'M' }],
+      files: [{ path: 'src/app.ts', status: 'M', unstagedStatus: 'M' }],
       repository: {
         branch: 'feature/vcs',
         pullRequest: {
@@ -212,6 +223,46 @@ describe('createGitVcsProvider', () => {
         behind: 1
       }
     });
+  });
+
+  it('reuses cached pull request metadata during repeated status reads', async () => {
+    let currentTime = 1_000;
+    const run = vi.fn(async (file: string, args: string[]) => {
+      if (file === 'gh') {
+        return {
+          stdout: '{"number":42,"title":"Add branch metadata","state":"OPEN","isDraft":false}',
+          stderr: ''
+        };
+      }
+
+      if (args[0] === 'rev-parse') {
+        return { stdout: 'true\n', stderr: '' };
+      }
+
+      if (args[0] === 'branch') {
+        return { stdout: 'feature/vcs\n', stderr: '' };
+      }
+
+      if (args[0] === 'diff') {
+        return { stdout: ' 1 file changed, 4 insertions(+)\n', stderr: '' };
+      }
+
+      if (args[0] === 'status') {
+        return {
+          stdout: '## feature/vcs...origin/feature/vcs\n M src/app.ts\n',
+          stderr: ''
+        };
+      }
+
+      throw new Error(`Unexpected command: ${file} ${args.join(' ')}`);
+    });
+    const provider = createGitVcsProvider(run, () => currentTime);
+
+    await provider.getStatus('/tmp/project');
+    currentTime += 30_000;
+    await provider.getStatus('/tmp/project');
+
+    expect(run.mock.calls.filter(([file]) => file === 'gh')).toHaveLength(1);
   });
 
   it('returns a tracked file diff by combining staged and unstaged changes', async () => {
@@ -236,5 +287,32 @@ describe('createGitVcsProvider', () => {
     await expect(
       getGitFileDiff('/tmp/project', { path: 'notes/todo.md', status: '??' }, run)
     ).resolves.toBe('diff --git a/notes/todo.md b/notes/todo.md\n');
+  });
+
+  it('stages file paths through git add', async () => {
+    const run = vi.fn(async () => ({ stdout: '', stderr: '' }));
+
+    await stageGitFiles(
+      '/tmp/project',
+      [
+        { path: 'src/app.ts', status: 'M', unstagedStatus: 'M' },
+        { path: 'new.ts', status: 'R', oldPath: 'old.ts', unstagedStatus: 'R' }
+      ],
+      run
+    );
+
+    expect(run).toHaveBeenCalledWith('git', ['add', '--', 'src/app.ts', 'old.ts', 'new.ts'], {
+      cwd: '/tmp/project'
+    });
+  });
+
+  it('commits staged changes with a trimmed message', async () => {
+    const run = vi.fn(async () => ({ stdout: '', stderr: '' }));
+
+    await commitGitChanges('/tmp/project', '  Add VCS sidebar commits  ', run);
+
+    expect(run).toHaveBeenCalledWith('git', ['commit', '-m', 'Add VCS sidebar commits'], {
+      cwd: '/tmp/project'
+    });
   });
 });

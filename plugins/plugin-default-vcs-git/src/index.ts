@@ -27,7 +27,13 @@ type ExecFileLike = (
   options: { cwd: string; timeout?: number }
 ) => Promise<ExecFileResult>;
 
+interface CachedPullRequest {
+  expiresAt: number;
+  value: VcsPullRequest | null;
+}
+
 const execFileAsync = promisify(execFile) as ExecFileLike;
+const PULL_REQUEST_CACHE_TTL_MS = 60_000;
 
 const getExecErrorStdout = (error: unknown): string => {
   const stdout = (error as ExecFileError | undefined)?.stdout;
@@ -55,18 +61,41 @@ export const parseGitStatusPorcelain = (stdout: string): VcsFileStatus[] => {
 
   const lines = output.split('\n');
   return lines.map(line => {
-    const status = line.substring(0, 2);
+    const rawStatus = line.substring(0, 2);
+    const indexStatus = rawStatus[0];
+    const workTreeStatus = rawStatus[1];
     const path = line.substring(3);
+    const stagedStatus =
+      indexStatus && indexStatus !== ' ' && indexStatus !== '?' ? indexStatus : undefined;
+    const unstagedStatus =
+      rawStatus === '??'
+        ? '??'
+        : workTreeStatus && workTreeStatus !== ' '
+          ? workTreeStatus
+          : undefined;
+    const status =
+      rawStatus === '??' ? '??' : `${stagedStatus ?? ''}${unstagedStatus ?? ''}` || rawStatus.trim();
 
     // Handle renames: "R  old -> new"
-    if (status.startsWith('R')) {
+    if (rawStatus.startsWith('R') || rawStatus.startsWith('C')) {
       const parts = path.split(' -> ');
       if (parts.length === 2) {
-        return { path: parts[1]!, status: status.trim(), oldPath: parts[0] };
+        return {
+          path: parts[1]!,
+          status,
+          ...(stagedStatus ? { stagedStatus } : {}),
+          ...(unstagedStatus ? { unstagedStatus } : {}),
+          oldPath: parts[0]
+        };
       }
     }
 
-    return { path, status: status.trim() || '??' };
+    return {
+      path,
+      status,
+      ...(stagedStatus ? { stagedStatus } : {}),
+      ...(unstagedStatus ? { unstagedStatus } : {})
+    };
   });
 };
 
@@ -165,7 +194,7 @@ export const getGitFileDiff = async (
 ): Promise<string | null> => {
   const targets = file.oldPath ? [file.oldPath, file.path] : [file.path];
 
-  if (file.status === '??') {
+  if (file.status === '??' || file.unstagedStatus === '??') {
     const diff = await runDiffCommand(run, folder, [
       'diff',
       '--no-index',
@@ -185,6 +214,43 @@ export const getGitFileDiff = async (
     .filter(value => value.length > 0)
     .join('\n\n');
   return diff.length > 0 ? `${diff}\n` : null;
+};
+
+const getGitStageTargets = (files: VcsFileStatus[]): string[] => {
+  const targets = new Set<string>();
+  for (const file of files) {
+    if (file.oldPath) {
+      targets.add(file.oldPath);
+    }
+    targets.add(file.path);
+  }
+  return [...targets];
+};
+
+export const stageGitFiles = async (
+  folder: string,
+  files: VcsFileStatus[],
+  run: ExecFileLike
+): Promise<void> => {
+  const targets = getGitStageTargets(files);
+  if (targets.length === 0) {
+    return;
+  }
+
+  await run('git', ['add', '--', ...targets], { cwd: folder });
+};
+
+export const commitGitChanges = async (
+  folder: string,
+  message: string,
+  run: ExecFileLike
+): Promise<void> => {
+  const trimmedMessage = message.trim();
+  if (trimmedMessage.length === 0) {
+    throw new Error('Commit message is required.');
+  }
+
+  await run('git', ['commit', '-m', trimmedMessage], { cwd: folder });
 };
 
 const getGitBranchName = async (folder: string, run: ExecFileLike): Promise<string | undefined> => {
@@ -218,6 +284,8 @@ const getGitPullRequest = async (
   }
 };
 
+const getGitPullRequestCacheKey = (folder: string, branch: string): string => `${folder}\0${branch}`;
+
 const isGitRepository = async (folder: string, run: ExecFileLike): Promise<boolean> => {
   try {
     const result = await run('git', ['rev-parse', '--is-inside-work-tree'], { cwd: folder });
@@ -227,64 +295,96 @@ const isGitRepository = async (folder: string, run: ExecFileLike): Promise<boole
   }
 };
 
-export const createGitVcsProvider = (run: ExecFileLike = execFileAsync): VcsProviderDefinition => ({
-  id: 'git',
-  name: 'Git',
-  priority: 100,
-  async getStatus(folder) {
-    try {
-      const [active, branch] = await Promise.all([
-        isGitRepository(folder, run),
-        getGitBranchName(folder, run)
-      ]);
+export const createGitVcsProvider = (
+  run: ExecFileLike = execFileAsync,
+  now: () => number = Date.now
+): VcsProviderDefinition => {
+  const pullRequestCache = new Map<string, CachedPullRequest>();
 
-      if (!active) {
+  const getCachedPullRequest = async (
+    folder: string,
+    branch: string
+  ): Promise<VcsPullRequest | null> => {
+    const key = getGitPullRequestCacheKey(folder, branch);
+    const currentTime = now();
+    const cached = pullRequestCache.get(key);
+    if (cached && cached.expiresAt > currentTime) {
+      return cached.value;
+    }
+
+    const value = await getGitPullRequest(folder, run);
+    pullRequestCache.set(key, {
+      expiresAt: currentTime + PULL_REQUEST_CACHE_TTL_MS,
+      value
+    });
+    return value;
+  };
+
+  return {
+    id: 'git',
+    name: 'Git',
+    priority: 100,
+    async getStatus(folder) {
+      try {
+        const [active, branch] = await Promise.all([
+          isGitRepository(folder, run),
+          getGitBranchName(folder, run)
+        ]);
+
+        if (!active) {
+          return { active: false };
+        }
+
+        const [statsResult, statusResult, pullRequest] = await Promise.all([
+          run('git', ['diff', '--shortstat'], { cwd: folder }),
+          run('git', ['status', '-b', '--porcelain=v1'], { cwd: folder }),
+          branch ? getCachedPullRequest(folder, branch) : null
+        ]);
+
+        const statusOutput = String(statusResult.stdout);
+        const lines = statusOutput.split('\n');
+        const branchLine = lines.find(l => l.startsWith('## ')) ?? '';
+        const fileLines = lines.filter(l => !l.startsWith('## ')).join('\n');
+        const branchMeta = parseGitBranchLine(branchLine);
+
+        return {
+          active: true,
+          stats: parseGitShortStat(String(statsResult.stdout)),
+          files: parseGitStatusPorcelain(fileLines),
+          ...(branch
+            ? {
+                repository: {
+                  branch,
+                  pullRequest,
+                  ...branchMeta
+                }
+              }
+            : {})
+        };
+      } catch {
         return { active: false };
       }
+    },
+    async getDiff(folder, file) {
+      const active = await isGitRepository(folder, run);
+      if (!active) {
+        return null;
+      }
 
-      const [statsResult, statusResult, pullRequest] = await Promise.all([
-        run('git', ['diff', '--shortstat'], { cwd: folder }),
-        run('git', ['status', '-b', '--porcelain=v1'], { cwd: folder }),
-        branch ? getGitPullRequest(folder, run) : null
-      ]);
-
-      const statusOutput = String(statusResult.stdout);
-      const lines = statusOutput.split('\n');
-      const branchLine = lines.find(l => l.startsWith('## ')) ?? '';
-      const fileLines = lines.filter(l => !l.startsWith('## ')).join('\n');
-      const branchMeta = parseGitBranchLine(branchLine);
-
-      return {
-        active: true,
-        stats: parseGitShortStat(String(statsResult.stdout)),
-        files: parseGitStatusPorcelain(fileLines),
-        ...(branch
-          ? {
-              repository: {
-                branch,
-                pullRequest,
-                ...branchMeta
-              }
-            }
-          : {})
-      };
-    } catch {
-      return { active: false };
+      try {
+        return await getGitFileDiff(folder, file, run);
+      } catch {
+        return null;
+      }
+    },
+    async stageFiles(folder, files) {
+      await stageGitFiles(folder, files, run);
+    },
+    async commit(folder, message) {
+      await commitGitChanges(folder, message, run);
     }
-  },
-  async getDiff(folder, file) {
-    const active = await isGitRepository(folder, run);
-    if (!active) {
-      return null;
-    }
-
-    try {
-      return await getGitFileDiff(folder, file, run);
-    } catch {
-      return null;
-    }
-  }
-});
+  };
+};
 
 const activateMain = (context: MainPluginContext): void => {
   context.vcs.registerProvider(createGitVcsProvider());

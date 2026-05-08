@@ -85,7 +85,11 @@ const api = {
     getStatus: (dirPath: string, options?: { bypassCache?: boolean }) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsStatus, dirPath, ...(options ? [options] : [])),
     getDiff: (dirPath: string, file: VcsFileStatus) =>
-      ipcRenderer.invoke(IPC_CHANNELS.vcsDiff, dirPath, file)
+      ipcRenderer.invoke(IPC_CHANNELS.vcsDiff, dirPath, file),
+    stageFiles: (dirPath: string, files: VcsFileStatus[]) =>
+      ipcRenderer.invoke(IPC_CHANNELS.vcsStageFiles, dirPath, files),
+    commit: (dirPath: string, message: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.vcsCommit, dirPath, message)
   },
   getPathForDroppedFile: (file: File): string => webUtils.getPathForFile(file),
   formatPathForTerminal,

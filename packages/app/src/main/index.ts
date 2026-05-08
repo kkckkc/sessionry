@@ -216,6 +216,12 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.vcsDiff, (_event, dirPath: string, file) =>
     vcsService.getDiff(dirPath, file)
   );
+  ipcMain.handle(IPC_CHANNELS.vcsStageFiles, (_event, dirPath: string, files) =>
+    vcsService.stageFiles(dirPath, files)
+  );
+  ipcMain.handle(IPC_CHANNELS.vcsCommit, (_event, dirPath: string, message: string) =>
+    vcsService.commit(dirPath, message)
+  );
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read());
   ipcMain.on(IPC_CHANNELS.settingsRead, event => {
     event.returnValue = settingsStore.read();

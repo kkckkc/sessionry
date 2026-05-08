@@ -17,6 +17,8 @@ export interface VcsService {
   registerProvider: (provider: VcsProviderDefinition) => void;
   getStatus: (folder: string, options?: { bypassCache?: boolean }) => Promise<ResolvedVcsStatus | null>;
   getDiff: (folder: string, file: VcsFileStatus) => Promise<string | null>;
+  stageFiles: (folder: string, files: VcsFileStatus[]) => Promise<void>;
+  commit: (folder: string, message: string) => Promise<void>;
 }
 
 export interface CreateVcsServiceOptions {
@@ -29,6 +31,33 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
   const ttlMs = options.ttlMs ?? 60_000;
   const providers: RegisteredProvider[] = [];
   const cache = new Map<string, CachedStatus>();
+
+  const getSortedProviders = () =>
+    [...providers].sort(
+      (left, right) =>
+        (right.priority ?? 0) - (left.priority ?? 0) ||
+        left.registrationOrder - right.registrationOrder
+    );
+
+  const getActiveProvider = async (
+    folder: string,
+    supports: (provider: RegisteredProvider) => boolean
+  ): Promise<RegisteredProvider | null> => {
+    for (const provider of getSortedProviders()) {
+      if (!supports(provider)) {
+        continue;
+      }
+
+      try {
+        const status = await provider.getStatus(folder);
+        if (status.active) {
+          return provider;
+        }
+      } catch {}
+    }
+
+    return null;
+  };
 
   return {
     registerProvider: provider => {
@@ -49,14 +78,8 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
         return cached.value;
       }
 
-      const sortedProviders = [...providers].sort(
-        (left, right) =>
-          (right.priority ?? 0) - (left.priority ?? 0) ||
-          left.registrationOrder - right.registrationOrder
-      );
-
       let resolvedStatus: ResolvedVcsStatus | null = null;
-      for (const provider of sortedProviders) {
+      for (const provider of getSortedProviders()) {
         try {
           const status = await provider.getStatus(folder);
           if (!status.active) {
@@ -82,28 +105,32 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       return resolvedStatus;
     },
     getDiff: async (folder, file) => {
-      const sortedProviders = [...providers].sort(
-        (left, right) =>
-          (right.priority ?? 0) - (left.priority ?? 0) ||
-          left.registrationOrder - right.registrationOrder
-      );
-
-      for (const provider of sortedProviders) {
-        if (!provider.getDiff) {
-          continue;
-        }
-
+      const provider = await getActiveProvider(folder, provider => Boolean(provider.getDiff));
+      if (provider?.getDiff) {
         try {
-          const status = await provider.getStatus(folder);
-          if (!status.active) {
-            continue;
-          }
-
           return (await provider.getDiff(folder, file)) ?? null;
         } catch {}
       }
 
       return null;
+    },
+    stageFiles: async (folder, files) => {
+      const provider = getSortedProviders().find(provider => Boolean(provider.stageFiles));
+      if (!provider?.stageFiles) {
+        throw new Error('No VCS provider supports staging files.');
+      }
+
+      await provider.stageFiles(folder, files);
+      cache.delete(folder);
+    },
+    commit: async (folder, message) => {
+      const provider = getSortedProviders().find(provider => Boolean(provider.commit));
+      if (!provider?.commit) {
+        throw new Error('No VCS provider supports committing files.');
+      }
+
+      await provider.commit(folder, message);
+      cache.delete(folder);
     }
   };
 };
