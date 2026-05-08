@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createGitVcsProvider,
   getGitFileDiff,
+  parseGhPullRequest,
   parseGitShortStat,
   parseGitStatusPorcelain
 } from '../src/index';
@@ -34,6 +35,25 @@ describe('parseGitStatusPorcelain', () => {
       { path: 'notes/todo.md', status: '??' },
       { path: 'new.ts', status: 'R', oldPath: 'old.ts' }
     ]);
+  });
+});
+
+describe('parseGhPullRequest', () => {
+  it('parses GitHub CLI pull request JSON', () => {
+    expect(
+      parseGhPullRequest(
+        '{"number":42,"title":"Add branch metadata","url":"https://github.com/acme/app/pull/42","headRefName":"feature/vcs"}'
+      )
+    ).toEqual({
+      number: 42,
+      title: 'Add branch metadata',
+      url: 'https://github.com/acme/app/pull/42',
+      headRefName: 'feature/vcs'
+    });
+  });
+
+  it('returns null for invalid pull request JSON', () => {
+    expect(parseGhPullRequest('not json')).toBeNull();
   });
 });
 
@@ -72,6 +92,49 @@ describe('createGitVcsProvider', () => {
         { path: 'src/app.ts', status: 'M' },
         { path: 'notes/todo.md', status: '??' }
       ]
+    });
+  });
+
+  it('reports the current branch and associated pull request when available', async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValueOnce({ stdout: 'true\n', stderr: '' })
+      .mockResolvedValueOnce({
+        stdout: ' 1 file changed, 4 insertions(+)\n',
+        stderr: ''
+      })
+      .mockResolvedValueOnce({
+        stdout: ' M src/app.ts\n',
+        stderr: ''
+      })
+      .mockResolvedValueOnce({
+        stdout: 'feature/vcs\n',
+        stderr: ''
+      })
+      .mockResolvedValueOnce({
+        stdout:
+          '{"number":42,"title":"Add branch metadata","url":"https://github.com/acme/app/pull/42","headRefName":"feature/vcs"}',
+        stderr: ''
+      });
+    const provider = createGitVcsProvider(run);
+
+    await expect(provider.getStatus('/tmp/project')).resolves.toEqual({
+      active: true,
+      stats: {
+        filesChanged: 1,
+        insertions: 4,
+        deletions: 0
+      },
+      files: [{ path: 'src/app.ts', status: 'M' }],
+      repository: {
+        branch: 'feature/vcs',
+        pullRequest: {
+          number: 42,
+          title: 'Add branch metadata',
+          url: 'https://github.com/acme/app/pull/42',
+          headRefName: 'feature/vcs'
+        }
+      }
     });
   });
 

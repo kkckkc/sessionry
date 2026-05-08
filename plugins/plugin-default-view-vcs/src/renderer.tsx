@@ -1,9 +1,17 @@
 import './styles.css';
 
 import { useState, useEffect } from 'react';
-import type { RendererAppPlugin, SidebarViewProps, VcsFileStatus } from '@sessionry/plugin-api';
+import type {
+  RendererAppPlugin,
+  ResolvedVcsStatus,
+  SidebarViewProps,
+  VcsFileStatus,
+  VcsRepositoryInfo
+} from '@sessionry/plugin-api';
 
 import { vcsViewPlugin } from '.';
+
+const ACTIVE_SESSION_REFRESH_INTERVAL_MS = 60_000;
 
 const getFileTitle = (filePath: string): string =>
   filePath.split(/[\\/]/).filter(Boolean).pop() ?? filePath;
@@ -50,7 +58,33 @@ const getPaneParentGroup = (workspace: SidebarViewProps['workspace'], paneId: st
     paneGroup.children.some(child => child.kind === 'pane' && child.paneId === paneId)
   );
 
+const VcsRepositorySummary = ({ repository }: { repository?: VcsRepositoryInfo | null }) => {
+  if (!repository?.branch && !repository?.pullRequest) {
+    return null;
+  }
+
+  return (
+    <dl className="vcs-repository">
+      {repository.branch && (
+        <div className="vcs-repository-row">
+          <dt>Branch</dt>
+          <dd title={repository.branch}>{repository.branch}</dd>
+        </div>
+      )}
+      {repository.pullRequest && (
+        <div className="vcs-repository-row">
+          <dt>PR</dt>
+          <dd title={repository.pullRequest.url ?? repository.pullRequest.title}>
+            #{repository.pullRequest.number} {repository.pullRequest.title}
+          </dd>
+        </div>
+      )}
+    </dl>
+  );
+};
+
 const VcsView = ({ workspace }: SidebarViewProps) => {
+  const [status, setStatus] = useState<ResolvedVcsStatus | null>(null);
   const [files, setFiles] = useState<VcsFileStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setRefreshKey] = useState(0);
@@ -62,39 +96,45 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const activeSession = workspace.snapshot.sessions.find(
     s => s.id === workspace.snapshot.activeSessionId
   );
+  const activeSessionFolder = activeSession?.folder;
 
   // Load VCS file status
   useEffect(() => {
     let cancelled = false;
 
-    const loadFileStatus = async () => {
-      if (!activeSession) {
+    const loadFileStatus = async (options: { showLoading: boolean }) => {
+      if (!activeSessionFolder) {
+        setStatus(null);
         setFiles([]);
         setLoading(false);
         return;
       }
 
-      setLoading(true);
-      const status = await window.terminalApp.vcs.getStatus(activeSession.folder);
+      if (options.showLoading) {
+        setLoading(true);
+      }
+
+      const status = await window.terminalApp.vcs.getStatus(activeSessionFolder);
 
       if (!cancelled) {
+        setStatus(status);
         setFiles(status?.files ?? []);
         setLoading(false);
       }
     };
 
-    void loadFileStatus();
+    void loadFileStatus({ showLoading: true });
 
-    // Refresh every 5 seconds
+    // Refresh repository metadata and file status while this session is active.
     const intervalId = setInterval(() => {
-      void loadFileStatus();
-    }, 5000);
+      void loadFileStatus({ showLoading: false });
+    }, ACTIVE_SESSION_REFRESH_INTERVAL_MS);
 
     return () => {
       cancelled = true;
       clearInterval(intervalId);
     };
-  }, [activeSession?.id, activeSession?.folder]);
+  }, [activeSessionFolder]);
 
   const openCodePane = async (state: Record<string, unknown>) => {
     if (!activeSession) return;
@@ -228,7 +268,12 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   if (files.length === 0) {
     return (
       <div className="vcs-view">
-        <div className="vcs-empty">
+        <div className="vcs-header">
+          <span className="vcs-title">Changes</span>
+          <span className="vcs-count">{files.length}</span>
+        </div>
+        <VcsRepositorySummary repository={status?.repository} />
+        <div className="vcs-empty vcs-empty--inline">
           <p>No changes</p>
         </div>
       </div>
@@ -241,6 +286,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         <span className="vcs-title">Changes</span>
         <span className="vcs-count">{files.length}</span>
       </div>
+      <VcsRepositorySummary repository={status?.repository} />
       <ul className="vcs-file-list">
         {files.map((file, index) => (
           <li key={index} className="vcs-file-item">

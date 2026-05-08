@@ -10,10 +10,23 @@ export interface VcsFileStatus {
   oldPath?: string;
 }
 
+export interface VcsPullRequest {
+  number: number;
+  title: string;
+  url?: string;
+  headRefName?: string;
+}
+
+export interface VcsRepositoryInfo {
+  branch?: string;
+  pullRequest?: VcsPullRequest | null;
+}
+
 export interface VcsStatusResult {
   active: boolean;
   stats?: VcsStats | null;
   files?: VcsFileStatus[];
+  repository?: VcsRepositoryInfo | null;
 }
 
 export interface ResolvedVcsStatus {
@@ -21,6 +34,7 @@ export interface ResolvedVcsStatus {
   providerName: string;
   stats: VcsStats | null;
   files: VcsFileStatus[];
+  repository?: VcsRepositoryInfo | null;
 }
 
 export interface VcsProviderDefinition {

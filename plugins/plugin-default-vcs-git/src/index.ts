@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import type {
   AppPlugin,
   MainPluginContext,
+  VcsPullRequest,
   VcsProviderDefinition,
   VcsStats,
   VcsFileStatus
@@ -23,7 +24,7 @@ type ExecFileError = Error & {
 type ExecFileLike = (
   file: string,
   args: string[],
-  options: { cwd: string }
+  options: { cwd: string; timeout?: number }
 ) => Promise<ExecFileResult>;
 
 const execFileAsync = promisify(execFile) as ExecFileLike;
@@ -67,6 +68,31 @@ export const parseGitStatusPorcelain = (stdout: string): VcsFileStatus[] => {
 
     return { path, status: status.trim() || '??' };
   });
+};
+
+export const parseGhPullRequest = (stdout: string): VcsPullRequest | null => {
+  try {
+    const value = JSON.parse(stdout) as {
+      number?: unknown;
+      title?: unknown;
+      url?: unknown;
+      headRefName?: unknown;
+    };
+    if (typeof value.number !== 'number') {
+      return null;
+    }
+
+    return {
+      number: value.number,
+      title: typeof value.title === 'string' ? value.title : `#${value.number}`,
+      ...(typeof value.url === 'string' && value.url.length > 0 ? { url: value.url } : {}),
+      ...(typeof value.headRefName === 'string' && value.headRefName.length > 0
+        ? { headRefName: value.headRefName }
+        : {})
+    };
+  } catch {
+    return null;
+  }
 };
 
 const runDiffCommand = async (
@@ -116,6 +142,31 @@ export const getGitFileDiff = async (
   return diff.length > 0 ? `${diff}\n` : null;
 };
 
+const getGitBranchName = async (folder: string, run: ExecFileLike): Promise<string | undefined> => {
+  try {
+    const result = await run('git', ['branch', '--show-current'], { cwd: folder });
+    const branch = String(result.stdout).trim();
+    return branch.length > 0 ? branch : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const getGitPullRequest = async (
+  folder: string,
+  run: ExecFileLike
+): Promise<VcsPullRequest | null> => {
+  try {
+    const result = await run('gh', ['pr', 'view', '--json', 'number,title,url,headRefName'], {
+      cwd: folder,
+      timeout: 5_000
+    });
+    return parseGhPullRequest(String(result.stdout));
+  } catch {
+    return null;
+  }
+};
+
 const isGitRepository = async (folder: string, run: ExecFileLike): Promise<boolean> => {
   try {
     const result = await run('git', ['rev-parse', '--is-inside-work-tree'], { cwd: folder });
@@ -136,15 +187,18 @@ export const createGitVcsProvider = (run: ExecFileLike = execFileAsync): VcsProv
     }
 
     try {
-      const [statsResult, statusResult] = await Promise.all([
+      const [statsResult, statusResult, branch] = await Promise.all([
         run('git', ['diff', '--shortstat'], { cwd: folder }),
-        run('git', ['status', '--porcelain=v1'], { cwd: folder })
+        run('git', ['status', '--porcelain=v1'], { cwd: folder }),
+        getGitBranchName(folder, run)
       ]);
+      const pullRequest = branch ? await getGitPullRequest(folder, run) : null;
 
       return {
         active: true,
         stats: parseGitShortStat(String(statsResult.stdout)),
-        files: parseGitStatusPorcelain(String(statusResult.stdout))
+        files: parseGitStatusPorcelain(String(statusResult.stdout)),
+        ...(branch ? { repository: { branch, pullRequest } } : {})
       };
     } catch {
       return { active: false };
