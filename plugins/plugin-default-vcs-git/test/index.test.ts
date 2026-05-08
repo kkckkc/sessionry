@@ -144,15 +144,16 @@ describe('createGitVcsProvider', () => {
   it('reports normalized stats for active git repositories', async () => {
     const run = vi
       .fn()
-      .mockResolvedValueOnce({ stdout: 'true\n', stderr: '' })
+      .mockResolvedValueOnce({ stdout: 'true\n', stderr: '' }) // isGitRepository
+      .mockResolvedValueOnce({ stdout: '\n', stderr: '' }) // getGitBranchName (no branch)
       .mockResolvedValueOnce({
         stdout: ' 2 files changed, 8 insertions(+), 3 deletions(-)\n',
         stderr: ''
-      })
+      }) // diff --shortstat
       .mockResolvedValueOnce({
         stdout: '## main\n M src/app.ts\n?? notes/todo.md\n',
         stderr: ''
-      });
+      }); // status -b --porcelain=v1
     const provider = createGitVcsProvider(run);
 
     await expect(provider.getStatus('/tmp/project')).resolves.toEqual({
@@ -172,24 +173,21 @@ describe('createGitVcsProvider', () => {
   it('reports the current branch and associated pull request when available', async () => {
     const run = vi
       .fn()
-      .mockResolvedValueOnce({ stdout: 'true\n', stderr: '' })
+      .mockResolvedValueOnce({ stdout: 'true\n', stderr: '' }) // isGitRepository
+      .mockResolvedValueOnce({ stdout: 'feature/vcs\n', stderr: '' }) // getGitBranchName
       .mockResolvedValueOnce({
         stdout: ' 1 file changed, 4 insertions(+)\n',
         stderr: ''
-      })
+      }) // diff --shortstat
       .mockResolvedValueOnce({
         stdout: '## feature/vcs...origin/feature/vcs [ahead 3, behind 1]\n M src/app.ts\n',
         stderr: ''
-      })
-      .mockResolvedValueOnce({
-        stdout: 'feature/vcs\n',
-        stderr: ''
-      })
+      }) // status -b --porcelain=v1
       .mockResolvedValueOnce({
         stdout:
           '{"number":42,"title":"Add branch metadata","url":"https://github.com/acme/app/pull/42","headRefName":"feature/vcs","state":"OPEN","isDraft":false}',
         stderr: ''
-      });
+      }); // gh pr view
     const provider = createGitVcsProvider(run);
 
     await expect(provider.getStatus('/tmp/project')).resolves.toEqual({
