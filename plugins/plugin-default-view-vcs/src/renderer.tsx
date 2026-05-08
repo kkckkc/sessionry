@@ -94,7 +94,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       cancelled = true;
       clearInterval(intervalId);
     };
-  }, [activeSession?.id, activeSession?.folder, activeSession]);
+  }, [activeSession?.id, activeSession?.folder]);
 
   const openCodePane = async (state: Record<string, unknown>) => {
     if (!activeSession) return;
