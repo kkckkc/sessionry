@@ -1,29 +1,29 @@
 import type { RendererAppPlugin } from '@sessionry/plugin-api';
 
+import { terminalPanePluginDefinition } from './definition';
 import { TerminalPaneView } from './TerminalPaneView';
 import { TerminalSettingsView } from './SettingsView';
-import { terminalPanePlugin } from '.';
 
-const terminalView = terminalPanePlugin.views?.[0];
+const terminalView = terminalPanePluginDefinition.views?.[0];
 
 if (!terminalView) {
-  throw new Error('terminalPanePlugin must register a pane view.');
+  throw new Error('terminalPanePluginDefinition must register a pane view.');
 }
 
 export const terminalPaneRendererPlugin: RendererAppPlugin = {
-  id: terminalPanePlugin.id,
-  name: terminalPanePlugin.name,
-  actions: terminalPanePlugin.actions,
-  statusItems: terminalPanePlugin.statusItems,
+  id: terminalPanePluginDefinition.id,
+  name: terminalPanePluginDefinition.name,
+  actions: terminalPanePluginDefinition.actions,
+  statusItems: terminalPanePluginDefinition.statusItems,
   views: [
     {
       ...terminalView,
       component: TerminalPaneView
     }
   ],
-  settingsView: terminalPanePlugin.settingsView
+  settingsView: terminalPanePluginDefinition.settingsView
     ? {
-        ...terminalPanePlugin.settingsView,
+        ...terminalPanePluginDefinition.settingsView,
         component: TerminalSettingsView
       }
     : undefined

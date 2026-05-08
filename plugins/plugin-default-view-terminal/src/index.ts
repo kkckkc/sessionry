@@ -1,10 +1,10 @@
 import type { AppPlugin, MainPluginContext } from '@sessionry/plugin-api';
 import { TERMINAL_IPC_CHANNELS } from '@sessionry/plugin-api';
+import { terminalPanePluginDefinition } from './definition';
 import type { TerminalPluginSettings } from './settings';
 
 const activateMain = async (context: MainPluginContext): Promise<void> => {
-  // Dynamic import ensures node-pty is never evaluated in the renderer process,
-  // since renderer.tsx imports index.ts to spread the plugin definition.
+  // Keep node-pty evaluation inside main-process activation.
   const { TerminalService } = await import('./terminalService');
 
   const pluginSettings = context.settings.plugins['plugin-default-view-terminal'] as
@@ -45,57 +45,8 @@ const activateMain = async (context: MainPluginContext): Promise<void> => {
 };
 
 export const terminalPanePlugin: AppPlugin = {
-  id: 'plugin-default-view-terminal',
-  name: 'Terminal Pane',
-  settingsView: {
-    id: 'settings.terminal',
-    title: 'Terminal',
-    description: 'Configure terminal and tmux settings',
-    icon: 'TbTerminal'
-  },
-  activateMain,
-  actions: [
-    {
-      id: 'terminal:new',
-      name: 'Restart Terminal',
-      icon: 'TbRefresh',
-      description: 'Restart the active terminal session.',
-      category: 'Terminal',
-      defaultKeybinding: 'C-Shift-r',
-      surfaces: ['toolbar', 'palette'],
-      run: () => ({
-        status: 'completed',
-        effects: [{ type: 'terminal.restart-active' }]
-      })
-    },
-    {
-      id: 'terminal:clear',
-      name: 'Clear Terminal',
-      icon: 'TbEraser',
-      description: 'Clear the active terminal buffer.',
-      category: 'Terminal',
-      defaultKeybinding: 'C-l',
-      surfaces: ['toolbar', 'palette'],
-      run: () => ({
-        status: 'completed',
-        effects: [{ type: 'terminal.clear-active' }]
-      })
-    }
-  ],
-  statusItems: [
-    { id: 'session-state', label: 'State', kind: 'session-state' },
-    { id: 'shell', label: 'Shell', kind: 'shell' },
-    { id: 'cwd', label: 'Directory', kind: 'cwd' },
-    { id: 'connection', label: 'Connection', kind: 'connection' }
-  ],
-  views: [
-    {
-      id: 'pane.terminal.default',
-      title: 'Terminal',
-      slot: 'pane:terminal',
-      isDefault: true
-    }
-  ]
+  ...terminalPanePluginDefinition,
+  activateMain
 };
 
 export default terminalPanePlugin;

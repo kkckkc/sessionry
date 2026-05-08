@@ -13,7 +13,7 @@
     "postinstall": "node scripts/fix-node-pty.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run -c vitest.config.ts",
-    "package": "pnpm build && electron-builder build"
+    "package": "pnpm build && electron-builder build --publish never"
   },
   "build": {
     "appId": "com.sessionry.app",
@@ -47,7 +47,6 @@
     "@sessionry/plugin-default-view-workspace": "workspace:*",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
-    "electron": "latest",
     "node-pty": "latest",
     "react": "19.2.5",
     "react-dom": "19.2.5",
@@ -64,6 +63,7 @@
     "@types/react-dom": "latest",
     "@types/tar": "^7.0.87",
     "@vitejs/plugin-react": "^5.1.0",
+    "electron": "latest",
     "electron-builder": "^26.8.1",
     "electron-vite": "latest",
     "jsdom": "latest",
