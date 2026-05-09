@@ -2,6 +2,7 @@ import './styles.css';
 
 import { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
+import { TbRefresh } from 'react-icons/tb';
 import type {
   RendererAppPlugin,
   ResolvedVcsStatus,
@@ -136,6 +137,20 @@ const VcsRepositorySummary = ({
           </span>
           {(onRefresh || onCreateBranch) && (
             <div className="vcs-branch-menu-container" ref={menuRef}>
+              {onRefresh && (
+                <button
+                  type="button"
+                  className="vcs-branch-refresh-btn"
+                  onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
+                    e.stopPropagation();
+                    onRefresh();
+                  }}
+                  disabled={isMutating}
+                  title="Refresh"
+                >
+                  <TbRefresh size={14} />
+                </button>
+              )}
               <button
                 type="button"
                 className="vcs-branch-menu-btn"

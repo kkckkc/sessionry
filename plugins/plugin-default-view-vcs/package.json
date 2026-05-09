@@ -13,7 +13,8 @@
   "dependencies": {
     "@sessionry/components": "workspace:*",
     "@sessionry/plugin-api": "workspace:*",
-    "react": "19.2.5"
+    "react": "19.2.5",
+    "react-icons": "^5.4.0"
   },
   "devDependencies": {
     "@types/react": "latest",
