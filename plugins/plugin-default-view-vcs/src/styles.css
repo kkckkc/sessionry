@@ -59,6 +59,34 @@
 .vcs-branch-menu-container {
   position: relative;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.vcs-branch-refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.1s;
+}
+
+.vcs-branch-refresh-btn:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.vcs-branch-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .vcs-branch-menu-btn {
