@@ -331,8 +331,8 @@ app.whenReady().then(async () => {
     Menu.setApplicationMenu(menu);
   };
 
-  createMenu();
   createWindow();
+  createMenu();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
