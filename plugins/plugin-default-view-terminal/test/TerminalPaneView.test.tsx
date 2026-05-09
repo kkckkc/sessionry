@@ -36,6 +36,8 @@ vi.mock('@xterm/xterm', () => ({
     dispose = disposeMock;
     refresh = refreshMock;
     resize = vi.fn();
+    attachCustomKeyEventHandler = vi.fn();
+    getSelection = vi.fn().mockReturnValue('');
     constructor(options: { theme?: unknown }) {
       this.options = options;
       terminalInstances.push(this);
