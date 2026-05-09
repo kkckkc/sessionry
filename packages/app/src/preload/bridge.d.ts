@@ -91,6 +91,10 @@ export interface TerminalAppBridge {
   onTerminalData: (listener: (event: TerminalDataEvent) => void) => Unsubscribe;
   onTerminalState: (listener: (event: TerminalStateEvent) => void) => Unsubscribe;
   onTerminalExit: (listener: (event: TerminalExitEvent) => void) => Unsubscribe;
+  clipboard: {
+    readText: () => Promise<string>;
+    writeText: (text: string) => Promise<void>;
+  };
 }
 
 declare global {

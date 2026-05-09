@@ -154,7 +154,7 @@ export const TerminalPaneView = ({
       }
       // Cmd+V on macOS: paste from clipboard
       if (event.metaKey && event.key === 'v') {
-        void window.terminalApp.clipboard.readText().then(text => {
+        void window.terminalApp.clipboard.readText().then((text: string) => {
           if (text) {
             window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: text });
           }
