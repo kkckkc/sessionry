@@ -222,6 +222,12 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.vcsCommit, (_event, dirPath: string, message: string) =>
     vcsService.commit(dirPath, message)
   );
+  ipcMain.handle(IPC_CHANNELS.vcsPush, (_event, dirPath: string) =>
+    vcsService.push(dirPath)
+  );
+  ipcMain.handle(IPC_CHANNELS.vcsCreatePullRequest, (_event, dirPath: string) =>
+    vcsService.createPullRequest(dirPath)
+  );
   ipcMain.handle(IPC_CHANNELS.vcsCreateBranch, (_event, dirPath: string, branchName: string) =>
     vcsService.createBranch(dirPath, branchName)
   );

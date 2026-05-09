@@ -19,6 +19,8 @@ export interface VcsService {
   getDiff: (folder: string, file: VcsFileStatus) => Promise<string | null>;
   stageFiles: (folder: string, files: VcsFileStatus[]) => Promise<void>;
   commit: (folder: string, message: string) => Promise<void>;
+  push: (folder: string) => Promise<void>;
+  createPullRequest: (folder: string) => Promise<void>;
   createBranch: (folder: string, branchName: string) => Promise<void>;
 }
 
@@ -131,6 +133,24 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       }
 
       await provider.commit(folder, message);
+      cache.delete(folder);
+    },
+    push: async (folder) => {
+      const provider = getSortedProviders().find(provider => Boolean(provider.push));
+      if (!provider?.push) {
+        throw new Error('No VCS provider supports pushing changes.');
+      }
+
+      await provider.push(folder);
+      cache.delete(folder);
+    },
+    createPullRequest: async (folder) => {
+      const provider = getSortedProviders().find(provider => Boolean(provider.createPullRequest));
+      if (!provider?.createPullRequest) {
+        throw new Error('No VCS provider supports creating pull requests.');
+      }
+
+      await provider.createPullRequest(folder);
       cache.delete(folder);
     },
     createBranch: async (folder, branchName) => {

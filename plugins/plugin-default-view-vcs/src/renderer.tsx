@@ -84,11 +84,13 @@ const VcsRepositorySummary = ({
   repository,
   onRefresh,
   onCreateBranch,
+  onPush,
   isMutating
 }: {
   repository?: VcsRepositoryInfo | null;
   onRefresh?: () => void;
   onCreateBranch?: () => void;
+  onPush?: () => void;
   isMutating?: boolean;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -149,6 +151,20 @@ const VcsRepositorySummary = ({
               </button>
               {menuOpen && (
                 <div className="vcs-branch-menu">
+                  {onPush && repository?.ahead && repository.ahead > 0 && (
+                    <button
+                      type="button"
+                      className="vcs-branch-menu-item"
+                      onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        onPush();
+                      }}
+                      disabled={isMutating}
+                    >
+                      Push
+                    </button>
+                  )}
                   {onCreateBranch && (
                     <button
                       type="button"
@@ -500,6 +516,21 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     setShowCreateBranchDialog(true);
   };
 
+  const handlePush = async () => {
+    if (!activeSessionFolder || isMutating) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.push(activeSessionFolder);
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to push changes.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
   const handleConfirmCreateBranch = async () => {
     if (!activeSessionFolder || isMutating || !newBranchName.trim()) return;
 
@@ -641,6 +672,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           repository={status?.repository}
           onRefresh={refreshVcsStatus}
           onCreateBranch={handleCreateBranch}
+          onPush={handlePush}
           isMutating={isMutating}
         />
         <div className="vcs-changes-scroll">
@@ -687,6 +719,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         repository={status?.repository}
         onRefresh={refreshVcsStatus}
         onCreateBranch={handleCreateBranch}
+        onPush={handlePush}
         isMutating={isMutating}
       />
       <div className="vcs-changes-scroll">
