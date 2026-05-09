@@ -176,6 +176,10 @@ const api = {
       listener(payload);
     ipcRenderer.on(IPC_CHANNELS.terminalExit, wrapped);
     return () => ipcRenderer.removeListener(IPC_CHANNELS.terminalExit, wrapped);
+  },
+  clipboard: {
+    readText: (): Promise<string> => ipcRenderer.invoke('clipboard:readText'),
+    writeText: (text: string): Promise<void> => ipcRenderer.invoke('clipboard:writeText', text)
   }
 };
 

@@ -140,6 +140,29 @@ export const TerminalPaneView = ({
 
     terminal.loadAddon(fitAddon);
     terminal.open(containerRef.current);
+
+    terminal.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+      if (event.type !== 'keydown') return true;
+      // Cmd+C on macOS: copy selection (don't send to PTY)
+      if (event.metaKey && event.key === 'c') {
+        const selection = terminal.getSelection();
+        if (selection) {
+          void window.terminalApp.clipboard.writeText(selection);
+          return false;
+        }
+        return true; // no selection → let Ctrl+C / SIGINT fall through normally
+      }
+      // Cmd+V on macOS: paste from clipboard
+      if (event.metaKey && event.key === 'v') {
+        void window.terminalApp.clipboard.readText().then(text => {
+          if (text) {
+            window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: text });
+          }
+        });
+        return false;
+      }
+      return true;
+    });
     terminal.loadAddon(new WebglAddon());
 
     const applyTerminalTheme = async () => {

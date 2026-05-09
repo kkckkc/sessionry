@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, net, protocol, shell } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -239,6 +239,10 @@ app.whenReady().then(async () => {
     settingsStore.update(updates);
     mainWindow?.webContents.send('settings:changed', settingsStore.read());
   });
+
+  // Clipboard IPC handlers
+  ipcMain.handle('clipboard:readText', () => clipboard.readText());
+  ipcMain.handle('clipboard:writeText', (_event, text: string) => clipboard.writeText(text));
 
   // Plugin management IPC handlers
   ipcMain.handle(IPC_CHANNELS.pluginManagementList, () => pluginConfigStore.getInstalledPlugins());
