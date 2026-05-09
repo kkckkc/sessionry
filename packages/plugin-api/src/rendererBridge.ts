@@ -91,4 +91,8 @@ export interface TerminalAppBridge {
   onTerminalData: (listener: (event: TerminalDataEvent) => void) => () => void;
   onTerminalState: (listener: (event: TerminalStateEvent) => void) => () => void;
   onTerminalExit: (listener: (event: TerminalExitEvent) => void) => () => void;
+  clipboard: {
+    readText: () => Promise<string>;
+    writeText: (text: string) => Promise<void>;
+  };
 }

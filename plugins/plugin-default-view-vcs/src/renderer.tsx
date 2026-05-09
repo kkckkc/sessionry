@@ -85,12 +85,14 @@ const VcsRepositorySummary = ({
   onRefresh,
   onCreateBranch,
   onPush,
+  onCreatePullRequest,
   isMutating
 }: {
   repository?: VcsRepositoryInfo | null;
   onRefresh?: () => void;
   onCreateBranch?: () => void;
   onPush?: () => void;
+  onCreatePullRequest?: () => void;
   isMutating?: boolean;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -160,9 +162,23 @@ const VcsRepositorySummary = ({
                         setMenuOpen(false);
                         onPush();
                       }}
-                      disabled={isMutating || !repository?.ahead || repository.ahead === 0}
+                      disabled={isMutating || (!!repository?.upstream && !repository?.ahead)}
                     >
                       Push
+                    </button>
+                  )}
+                  {onCreatePullRequest && !repository?.pullRequest && (
+                    <button
+                      type="button"
+                      className="vcs-branch-menu-item"
+                      onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        onCreatePullRequest();
+                      }}
+                      disabled={isMutating}
+                    >
+                      Create PR
                     </button>
                   )}
                   {onCreateBranch && (
@@ -531,6 +547,21 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     }
   };
 
+  const handleCreatePullRequest = async () => {
+    if (!activeSessionFolder || isMutating) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.createPullRequest(activeSessionFolder);
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to create pull request.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
   const handleConfirmCreateBranch = async () => {
     if (!activeSessionFolder || isMutating || !newBranchName.trim()) return;
 
@@ -673,6 +704,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           onRefresh={refreshVcsStatus}
           onCreateBranch={handleCreateBranch}
           onPush={handlePush}
+          onCreatePullRequest={handleCreatePullRequest}
           isMutating={isMutating}
         />
         <div className="vcs-changes-scroll">
@@ -720,6 +752,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         onRefresh={refreshVcsStatus}
         onCreateBranch={handleCreateBranch}
         onPush={handlePush}
+        onCreatePullRequest={handleCreatePullRequest}
         isMutating={isMutating}
       />
       <div className="vcs-changes-scroll">

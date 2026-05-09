@@ -106,7 +106,11 @@ export function createMockTerminalApp(
     },
     onTerminalData: vi.fn().mockReturnValue(() => {}),
     onTerminalState: vi.fn().mockReturnValue(() => {}),
-    onTerminalExit: vi.fn().mockReturnValue(() => {})
+    onTerminalExit: vi.fn().mockReturnValue(() => {}),
+    clipboard: {
+      readText: vi.fn().mockResolvedValue(''),
+      writeText: vi.fn().mockResolvedValue(undefined)
+    }
   };
 
   // Deep merge overrides

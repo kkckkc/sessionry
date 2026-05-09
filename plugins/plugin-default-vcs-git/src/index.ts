@@ -273,7 +273,18 @@ export const createGitBranch = async (
 };
 
 export const pushGitChanges = async (folder: string, run: ExecFileLike): Promise<void> => {
-  await run('git', ['push'], { cwd: folder });
+  try {
+    await run('git', ['push'], { cwd: folder });
+  } catch (error) {
+    const stderr = String((error as ExecFileError).stderr ?? '');
+    if (stderr.includes('no upstream branch') || stderr.includes('has no upstream branch')) {
+      const branchResult = await run('git', ['branch', '--show-current'], { cwd: folder });
+      const branch = String(branchResult.stdout).trim();
+      await run('git', ['push', '--set-upstream', 'origin', branch], { cwd: folder });
+    } else {
+      throw error;
+    }
+  }
 };
 
 export const createGitPullRequest = async (folder: string, run: ExecFileLike): Promise<void> => {
