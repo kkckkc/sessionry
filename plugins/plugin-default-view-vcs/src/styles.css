@@ -556,22 +556,30 @@
 
 .vcs-commit-button {
   width: 100%;
+}
+
+.vcs-commit-button .split-btn {
+  width: 100%;
   min-height: 30px;
-  padding: 6px 10px;
-  background: var(--accent);
-  border: 1px solid var(--accent);
   border-radius: 6px;
-  color: var(--accent-foreground, #fff);
-  cursor: pointer;
+}
+
+.vcs-commit-button .split-btn__main {
+  flex: 1;
+  justify-content: center;
+  padding: 6px 10px;
   font-size: 12px;
   font-weight: 600;
+  line-height: 1;
 }
 
-.vcs-commit-button:hover:not(:disabled) {
-  filter: brightness(1.05);
+.vcs-commit-button .split-btn__dropdown {
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1;
 }
 
-.vcs-commit-button:disabled {
-  cursor: default;
-  opacity: 0.55;
+.vcs-commit-button .split-btn.is-primary .split-btn__main,
+.vcs-commit-button .split-btn.is-primary .split-btn__dropdown {
+  color: var(--accent-foreground, #fff);
 }

@@ -9,7 +9,7 @@ import type {
   VcsFileStatus,
   VcsRepositoryInfo
 } from '@sessionry/plugin-api';
-import { Dialog, DialogHeader, DialogContent, DialogFooter, Button, Input } from '@sessionry/components';
+import { Dialog, DialogHeader, DialogContent, DialogFooter, Button, Input, SplitButton } from '@sessionry/components';
 
 import { vcsViewPlugin } from '.';
 
@@ -442,8 +442,8 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     }
   };
 
-  const handleCommit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleCommit = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     if (!activeSessionFolder || !canCommit) return;
 
     setMutationError(null);
@@ -454,6 +454,41 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to commit changes.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const handleCommitAndPush = async () => {
+    if (!activeSessionFolder || !canCommit) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.commit(activeSessionFolder, commitMessage);
+      await window.terminalApp.vcs.push(activeSessionFolder);
+      setCommitMessage('');
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to commit and push changes.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const handleCreatePR = async () => {
+    if (!activeSessionFolder || !canCommit) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.commit(activeSessionFolder, commitMessage);
+      await window.terminalApp.vcs.push(activeSessionFolder);
+      await window.terminalApp.vcs.createPullRequest(activeSessionFolder);
+      setCommitMessage('');
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to create pull request.');
     } finally {
       setIsMutating(false);
     }
@@ -550,9 +585,32 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         rows={3}
       />
       {mutationError && <div className="vcs-error">{mutationError}</div>}
-      <button type="submit" className="vcs-commit-button" disabled={!canCommit}>
-        {isMutating ? 'Working...' : `Commit ${stagedFiles.length || ''}`.trim()}
-      </button>
+      <SplitButton
+        variant="primary"
+        type="submit"
+        disabled={!canCommit}
+        onClick={() => void handleCommit()}
+        options={[
+          {
+            label: 'Commit',
+            onClick: () => void handleCommit(),
+            disabled: !canCommit
+          },
+          {
+            label: 'Commit & Push',
+            onClick: () => void handleCommitAndPush(),
+            disabled: !canCommit
+          },
+          {
+            label: 'Create PR',
+            onClick: () => void handleCreatePR(),
+            disabled: !canCommit
+          }
+        ]}
+        className="vcs-commit-button"
+      >
+        {isMutating ? 'Working...' : stagedFiles.length > 0 ? `Commit (${stagedFiles.length})` : 'Commit'}
+      </SplitButton>
     </form>
   );
 

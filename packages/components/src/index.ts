@@ -11,6 +11,9 @@ export type { BadgeProps } from './Badge';
 export { Button } from './Button';
 export type { ButtonProps } from './Button';
 
+export { SplitButton } from './SplitButton';
+export type { SplitButtonProps, SplitButtonOption } from './SplitButton';
+
 export { ConfirmationDialog } from './ConfirmationDialog';
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
 

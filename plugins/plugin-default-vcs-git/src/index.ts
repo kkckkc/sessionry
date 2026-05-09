@@ -272,6 +272,18 @@ export const createGitBranch = async (
   await run('git', ['checkout', '-b', trimmedBranchName], { cwd: folder });
 };
 
+export const pushGitChanges = async (folder: string, run: ExecFileLike): Promise<void> => {
+  await run('git', ['push'], { cwd: folder });
+};
+
+export const createGitPullRequest = async (folder: string, run: ExecFileLike): Promise<void> => {
+  try {
+    await run('gh', ['pr', 'create', '--web'], { cwd: folder, timeout: 5_000 });
+  } catch (error) {
+    throw new Error('Failed to create pull request. Make sure GitHub CLI is installed and authenticated.');
+  }
+};
+
 const getGitBranchName = async (folder: string, run: ExecFileLike): Promise<string | undefined> => {
   try {
     const result = await run('git', ['branch', '--show-current'], { cwd: folder });
@@ -404,6 +416,12 @@ export const createGitVcsProvider = (
     },
     async createBranch(folder, branchName) {
       await createGitBranch(folder, branchName, run);
+    },
+    async push(folder) {
+      await pushGitChanges(folder, run);
+    },
+    async createPullRequest(folder) {
+      await createGitPullRequest(folder, run);
     }
   };
 };
