@@ -10,6 +10,7 @@ coverage/
 .DS_Store
 Thumbs.db
 
+.bob/
 .idea/
 .vscode/
 .superset
