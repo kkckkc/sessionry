@@ -151,7 +151,7 @@ const VcsRepositorySummary = ({
               </button>
               {menuOpen && (
                 <div className="vcs-branch-menu">
-                  {onPush && repository?.ahead && repository.ahead > 0 && (
+                  {onPush && (
                     <button
                       type="button"
                       className="vcs-branch-menu-item"
@@ -160,7 +160,7 @@ const VcsRepositorySummary = ({
                         setMenuOpen(false);
                         onPush();
                       }}
-                      disabled={isMutating}
+                      disabled={isMutating || !repository?.ahead || repository.ahead === 0}
                     >
                       Push
                     </button>
