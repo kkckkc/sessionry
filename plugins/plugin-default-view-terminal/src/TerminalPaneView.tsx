@@ -161,6 +161,39 @@ export const TerminalPaneView = ({
         });
         return false;
       }
+      // Cmd+Left/Right: beginning/end of line
+      if (event.metaKey && event.key === 'ArrowLeft') {
+        window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x01' });
+        return false;
+      }
+      if (event.metaKey && event.key === 'ArrowRight') {
+        window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x05' });
+        return false;
+      }
+      // Option+Left/Right: word backward/forward
+      if (event.altKey && event.key === 'ArrowLeft') {
+        window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x1bb' });
+        return false;
+      }
+      if (event.altKey && event.key === 'ArrowRight') {
+        window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x1bf' });
+        return false;
+      }
+      // Re-dispatch to document so the app's window-level shortcut handler can fire.
+      // Cmd+key combos have no PTY meaning on macOS, so suppress them in xterm.
+      // Ctrl+key combos are passed through to xterm as well (terminal control chars).
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: event.key,
+          code: event.code,
+          metaKey: event.metaKey,
+          ctrlKey: event.ctrlKey,
+          altKey: event.altKey,
+          shiftKey: event.shiftKey,
+          bubbles: true
+        })
+      );
+      if (event.metaKey) return false;
       return true;
     });
     terminal.loadAddon(new WebglAddon());

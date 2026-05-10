@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   createActionKeydownHandler,
+  detectKeybindingConflicts,
   normalizeDeclaredKeybinding,
   normalizeKeyboardEvent
 } from './keybindings';
@@ -25,6 +26,7 @@ describe('keybindings', () => {
     const preventDefault = vi.fn();
     const handleKeydown = createActionKeydownHandler(
       [{ id: 'layout:toggle-left', name: 'Toggle Left Sidebar', defaultKeybinding: 'C-b' }],
+      { custom: {}, disabled: [] },
       onExecute
     );
 
@@ -50,6 +52,7 @@ describe('keybindings', () => {
         { id: 'layout:toggle-left', name: 'Toggle Left Sidebar', defaultKeybinding: 'C-b' },
         { id: 'layout:toggle-right', name: 'Toggle Right Sidebar', defaultKeybinding: 'C-b' }
       ],
+      { custom: {}, disabled: [] },
       onExecute
     );
 
@@ -68,4 +71,77 @@ describe('keybindings', () => {
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
   });
+});
+
+it('uses custom keybinding overrides', () => {
+  const onExecute = vi.fn();
+  const preventDefault = vi.fn();
+  const handleKeydown = createActionKeydownHandler(
+    [{ id: 'layout:toggle-left', name: 'Toggle Left Sidebar', defaultKeybinding: 'C-b' }],
+    { custom: { 'layout:toggle-left': 'C-l' }, disabled: [] },
+    onExecute
+  );
+
+  // Original keybinding should not work
+  handleKeydown({
+    key: 'b',
+    ctrlKey: true,
+    metaKey: false,
+    altKey: false,
+    shiftKey: false,
+    target: document.body,
+    preventDefault
+  } as unknown as KeyboardEvent);
+
+  expect(onExecute).not.toHaveBeenCalled();
+
+  // Custom keybinding should work
+  handleKeydown({
+    key: 'l',
+    ctrlKey: true,
+    metaKey: false,
+    altKey: false,
+    shiftKey: false,
+    target: document.body,
+    preventDefault
+  } as unknown as KeyboardEvent);
+
+  expect(preventDefault).toHaveBeenCalled();
+  expect(onExecute).toHaveBeenCalledWith('layout:toggle-left');
+});
+
+it('skips disabled keybindings', () => {
+  const onExecute = vi.fn();
+  const preventDefault = vi.fn();
+  const handleKeydown = createActionKeydownHandler(
+    [{ id: 'layout:toggle-left', name: 'Toggle Left Sidebar', defaultKeybinding: 'C-b' }],
+    { custom: {}, disabled: ['layout:toggle-left'] },
+    onExecute
+  );
+
+  handleKeydown({
+    key: 'b',
+    ctrlKey: true,
+    metaKey: false,
+    altKey: false,
+    shiftKey: false,
+    target: document.body,
+    preventDefault
+  } as unknown as KeyboardEvent);
+
+  expect(preventDefault).not.toHaveBeenCalled();
+  expect(onExecute).not.toHaveBeenCalled();
+});
+
+it('ignores disabled actions when detecting conflicts', () => {
+  const conflicts = detectKeybindingConflicts(
+    [
+      { id: 'layout:toggle-left', name: 'Toggle Left Sidebar', defaultKeybinding: 'C-b' },
+      { id: 'layout:toggle-right', name: 'Toggle Right Sidebar', defaultKeybinding: 'C-b' }
+    ],
+    {},
+    ['layout:toggle-right']
+  );
+
+  expect(conflicts).toEqual([]);
 });

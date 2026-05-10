@@ -31,7 +31,10 @@ export interface TerminalAppBridge {
   readFile: (filePath: string) => Promise<string>;
   writeFile: (filePath: string, content: string) => Promise<void>;
   vcs: {
-    getStatus: (dirPath: string, options?: { bypassCache?: boolean }) => Promise<ResolvedVcsStatus | null>;
+    getStatus: (
+      dirPath: string,
+      options?: { bypassCache?: boolean }
+    ) => Promise<ResolvedVcsStatus | null>;
     getDiff: (dirPath: string, file: VcsFileStatus) => Promise<string | null>;
     stageFiles: (dirPath: string, files: VcsFileStatus[]) => Promise<void>;
     commit: (dirPath: string, message: string) => Promise<void>;
@@ -62,6 +65,11 @@ export interface TerminalAppBridge {
     read: () => Promise<AppSettings>;
     update: (updates: Partial<AppSettings>) => Promise<void>;
     onChange: (listener: (settings: AppSettings) => void) => () => void;
+  };
+  keybindings: {
+    onReload: (
+      listener: (overrides: { custom: Record<string, string>; disabled: string[] }) => void
+    ) => () => void;
   };
   themes: {
     getTheme: (themeId: string) => Promise<ThemeDefinition | undefined>;

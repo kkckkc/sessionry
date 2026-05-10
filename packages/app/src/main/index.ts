@@ -1,4 +1,14 @@
-import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, net, protocol, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  clipboard,
+  dialog,
+  ipcMain,
+  Menu,
+  net,
+  protocol,
+  shell
+} from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -210,8 +220,10 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.writeFile, (_event, filePath: string, content: string) =>
     fs.writeFileSync(filePath, content, 'utf-8')
   );
-  ipcMain.handle(IPC_CHANNELS.vcsStatus, (_event, dirPath: string, options?: { bypassCache?: boolean }) =>
-    vcsService.getStatus(dirPath, options)
+  ipcMain.handle(
+    IPC_CHANNELS.vcsStatus,
+    (_event, dirPath: string, options?: { bypassCache?: boolean }) =>
+      vcsService.getStatus(dirPath, options)
   );
   ipcMain.handle(IPC_CHANNELS.vcsDiff, (_event, dirPath: string, file) =>
     vcsService.getDiff(dirPath, file)
@@ -222,12 +234,8 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.vcsCommit, (_event, dirPath: string, message: string) =>
     vcsService.commit(dirPath, message)
   );
-  ipcMain.handle(IPC_CHANNELS.vcsPush, (_event, dirPath: string) =>
-    vcsService.push(dirPath)
-  );
-  ipcMain.handle(IPC_CHANNELS.vcsPull, (_event, dirPath: string) =>
-    vcsService.pull(dirPath)
-  );
+  ipcMain.handle(IPC_CHANNELS.vcsPush, (_event, dirPath: string) => vcsService.push(dirPath));
+  ipcMain.handle(IPC_CHANNELS.vcsPull, (_event, dirPath: string) => vcsService.pull(dirPath));
 
   ipcMain.handle(IPC_CHANNELS.vcsCreatePullRequest, (_event, dirPath: string) =>
     vcsService.createPullRequest(dirPath)
@@ -248,6 +256,13 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.settingsUpdate, (_event, updates) => {
     settingsStore.update(updates);
     mainWindow?.webContents.send('settings:changed', settingsStore.read());
+
+    // Notify all windows if keybindings changed
+    if (updates.keybindings) {
+      BrowserWindow.getAllWindows().forEach(window => {
+        window.webContents.send(IPC_CHANNELS.keybindingsReload, updates.keybindings);
+      });
+    }
   });
 
   // Clipboard IPC handlers

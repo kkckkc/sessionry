@@ -1,17 +1,17 @@
 /**
  * Centralized mock factory for window.terminalApp
- * 
+ *
  * This provides a complete mock of the TerminalAppBridge interface.
  * When the IPC contract changes, only this file needs to be updated.
- * 
+ *
  * Usage in tests:
  * ```ts
  * import { createMockTerminalApp } from '../test-utils/mockTerminalApp';
- * 
+ *
  * beforeEach(() => {
  *   global.window.terminalApp = createMockTerminalApp();
  * });
- * 
+ *
  * // Override specific methods in individual tests:
  * it('handles VCS status', async () => {
  *   const mockGetStatus = vi.fn().mockResolvedValue({ ... });
@@ -83,7 +83,7 @@ export function createMockTerminalApp(
       switchBranch: vi.fn().mockResolvedValue(undefined)
     },
     getPathForDroppedFile: vi.fn().mockReturnValue('/mock/path'),
-    formatPathForTerminal: vi.fn().mockImplementation((path) => path),
+    formatPathForTerminal: vi.fn().mockImplementation(path => path),
     settings: {
       read: vi.fn().mockResolvedValue({}),
       readSync: vi.fn().mockReturnValue({}),
@@ -107,6 +107,9 @@ export function createMockTerminalApp(
       onInstallProgress: vi.fn().mockReturnValue(() => {}),
       onUpdateProgress: vi.fn().mockReturnValue(() => {})
     },
+    keybindings: {
+      onReload: vi.fn().mockReturnValue(() => {})
+    },
     onTerminalData: vi.fn().mockReturnValue(() => {}),
     onTerminalState: vi.fn().mockReturnValue(() => {}),
     onTerminalExit: vi.fn().mockReturnValue(() => {}),
@@ -129,17 +132,20 @@ export function createMockTerminalApp(
  */
 function deepMerge<T>(target: T, source: DeepPartial<T>): T {
   const result = { ...target };
-  
+
   for (const key in source) {
     const sourceValue = source[key];
     const targetValue = result[key];
-    
+
     if (sourceValue && typeof sourceValue === 'object' && !vi.isMockFunction(sourceValue)) {
-      result[key] = deepMerge(targetValue as object, sourceValue as object) as T[Extract<keyof T, string>];
+      result[key] = deepMerge(targetValue as object, sourceValue as object) as T[Extract<
+        keyof T,
+        string
+      >];
     } else if (sourceValue !== undefined) {
       result[key] = sourceValue as T[Extract<keyof T, string>];
     }
   }
-  
+
   return result;
 }

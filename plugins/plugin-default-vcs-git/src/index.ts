@@ -74,7 +74,9 @@ export const parseGitStatusPorcelain = (stdout: string): VcsFileStatus[] => {
           ? workTreeStatus
           : undefined;
     const status =
-      rawStatus === '??' ? '??' : `${stagedStatus ?? ''}${unstagedStatus ?? ''}` || rawStatus.trim();
+      rawStatus === '??'
+        ? '??'
+        : `${stagedStatus ?? ''}${unstagedStatus ?? ''}` || rawStatus.trim();
 
     // Handle renames: "R  old -> new"
     if (rawStatus.startsWith('R') || rawStatus.startsWith('C')) {
@@ -295,15 +297,21 @@ export const createGitPullRequest = async (folder: string, run: ExecFileLike): P
   try {
     await run('gh', ['pr', 'create', '--web'], { cwd: folder, timeout: 5_000 });
   } catch (_error) {
-    throw new Error('Failed to create pull request. Make sure GitHub CLI is installed and authenticated.');
+    throw new Error(
+      'Failed to create pull request. Make sure GitHub CLI is installed and authenticated.'
+    );
   }
 };
 
 export const listGitBranches = async (folder: string, run: ExecFileLike): Promise<string[]> => {
   try {
-    const result = await run('git', ['branch', '--sort=-committerdate', '--format=%(refname:short)'], {
-      cwd: folder
-    });
+    const result = await run(
+      'git',
+      ['branch', '--sort=-committerdate', '--format=%(refname:short)'],
+      {
+        cwd: folder
+      }
+    );
     const branches = String(result.stdout)
       .trim()
       .split('\n')
@@ -358,7 +366,8 @@ const getGitPullRequest = async (
   }
 };
 
-const getGitPullRequestCacheKey = (folder: string, branch: string): string => `${folder}\0${branch}`;
+const getGitPullRequestCacheKey = (folder: string, branch: string): string =>
+  `${folder}\0${branch}`;
 
 const isGitRepository = async (folder: string, run: ExecFileLike): Promise<boolean> => {
   try {

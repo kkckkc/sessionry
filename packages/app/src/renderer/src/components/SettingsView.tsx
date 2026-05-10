@@ -17,6 +17,8 @@ import {
 import type { AppSettings, AppTheme, ThemeId } from '@sessionry/plugin-api';
 import type { RendererViewRegistration } from '@sessionry/plugin-api';
 import { PluginSurface } from './PluginSurface';
+import { KeyboardShortcutsSettingsView } from './KeyboardShortcutsSettingsView';
+import type { KeybindingOverrides } from '../lib/keybindings';
 import { applyTheme, applyColorTheme } from '../lib/theme';
 import {
   usePluginManager,
@@ -82,6 +84,16 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
       }
     },
     {
+      id: 'app-keyboard-shortcuts',
+      name: 'Keybindings',
+      settingsView: {
+        id: 'settings.keyboard-shortcuts',
+        title: 'Keybindings',
+        description: 'Customize keybindings for actions',
+        icon: 'TbKeyboard'
+      }
+    },
+    {
       id: 'app-confirmations',
       name: 'Confirmations',
       settingsView: {
@@ -130,9 +142,11 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
             terminalBgOverride: settings.terminalBgOverride ?? false,
             terminalBgColor: settings.terminalBgColor ?? '#000000'
           }
-        : selectedPlugin.id === 'app-confirmations'
-          ? settings.confirmations
-          : settings.plugins[selectedPlugin.id];
+        : selectedPlugin.id === 'app-keyboard-shortcuts'
+          ? settings.keybindings
+          : selectedPlugin.id === 'app-confirmations'
+            ? settings.confirmations
+            : settings.plugins[selectedPlugin.id];
 
   const handleUpdateSettings = async (pluginId: string, updates: unknown) => {
     if (!settings) return;
@@ -160,6 +174,19 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
         colorTheme,
         terminalBgOverride,
         terminalBgColor
+      });
+      return;
+    }
+
+    // Handle built-in keyboard shortcuts settings (not a plugin)
+    if (pluginId === 'app-keyboard-shortcuts') {
+      const nextSettings: AppSettings = {
+        ...settings,
+        keybindings: updates as KeybindingOverrides
+      };
+      setSettings(nextSettings);
+      await window.terminalApp.settings.update({
+        keybindings: updates as KeybindingOverrides
       });
       return;
     }
@@ -281,6 +308,28 @@ const PluginSettingsContent = ({
             }
           }
           onUpdate={onUpdate}
+        />
+      </PluginSurface>
+    );
+  }
+
+  // Handle built-in keyboard shortcuts settings
+  if (plugin.id === 'app-keyboard-shortcuts') {
+    return (
+      <PluginSurface
+        pluginId={plugin.id}
+        surface="settings"
+        slot="settings"
+        viewId={plugin.settingsView.id}
+      >
+        <KeyboardShortcutsSettingsView
+          settings={
+            ((settings as KeybindingOverrides | null) ?? {
+              custom: {},
+              disabled: []
+            }) as KeybindingOverrides
+          }
+          onUpdate={onUpdate as (updates: KeybindingOverrides) => Promise<void>}
         />
       </PluginSurface>
     );

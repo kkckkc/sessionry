@@ -10,7 +10,7 @@ export const corePlugin: AppPlugin = {
       icon: 'TbLayoutSidebarLeftCollapse',
       description: 'Show or hide the left sidebar',
       category: 'Layout',
-      defaultKeybinding: 'C-b',
+      defaultKeybinding: 'C-S-l',
       surfaces: ['toolbar', 'palette'],
       run: async () => {
         return {

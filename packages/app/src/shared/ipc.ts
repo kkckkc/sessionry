@@ -22,6 +22,9 @@ export const IPC_CHANNELS = {
   settingsRead: 'settings:read',
   settingsUpdate: 'settings:update',
 
+  // Keybindings
+  keybindingsReload: 'keybindings:reload',
+
   // File System
   openExternal: 'fs:open-external',
   showFolderDialog: 'fs:show-folder-dialog',

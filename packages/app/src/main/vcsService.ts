@@ -15,7 +15,10 @@ interface RegisteredProvider extends VcsProviderDefinition {
 
 export interface VcsService {
   registerProvider: (provider: VcsProviderDefinition) => void;
-  getStatus: (folder: string, options?: { bypassCache?: boolean }) => Promise<ResolvedVcsStatus | null>;
+  getStatus: (
+    folder: string,
+    options?: { bypassCache?: boolean }
+  ) => Promise<ResolvedVcsStatus | null>;
   getDiff: (folder: string, file: VcsFileStatus) => Promise<string | null>;
   stageFiles: (folder: string, files: VcsFileStatus[]) => Promise<void>;
   commit: (folder: string, message: string) => Promise<void>;
@@ -138,7 +141,7 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       await provider.commit(folder, message);
       cache.delete(folder);
     },
-    push: async (folder) => {
+    push: async folder => {
       const provider = getSortedProviders().find(provider => Boolean(provider.push));
       if (!provider?.push) {
         throw new Error('No VCS provider supports pushing changes.');
@@ -147,7 +150,7 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       await provider.push(folder);
       cache.delete(folder);
     },
-    pull: async (folder) => {
+    pull: async folder => {
       const provider = getSortedProviders().find(provider => Boolean(provider.pull));
       if (!provider?.pull) {
         throw new Error('No VCS provider supports pulling changes.');
@@ -156,7 +159,7 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       await provider.pull(folder);
       cache.delete(folder);
     },
-    createPullRequest: async (folder) => {
+    createPullRequest: async folder => {
       const provider = getSortedProviders().find(provider => Boolean(provider.createPullRequest));
       if (!provider?.createPullRequest) {
         throw new Error('No VCS provider supports creating pull requests.');
@@ -174,7 +177,7 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       await provider.createBranch(folder, branchName);
       cache.delete(folder);
     },
-    listBranches: async (folder) => {
+    listBranches: async folder => {
       const provider = getSortedProviders().find(provider => Boolean(provider.listBranches));
       if (!provider?.listBranches) {
         throw new Error('No VCS provider supports listing branches.');

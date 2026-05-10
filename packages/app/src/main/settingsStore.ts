@@ -18,6 +18,10 @@ const DEFAULTS: AppSettings = {
     confirmPaneGroupClose: true,
     confirmSessionClose: true
   },
+  keybindings: {
+    custom: {},
+    disabled: []
+  },
   plugins: {
     'plugin-default-view-terminal': {
       tmux: {
