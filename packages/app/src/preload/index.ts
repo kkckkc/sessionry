@@ -123,6 +123,14 @@ const api = {
     getAllThemes: (): Promise<ThemeDefinition[]> => ipcRenderer.invoke('themes:getAll'),
     getThemeIds: (): Promise<string[]> => ipcRenderer.invoke('themes:getIds')
   },
+  keybindings: {
+    onReload: (listener: (overrides: { custom: Record<string, string>; disabled: string[] }) => void): Unsubscribe => {
+      const wrapped = (_event: Electron.IpcRendererEvent, payload: { custom: Record<string, string>; disabled: string[] }) =>
+        listener(payload);
+      ipcRenderer.on(IPC_CHANNELS.keybindingsReload, wrapped);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.keybindingsReload, wrapped);
+    }
+  },
   plugins: {
     // biome-ignore lint/suspicious/noExplicitAny: IPC bridge matches bridge.d.ts types
     search: (query: string, options?: { size?: number }): Promise<any> =>

@@ -248,6 +248,13 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.settingsUpdate, (_event, updates) => {
     settingsStore.update(updates);
     mainWindow?.webContents.send('settings:changed', settingsStore.read());
+    
+    // Notify all windows if keybindings changed
+    if (updates.keybindings) {
+      BrowserWindow.getAllWindows().forEach(window => {
+        window.webContents.send(IPC_CHANNELS.keybindingsReload, updates.keybindings);
+      });
+    }
   });
 
   // Clipboard IPC handlers

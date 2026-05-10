@@ -50,6 +50,10 @@ export interface AppSettings {
     confirmPaneGroupClose: boolean;
     confirmSessionClose: boolean;
   };
+  keybindings: {
+    custom: Record<string, string>;
+    disabled: string[];
+  };
   plugins: Record<string, unknown>;
   pluginManagement?: PluginManagementConfig;
 }

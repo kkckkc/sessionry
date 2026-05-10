@@ -68,6 +68,9 @@ export interface TerminalAppBridge {
     getAllThemes: () => Promise<ThemeDefinition[]>;
     getThemeIds: () => Promise<string[]>;
   };
+  keybindings: {
+    onReload: (listener: (overrides: { custom: Record<string, string>; disabled: string[] }) => void) => Unsubscribe;
+  };
   plugins: {
     // biome-ignore lint/suspicious/noExplicitAny: External IPC API boundary - types come from main process
     search: (query: string, options?: { size?: number }) => Promise<any[]>;

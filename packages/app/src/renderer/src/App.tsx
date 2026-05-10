@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getActiveVisibleTerminalPaneId } from '@sessionry/plugin-default-view-workspace/renderer';
 
 import { AppShell } from './components/AppShell';
-import { createActionKeydownHandler } from './lib/keybindings';
+import { createActionKeydownHandler, type KeybindingOverrides } from './lib/keybindings';
 import { SettingsView } from './components/SettingsView';
 import { WorkspaceSlotView } from './components/WorkspaceSlotView';
 import { readWorkspaceSnapshot, workspace } from './lib/workspace';
@@ -29,6 +29,10 @@ const emptyPlugins: PluginViewModel = {
 
 export const App = () => {
   const [plugins, setPlugins] = useState<PluginViewModel>(emptyPlugins);
+  const [keybindingOverrides, setKeybindingOverrides] = useState<KeybindingOverrides>({
+    custom: {},
+    disabled: []
+  });
   const [terminalSessions, setTerminalSessions] = useState<Record<string, TerminalSessionInfo>>({});
   const [workspaceSnapshot, setWorkspaceSnapshot] = useState<WorkspaceStateSnapshot>(() =>
     readWorkspaceSnapshot()
@@ -171,14 +175,31 @@ export const App = () => {
     [activeTerminalPaneId, activeWorkspaceSessionId, workspaceSnapshot]
   );
 
+  // Load initial keybindings from settings
   useEffect(() => {
-    const handleKeydown = createActionKeydownHandler(plugins.actions, actionId =>
-      executeAction(actionId, 'shortcut')
+    void window.terminalApp.settings.read().then(settings => {
+      setKeybindingOverrides(settings.keybindings);
+    });
+  }, []);
+
+  // Listen for keybinding reload events
+  useEffect(() => {
+    const unsubscribe = window.terminalApp.keybindings.onReload(overrides => {
+      setKeybindingOverrides(overrides);
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const handleKeydown = createActionKeydownHandler(
+      plugins.actions,
+      keybindingOverrides,
+      actionId => executeAction(actionId, 'shortcut')
     );
 
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
-  }, [plugins.actions, executeAction]);
+  }, [plugins.actions, keybindingOverrides, executeAction]);
 
   const showSettings = activeProject?.activeViews.workspace === 'view.settings';
   const closeSettings = () => executeAction('workspace:show-default-view', 'api');
