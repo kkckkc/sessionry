@@ -11,7 +11,8 @@
 .menu-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 0.55rem;
   width: 100%;
   border: none;
   border-radius: 7px;
@@ -25,6 +26,10 @@
   outline: none;
   user-select: none;
 
+  svg {
+    flex: 0 0 auto;
+  }
+
   &[data-highlighted] {
     background: var(--border);
   }
@@ -36,6 +41,7 @@
 
   &.menu-item--has-submenu::after {
     content: "›";
+    margin-left: auto;
     color: var(--text-dim);
     font-size: var(--title-font-size);
     line-height: 1;

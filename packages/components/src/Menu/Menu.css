@@ -1,0 +1,77 @@
+@keyframes menu-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.menu-positioner {
+  z-index: 1000;
+}
+
+.menu-popup {
+  min-width: 180px;
+  max-height: 400px;
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-6);
+  background: var(--panel-bg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: var(--space-2);
+  user-select: none;
+  animation: menu-fade-in 0.1s ease;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  justify-content: flex-start;
+  padding: 6px var(--space-5);
+  border-radius: var(--radius-3);
+  color: var(--text);
+  font-size: var(--body-font-size);
+  font-weight: var(--body-font-weight);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background 0.1s;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.menu-item svg {
+  flex: 0 0 auto;
+}
+
+.menu-item:hover:not([data-disabled]) {
+  background: var(--hover);
+}
+
+.menu-item[data-highlighted] {
+  background: var(--hover);
+}
+
+.menu-item[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menu-item--danger {
+  color: var(--danger);
+}
+
+.menu-item--danger:hover:not([data-disabled]) {
+  background: var(--danger-bg);
+}
+
+.menu-separator {
+  height: 1px;
+  margin: 3px var(--space-3);
+  background: var(--border);
+}

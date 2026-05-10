@@ -69,4 +69,14 @@ export type { SegmentedControlProps, SegmentedControlItem } from './SegmentedCon
 export { TabBar } from './TabBar';
 export type { TabBarProps, TabBarItem } from './TabBar';
 
+export { Menu } from './Menu';
+export type {
+  MenuItemProps,
+  MenuRootProps,
+  MenuPortalProps,
+  MenuPositionerProps,
+  MenuPopupProps,
+  MenuSeparatorProps
+} from './Menu';
+
 export const version = '0.1.0';

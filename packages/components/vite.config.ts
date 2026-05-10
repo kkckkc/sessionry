@@ -9,7 +9,7 @@ export default defineConfig({
     dts({
       include: ['src'],
       exclude: ['**/*.stories.tsx', '**/*.test.tsx'],
-      rollupTypes: true
+      rollupTypes: false
     })
   ],
   build: {
@@ -20,7 +20,7 @@ export default defineConfig({
       fileName: 'index'
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime', '@base-ui-components/react'],
+      external: ['react', 'react-dom', 'react/jsx-runtime', '@base-ui/react'],
       output: {
         globals: {
           react: 'React',
