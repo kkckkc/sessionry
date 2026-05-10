@@ -240,7 +240,6 @@
   margin-left: 0;
 }
 
-
 /* Sync status (ahead/behind/upstream) */
 .vcs-sync-status {
   display: flex;
@@ -268,7 +267,7 @@
 .vcs-upstream {
   flex: 1;
   min-width: 0;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   color: var(--text-muted);
   overflow: hidden;
@@ -353,7 +352,7 @@
 }
 
 .vcs-pr-number {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   color: var(--text-muted);
 }
@@ -514,7 +513,7 @@
 
 .vcs-section-count {
   color: var(--text-muted);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   letter-spacing: 0;
 }
 

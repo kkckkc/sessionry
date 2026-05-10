@@ -27,8 +27,6 @@
   border-color: var(--color-primary);
 }
 
-
-
 .keyboard-shortcuts-conflicts {
   padding: 1rem;
   background: rgba(255, 193, 7, 0.1);
@@ -186,9 +184,3 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
-
-
-
-
-
-

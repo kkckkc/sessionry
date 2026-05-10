@@ -32,7 +32,7 @@ export const ContextMenu: Story = {
             cursor: 'pointer',
             textAlign: 'center'
           }}
-          onContextMenu={(e) => {
+          onContextMenu={e => {
             e.preventDefault();
             setAnchorEl(e.currentTarget);
             setMenuOpen(true);
@@ -51,12 +51,8 @@ export const ContextMenu: Story = {
               }
             >
               <Menu.Popup>
-                <Menu.Item onClick={() => console.log('Edit clicked')}>
-                  Edit
-                </Menu.Item>
-                <Menu.Item onClick={() => console.log('Duplicate clicked')}>
-                  Duplicate
-                </Menu.Item>
+                <Menu.Item onClick={() => console.log('Edit clicked')}>Edit</Menu.Item>
+                <Menu.Item onClick={() => console.log('Duplicate clicked')}>Duplicate</Menu.Item>
                 <Menu.Separator />
                 <Menu.Item onClick={() => console.log('Delete clicked')} danger>
                   Delete
@@ -89,7 +85,7 @@ export const WithDisabledItems: Story = {
             color: 'var(--text)',
             cursor: 'pointer'
           }}
-          onClick={(e) => {
+          onClick={e => {
             setAnchorEl(e.currentTarget);
             setMenuOpen(true);
           }}
@@ -107,15 +103,11 @@ export const WithDisabledItems: Story = {
               }
             >
               <Menu.Popup>
-                <Menu.Item onClick={() => console.log('Copy clicked')}>
-                  Copy
-                </Menu.Item>
+                <Menu.Item onClick={() => console.log('Copy clicked')}>Copy</Menu.Item>
                 <Menu.Item onClick={() => console.log('Cut clicked')} disabled>
                   Cut (disabled)
                 </Menu.Item>
-                <Menu.Item onClick={() => console.log('Paste clicked')}>
-                  Paste
-                </Menu.Item>
+                <Menu.Item onClick={() => console.log('Paste clicked')}>Paste</Menu.Item>
               </Menu.Popup>
             </Menu.Positioner>
           </Menu.Portal>
@@ -144,7 +136,7 @@ export const WithSections: Story = {
             color: 'var(--text)',
             cursor: 'pointer'
           }}
-          onClick={(e) => {
+          onClick={e => {
             setAnchorEl(e.currentTarget);
             setMenuOpen(true);
           }}
@@ -162,19 +154,11 @@ export const WithSections: Story = {
               }
             >
               <Menu.Popup>
-                <Menu.Item onClick={() => console.log('New clicked')}>
-                  New File
-                </Menu.Item>
-                <Menu.Item onClick={() => console.log('Open clicked')}>
-                  Open File
-                </Menu.Item>
+                <Menu.Item onClick={() => console.log('New clicked')}>New File</Menu.Item>
+                <Menu.Item onClick={() => console.log('Open clicked')}>Open File</Menu.Item>
                 <Menu.Separator />
-                <Menu.Item onClick={() => console.log('Save clicked')}>
-                  Save
-                </Menu.Item>
-                <Menu.Item onClick={() => console.log('Save As clicked')}>
-                  Save As...
-                </Menu.Item>
+                <Menu.Item onClick={() => console.log('Save clicked')}>Save</Menu.Item>
+                <Menu.Item onClick={() => console.log('Save As clicked')}>Save As...</Menu.Item>
                 <Menu.Separator />
                 <Menu.Item onClick={() => console.log('Close clicked')} danger>
                   Close

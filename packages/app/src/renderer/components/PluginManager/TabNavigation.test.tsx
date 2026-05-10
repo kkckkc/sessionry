@@ -163,5 +163,4 @@ describe('TabNavigation', () => {
     expect(availableTab).toHaveAttribute('tabIndex', '-1');
     expect(updatesTab).toHaveAttribute('tabIndex', '-1');
   });
-
 });

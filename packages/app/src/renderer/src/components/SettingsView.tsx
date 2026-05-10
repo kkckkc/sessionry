@@ -323,7 +323,12 @@ const PluginSettingsContent = ({
         viewId={plugin.settingsView.id}
       >
         <KeyboardShortcutsSettingsView
-          settings={((settings as KeybindingOverrides | null) ?? { custom: {}, disabled: [] }) as KeybindingOverrides}
+          settings={
+            ((settings as KeybindingOverrides | null) ?? {
+              custom: {},
+              disabled: []
+            }) as KeybindingOverrides
+          }
           onUpdate={onUpdate as (updates: KeybindingOverrides) => Promise<void>}
         />
       </PluginSurface>

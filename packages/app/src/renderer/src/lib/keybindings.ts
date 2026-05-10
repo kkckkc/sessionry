@@ -23,7 +23,7 @@ const normalizeKeybinding = (binding: string): NormalizedKeybindingState => {
     (state, segment, index) => {
       const lowered = segment.toLowerCase();
       const isLastSegment = index === segments.length - 1;
-      
+
       // Only treat 's' as Shift if it's not the last segment (i.e., it's a modifier, not the key)
       const normalizedSegment =
         lowered === 'c' ||
@@ -137,7 +137,6 @@ export const createActionKeydownHandler = (
     onExecute(action.id);
   };
 };
-
 
 export const detectKeybindingConflicts = (
   actions: ActionDescriptor[],

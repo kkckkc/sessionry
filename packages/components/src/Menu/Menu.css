@@ -20,7 +20,9 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-6);
   background: var(--panel-bg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   padding: var(--space-2);
   user-select: none;
   animation: menu-fade-in 0.1s ease;

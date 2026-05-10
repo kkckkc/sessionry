@@ -44,7 +44,10 @@ export interface TerminalAppBridge {
   writeFile: (filePath: string, content: string) => Promise<void>;
   openExternal: (url: string) => Promise<void>;
   vcs: {
-    getStatus: (dirPath: string, options?: { bypassCache?: boolean }) => Promise<ResolvedVcsStatus | null>;
+    getStatus: (
+      dirPath: string,
+      options?: { bypassCache?: boolean }
+    ) => Promise<ResolvedVcsStatus | null>;
     getDiff: (dirPath: string, file: VcsFileStatus) => Promise<string | null>;
     stageFiles: (dirPath: string, files: VcsFileStatus[]) => Promise<void>;
     commit: (dirPath: string, message: string) => Promise<void>;
@@ -69,7 +72,9 @@ export interface TerminalAppBridge {
     getThemeIds: () => Promise<string[]>;
   };
   keybindings: {
-    onReload: (listener: (overrides: { custom: Record<string, string>; disabled: string[] }) => void) => Unsubscribe;
+    onReload: (
+      listener: (overrides: { custom: Record<string, string>; disabled: string[] }) => void
+    ) => Unsubscribe;
   };
   plugins: {
     // biome-ignore lint/suspicious/noExplicitAny: External IPC API boundary - types come from main process

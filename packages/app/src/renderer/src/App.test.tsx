@@ -1,7 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { PluginViewModel, TerminalSessionInfo, WorkspaceStateSnapshot } from '@sessionry/plugin-api';
+import type {
+  PluginViewModel,
+  TerminalSessionInfo,
+  WorkspaceStateSnapshot
+} from '@sessionry/plugin-api';
 import { createMockTerminalApp } from '../test-utils/mockTerminalApp';
 
 vi.mock('@sessionry/plugin-default-view-workspace/renderer', () => ({
@@ -196,7 +200,7 @@ describe('App', () => {
     settingsRead.mockClear();
     settingsUpdate.mockClear();
     settingsOnChange.mockClear();
-    
+
     window.terminalApp = createMockTerminalApp({
       createTerminalSession: vi.fn(async () => terminalSession),
       getPluginModel: vi.fn(async () => pluginModel),

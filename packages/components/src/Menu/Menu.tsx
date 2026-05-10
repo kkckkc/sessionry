@@ -50,20 +50,12 @@ export const MenuItem = ({
   className: customClassName,
   danger = false
 }: MenuItemProps) => {
-  const baseClassName = [
-    'menu-item',
-    danger && 'menu-item--danger',
-    customClassName
-  ]
+  const baseClassName = ['menu-item', danger && 'menu-item--danger', customClassName]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <BaseMenu.Item
-      className={baseClassName}
-      onClick={onClick}
-      disabled={disabled}
-    >
+    <BaseMenu.Item className={baseClassName} onClick={onClick} disabled={disabled}>
       {children}
     </BaseMenu.Item>
   );
@@ -100,10 +92,7 @@ export interface MenuRootProps {
  * ```
  */
 export const MenuRoot = ({ open, onOpenChange, children }: MenuRootProps) => {
-  const handleOpenChange = (
-    nextOpen: boolean,
-    eventDetails: BaseMenuRoot.ChangeEventDetails
-  ) => {
+  const handleOpenChange = (nextOpen: boolean, eventDetails: BaseMenuRoot.ChangeEventDetails) => {
     if (!nextOpen && eventDetails.reason === HOVER_CLOSE_REASON) {
       eventDetails.cancel();
       return;
@@ -222,9 +211,7 @@ export const MenuSubmenuTrigger = ({
   className: customClassName,
   label
 }: MenuSubmenuTriggerProps) => {
-  const baseClassName = ['menu-item', customClassName]
-    .filter(Boolean)
-    .join(' ');
+  const baseClassName = ['menu-item', customClassName].filter(Boolean).join(' ');
 
   return (
     <BaseMenu.SubmenuTrigger className={baseClassName} disabled={disabled} label={label}>
@@ -286,9 +273,7 @@ export const MenuPositioner = ({
   children,
   className: customClassName
 }: MenuPositionerProps) => {
-  const baseClassName = ['menu-positioner', customClassName]
-    .filter(Boolean)
-    .join(' ');
+  const baseClassName = ['menu-positioner', customClassName].filter(Boolean).join(' ');
 
   return (
     <BaseMenu.Positioner className={baseClassName} anchor={anchor}>
@@ -323,9 +308,7 @@ export interface MenuPopupProps {
  * ```
  */
 export const MenuPopup = ({ children, className: customClassName }: MenuPopupProps) => {
-  const baseClassName = ['menu-popup', customClassName]
-    .filter(Boolean)
-    .join(' ');
+  const baseClassName = ['menu-popup', customClassName].filter(Boolean).join(' ');
 
   return <BaseMenu.Popup className={baseClassName}>{children}</BaseMenu.Popup>;
 };
@@ -351,9 +334,7 @@ export interface MenuSeparatorProps {
  * ```
  */
 export const MenuSeparator = ({ className: customClassName }: MenuSeparatorProps) => {
-  const baseClassName = ['menu-separator', customClassName]
-    .filter(Boolean)
-    .join(' ');
+  const baseClassName = ['menu-separator', customClassName].filter(Boolean).join(' ');
 
   return <BaseMenu.Separator className={baseClassName} />;
 };

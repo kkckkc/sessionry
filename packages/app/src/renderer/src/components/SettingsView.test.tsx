@@ -18,6 +18,10 @@ const initialSettings: AppSettings = {
     confirmPaneGroupClose: true,
     confirmSessionClose: true
   },
+  keybindings: {
+    custom: {},
+    disabled: []
+  },
   plugins: {}
 };
 
@@ -38,6 +42,9 @@ describe('SettingsView', () => {
       },
       themes: {
         getAllThemes: vi.fn(async () => [])
+      },
+      keybindings: {
+        onReload: vi.fn(() => () => {})
       }
     });
   });

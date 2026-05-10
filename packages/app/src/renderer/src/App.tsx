@@ -184,9 +184,11 @@ export const App = () => {
 
   // Listen for keybinding reload events
   useEffect(() => {
-    const unsubscribe = window.terminalApp.keybindings.onReload(overrides => {
-      setKeybindingOverrides(overrides);
-    });
+    const unsubscribe = window.terminalApp.keybindings.onReload(
+      (overrides: { custom: Record<string, string>; disabled: string[] }) => {
+        setKeybindingOverrides(overrides);
+      }
+    );
     return unsubscribe;
   }, []);
 

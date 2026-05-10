@@ -12,7 +12,7 @@ interface KeyboardShortcutInputProps {
 
 const formatKeybindingForDisplay = (keybinding: string): string => {
   if (!keybinding) return '';
-  
+
   const parts = keybinding.split('-');
   return parts
     .map((part, index) => {
@@ -76,7 +76,9 @@ export const KeyboardShortcutInput = ({
     <div className="keyboard-shortcut-input">
       <input
         type="text"
-        value={isRecording ? 'Press keys...' : formatKeybindingForDisplay(displayValue) || 'Not set'}
+        value={
+          isRecording ? 'Press keys...' : formatKeybindingForDisplay(displayValue) || 'Not set'
+        }
         onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}

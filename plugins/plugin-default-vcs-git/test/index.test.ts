@@ -43,7 +43,9 @@ describe('parseGitStatusPorcelain', () => {
   });
 
   it('preserves staged and unstaged status columns', () => {
-    expect(parseGitStatusPorcelain('M  staged.ts\nMM both.ts\nA  added.ts\n D deleted.ts\n')).toEqual([
+    expect(
+      parseGitStatusPorcelain('M  staged.ts\nMM both.ts\nA  added.ts\n D deleted.ts\n')
+    ).toEqual([
       { path: 'staged.ts', status: 'M', stagedStatus: 'M' },
       { path: 'both.ts', status: 'MM', stagedStatus: 'M', unstagedStatus: 'M' },
       { path: 'added.ts', status: 'A', stagedStatus: 'A' },

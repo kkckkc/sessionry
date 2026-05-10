@@ -11,7 +11,7 @@ import './KeyboardShortcutsSettings.css';
 
 const formatKeybindingForDisplay = (keybinding: string): string => {
   if (!keybinding) return '';
-  
+
   const parts = keybinding.split('-');
   return parts
     .map((part, index) => {
@@ -43,11 +43,7 @@ export const KeyboardShortcutsSettingsView = ({
   }, []);
 
   useEffect(() => {
-    const detected = detectKeybindingConflicts(
-      actions,
-      settings.custom,
-      settings.disabled
-    );
+    const detected = detectKeybindingConflicts(actions, settings.custom, settings.disabled);
     setConflicts(detected);
   }, [actions, settings.custom, settings.disabled]);
 
@@ -113,10 +109,7 @@ export const KeyboardShortcutsSettingsView = ({
           onChange={e => setSearchQuery(e.target.value)}
           className="keyboard-shortcuts-search"
         />
-        <Button
-          onClick={handleResetAll}
-          variant="secondary"
-        >
+        <Button onClick={handleResetAll} variant="secondary">
           Reset All
         </Button>
       </div>

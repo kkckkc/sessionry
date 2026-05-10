@@ -62,11 +62,7 @@ describe('preload workspace bridge', () => {
     expect(invoke).toHaveBeenCalledWith('vcs:stage-files', '/tmp/project', [
       { path: 'src/index.ts', status: 'M' }
     ]);
-    expect(invoke).toHaveBeenCalledWith(
-      'vcs:commit',
-      '/tmp/project',
-      'Add VCS commit controls'
-    );
+    expect(invoke).toHaveBeenCalledWith('vcs:commit', '/tmp/project', 'Add VCS commit controls');
     expect(invoke).toHaveBeenCalledWith(
       'vcs:create-branch',
       '/tmp/project',

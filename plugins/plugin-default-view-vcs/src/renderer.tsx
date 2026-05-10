@@ -18,7 +18,16 @@ import type {
   VcsFileStatus,
   VcsRepositoryInfo
 } from '@sessionry/plugin-api';
-import { Dialog, DialogHeader, DialogContent, DialogFooter, Button, Input, SplitButton, Menu } from '@sessionry/components';
+import {
+  Dialog,
+  DialogHeader,
+  DialogContent,
+  DialogFooter,
+  Button,
+  Input,
+  SplitButton,
+  Menu
+} from '@sessionry/components';
 
 import { vcsViewPlugin } from '.';
 
@@ -121,16 +130,8 @@ const VcsRepositorySummary = ({
   const recentBranches = switchableBranches.slice(0, RECENT_BRANCH_LIMIT);
 
   const renderBranchMenuItem = (branch: string) => (
-    <Menu.Item
-      key={branch}
-      onClick={() => handleBranchSwitch(branch)}
-      disabled={isMutating}
-    >
-      <TbGitBranch
-        className="vcs-branch-menu-icon"
-        size={14}
-        aria-hidden="true"
-      />
+    <Menu.Item key={branch} onClick={() => handleBranchSwitch(branch)} disabled={isMutating}>
+      <TbGitBranch className="vcs-branch-menu-icon" size={14} aria-hidden="true" />
       {branch}
     </Menu.Item>
   );
@@ -653,7 +654,9 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       await window.terminalApp.vcs.push(activeSessionFolder);
       setCommitMessage('');
     } catch (error) {
-      setMutationError(error instanceof Error ? error.message : 'Unable to commit and push changes.');
+      setMutationError(
+        error instanceof Error ? error.message : 'Unable to commit and push changes.'
+      );
     } finally {
       setIsMutating(false);
       refreshVcsStatus();
@@ -768,8 +771,8 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       {sectionFiles.map((file, index) => {
         const displayStatus =
           options.kind === 'staged'
-            ? file.stagedStatus ?? file.status
-            : file.unstagedStatus ?? file.status;
+            ? (file.stagedStatus ?? file.status)
+            : (file.unstagedStatus ?? file.status);
 
         return (
           <li
@@ -784,9 +787,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
               }}
               title={getStatusLabel(displayStatus)}
             >
-              <span className={`vcs-status ${getStatusClass(displayStatus)}`}>
-                {displayStatus}
-              </span>
+              <span className={`vcs-status ${getStatusClass(displayStatus)}`}>{displayStatus}</span>
               <span className="vcs-file-path">
                 {file.oldPath ? (
                   <>
@@ -853,7 +854,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         ]}
         className="vcs-commit-button"
       >
-        {isMutating ? 'Working...' : stagedFiles.length > 0 ? `Commit (${stagedFiles.length})` : 'Commit'}
+        {isMutating
+          ? 'Working...'
+          : stagedFiles.length > 0
+            ? `Commit (${stagedFiles.length})`
+            : 'Commit'}
       </SplitButton>
     </form>
   );
