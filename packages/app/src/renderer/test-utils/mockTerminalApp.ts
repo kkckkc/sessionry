@@ -76,6 +76,7 @@ export function createMockTerminalApp(
       stageFiles: vi.fn().mockResolvedValue(undefined),
       commit: vi.fn().mockResolvedValue(undefined),
       push: vi.fn().mockResolvedValue(undefined),
+      pull: vi.fn().mockResolvedValue(undefined),
       createPullRequest: vi.fn().mockResolvedValue(undefined),
       createBranch: vi.fn().mockResolvedValue(undefined),
       listBranches: vi.fn().mockResolvedValue([]),

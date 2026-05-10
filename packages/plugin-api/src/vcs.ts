@@ -54,6 +54,7 @@ export interface VcsProviderDefinition {
   stageFiles?: (folder: string, files: VcsFileStatus[]) => Promise<void> | void;
   commit?: (folder: string, message: string) => Promise<void> | void;
   push?: (folder: string) => Promise<void> | void;
+  pull?: (folder: string) => Promise<void> | void;
   createPullRequest?: (folder: string) => Promise<void> | void;
   createBranch?: (folder: string, branchName: string) => Promise<void> | void;
   listBranches?: (folder: string) => Promise<string[]> | string[];
