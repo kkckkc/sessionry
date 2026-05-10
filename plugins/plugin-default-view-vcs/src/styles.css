@@ -5,6 +5,9 @@
   overflow: hidden;
   overflow-x: hidden;
   padding: 8px 0;
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
 }
 
 .vcs-header {
@@ -89,6 +92,31 @@
   cursor: not-allowed;
 }
 
+.vcs-branch-switch-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.1s;
+}
+
+.vcs-branch-switch-btn:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.vcs-branch-switch-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .vcs-branch-menu-btn {
   display: flex;
   align-items: center;
@@ -110,15 +138,13 @@
 }
 
 .vcs-branch-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
+  position: fixed;
   background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 4px;
   min-width: 140px;
-  z-index: 100;
+  z-index: 9999;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -149,9 +175,33 @@
   background: transparent;
 }
 
-.vcs-branch-name {
+.vcs-branch-menu-item--active {
+  background: var(--surface-secondary);
+  font-weight: 600;
+}
+
+.vcs-branch-switch-menu {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.vcs-branch-menu-loading,
+.vcs-branch-menu-empty {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.vcs-branch-name-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex: 1;
   min-width: 0;
+}
+
+.vcs-branch-name {
   font-size: 12px;
   font-weight: 500;
   color: var(--text);
@@ -159,6 +209,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   letter-spacing: -0.01em;
+}
+
+.vcs-branch-switch-container {
+  flex-shrink: 0;
+  margin-left: 0;
 }
 
 

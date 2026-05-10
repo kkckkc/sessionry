@@ -38,6 +38,8 @@ export interface TerminalAppBridge {
     push: (dirPath: string) => Promise<void>;
     createPullRequest: (dirPath: string) => Promise<void>;
     createBranch: (dirPath: string, branchName: string) => Promise<void>;
+    listBranches: (dirPath: string) => Promise<string[]>;
+    switchBranch: (dirPath: string, branchName: string) => Promise<void>;
   };
   getPathForDroppedFile: (file: File) => string;
   formatPathForTerminal: (targetPath: string, sessionRoot?: string) => string;

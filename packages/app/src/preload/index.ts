@@ -95,7 +95,11 @@ const api = {
     createPullRequest: (dirPath: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsCreatePullRequest, dirPath),
     createBranch: (dirPath: string, branchName: string) =>
-      ipcRenderer.invoke(IPC_CHANNELS.vcsCreateBranch, dirPath, branchName)
+      ipcRenderer.invoke(IPC_CHANNELS.vcsCreateBranch, dirPath, branchName),
+    listBranches: (dirPath: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.vcsListBranches, dirPath),
+    switchBranch: (dirPath: string, branchName: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.vcsSwitchBranch, dirPath, branchName)
   },
   getPathForDroppedFile: (file: File): string => webUtils.getPathForFile(file),
   formatPathForTerminal,

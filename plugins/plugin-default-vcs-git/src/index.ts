@@ -290,9 +290,35 @@ export const pushGitChanges = async (folder: string, run: ExecFileLike): Promise
 export const createGitPullRequest = async (folder: string, run: ExecFileLike): Promise<void> => {
   try {
     await run('gh', ['pr', 'create', '--web'], { cwd: folder, timeout: 5_000 });
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Failed to create pull request. Make sure GitHub CLI is installed and authenticated.');
   }
+};
+
+export const listGitBranches = async (folder: string, run: ExecFileLike): Promise<string[]> => {
+  try {
+    const result = await run('git', ['branch', '--format=%(refname:short)'], { cwd: folder });
+    const branches = String(result.stdout)
+      .trim()
+      .split('\n')
+      .filter(branch => branch.length > 0);
+    return branches;
+  } catch {
+    return [];
+  }
+};
+
+export const switchGitBranch = async (
+  folder: string,
+  branchName: string,
+  run: ExecFileLike
+): Promise<void> => {
+  const trimmedBranchName = branchName.trim();
+  if (trimmedBranchName.length === 0) {
+    throw new Error('Branch name is required.');
+  }
+
+  await run('git', ['checkout', trimmedBranchName], { cwd: folder });
 };
 
 const getGitBranchName = async (folder: string, run: ExecFileLike): Promise<string | undefined> => {
@@ -433,6 +459,12 @@ export const createGitVcsProvider = (
     },
     async createPullRequest(folder) {
       await createGitPullRequest(folder, run);
+    },
+    async listBranches(folder) {
+      return await listGitBranches(folder, run);
+    },
+    async switchBranch(folder, branchName) {
+      await switchGitBranch(folder, branchName, run);
     }
   };
 };

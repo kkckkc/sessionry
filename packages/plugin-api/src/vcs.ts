@@ -56,6 +56,8 @@ export interface VcsProviderDefinition {
   push?: (folder: string) => Promise<void> | void;
   createPullRequest?: (folder: string) => Promise<void> | void;
   createBranch?: (folder: string, branchName: string) => Promise<void> | void;
+  listBranches?: (folder: string) => Promise<string[]> | string[];
+  switchBranch?: (folder: string, branchName: string) => Promise<void> | void;
 }
 
 export interface VcsRegistryApi {

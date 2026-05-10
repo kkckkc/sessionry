@@ -231,6 +231,12 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.vcsCreateBranch, (_event, dirPath: string, branchName: string) =>
     vcsService.createBranch(dirPath, branchName)
   );
+  ipcMain.handle(IPC_CHANNELS.vcsListBranches, (_event, dirPath: string) =>
+    vcsService.listBranches(dirPath)
+  );
+  ipcMain.handle(IPC_CHANNELS.vcsSwitchBranch, (_event, dirPath: string, branchName: string) =>
+    vcsService.switchBranch(dirPath, branchName)
+  );
   ipcMain.handle(IPC_CHANNELS.settingsRead, () => settingsStore.read());
   ipcMain.on(IPC_CHANNELS.settingsRead, event => {
     event.returnValue = settingsStore.read();

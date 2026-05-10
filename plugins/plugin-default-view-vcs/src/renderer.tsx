@@ -87,17 +87,29 @@ const VcsRepositorySummary = ({
   onCreateBranch,
   onPush,
   onCreatePullRequest,
-  isMutating
+  onSwitchBranch,
+  isMutating,
+  activeSessionFolder
 }: {
   repository?: VcsRepositoryInfo | null;
   onRefresh?: () => void;
   onCreateBranch?: () => void;
   onPush?: () => void;
   onCreatePullRequest?: () => void;
+  onSwitchBranch?: (branchName: string) => void;
   isMutating?: boolean;
+  activeSessionFolder?: string;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [branchMenuOpen, setBranchMenuOpen] = useState(false);
+  const [branches, setBranches] = useState<string[]>([]);
+  const [loadingBranches, setLoadingBranches] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left?: number; right?: number } | null>(null);
+  const [branchMenuPosition, setBranchMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const branchMenuRef = useRef<HTMLDivElement>(null);
+  const branchButtonRef = useRef<HTMLButtonElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -109,6 +121,54 @@ const VcsRepositorySummary = ({
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!branchMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (branchMenuRef.current && !branchMenuRef.current.contains(e.target as Node)) {
+        setBranchMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [branchMenuOpen]);
+
+  const handleBranchMenuToggle = async (e: ReactMouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    
+    if (!branchMenuOpen) {
+      // Calculate position for fixed menu
+      if (branchButtonRef.current) {
+        const rect = branchButtonRef.current.getBoundingClientRect();
+        setBranchMenuPosition({
+          top: rect.bottom + 4,
+          left: rect.left
+        });
+      }
+      
+      if (activeSessionFolder) {
+        setLoadingBranches(true);
+        try {
+          const branchList = await window.terminalApp.vcs.listBranches(activeSessionFolder);
+          setBranches(branchList);
+        } catch (error) {
+          console.error('Failed to load branches:', error);
+          setBranches([]);
+        } finally {
+          setLoadingBranches(false);
+        }
+      }
+    } else {
+      setBranchMenuPosition(null);
+    }
+    
+    setBranchMenuOpen(o => !o);
+  };
+
+  const handleBranchSwitch = async (branchName: string) => {
+    setBranchMenuOpen(false);
+    onSwitchBranch?.(branchName);
+  };
 
   if (!repository?.branch && !repository?.pullRequest) {
     return null;
@@ -132,9 +192,57 @@ const VcsRepositorySummary = ({
               strokeLinecap="round"
             />
           </svg>
-          <span className="vcs-branch-name" title={repository.branch}>
-            {repository.branch}
-          </span>
+          <div className="vcs-branch-name-container">
+            <span className="vcs-branch-name" title={repository.branch}>
+              {repository.branch}
+            </span>
+            {onSwitchBranch && (
+              <div className="vcs-branch-menu-container vcs-branch-switch-container" ref={branchMenuRef}>
+                <button
+                  ref={branchButtonRef}
+                  type="button"
+                  className="vcs-branch-switch-btn"
+                  onClick={handleBranchMenuToggle}
+                  disabled={isMutating || loadingBranches}
+                  title="Switch branch"
+                >
+                  <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10">
+                    <path d="M4 6l4 4 4-4z" />
+                  </svg>
+                </button>
+                {branchMenuOpen && branchMenuPosition && (
+                  <div 
+                    className="vcs-branch-menu vcs-branch-switch-menu"
+                    style={{
+                      top: `${branchMenuPosition.top}px`,
+                      left: `${branchMenuPosition.left}px`
+                    }}
+                  >
+                    {loadingBranches ? (
+                      <div className="vcs-branch-menu-loading">Loading branches...</div>
+                    ) : branches.length > 0 ? (
+                      branches.map(branch => (
+                        <button
+                          key={branch}
+                          type="button"
+                          className={`vcs-branch-menu-item${branch === repository.branch ? ' vcs-branch-menu-item--active' : ''}`}
+                          onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
+                            e.stopPropagation();
+                            handleBranchSwitch(branch);
+                          }}
+                          disabled={isMutating || branch === repository.branch}
+                        >
+                          {branch}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="vcs-branch-menu-empty">No branches found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           {(onRefresh || onCreateBranch) && (
             <div className="vcs-branch-menu-container" ref={menuRef}>
               {onRefresh && (
@@ -152,10 +260,20 @@ const VcsRepositorySummary = ({
                 </button>
               )}
               <button
+                ref={menuButtonRef}
                 type="button"
                 className="vcs-branch-menu-btn"
                 onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
+                  if (!menuOpen && menuButtonRef.current) {
+                    const rect = menuButtonRef.current.getBoundingClientRect();
+                    setMenuPosition({
+                      top: rect.bottom + 4,
+                      right: window.innerWidth - rect.right
+                    });
+                  } else {
+                    setMenuPosition(null);
+                  }
                   setMenuOpen(o => !o);
                 }}
                 title="More options"
@@ -166,8 +284,15 @@ const VcsRepositorySummary = ({
                   <circle cx="14" cy="2" r="1.5" />
                 </svg>
               </button>
-              {menuOpen && (
-                <div className="vcs-branch-menu">
+              {menuOpen && menuPosition && (
+                <div 
+                  className="vcs-branch-menu"
+                  style={{
+                    top: `${menuPosition.top}px`,
+                    right: menuPosition.right !== undefined ? `${menuPosition.right}px` : undefined,
+                    left: menuPosition.left !== undefined ? `${menuPosition.left}px` : undefined
+                  }}
+                >
                   {onPush && (
                     <button
                       type="button"
@@ -577,6 +702,21 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     }
   };
 
+  const handleSwitchBranch = async (branchName: string) => {
+    if (!activeSessionFolder || isMutating) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.switchBranch(activeSessionFolder, branchName);
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to switch branch.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
   const handleConfirmCreateBranch = async () => {
     if (!activeSessionFolder || isMutating || !newBranchName.trim()) return;
 
@@ -720,7 +860,9 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           onCreateBranch={handleCreateBranch}
           onPush={handlePush}
           onCreatePullRequest={handleCreatePullRequest}
+          onSwitchBranch={handleSwitchBranch}
           isMutating={isMutating}
+          activeSessionFolder={activeSessionFolder}
         />
         <div className="vcs-changes-scroll">
           <div className="vcs-empty vcs-empty--inline">
@@ -768,7 +910,9 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         onCreateBranch={handleCreateBranch}
         onPush={handlePush}
         onCreatePullRequest={handleCreatePullRequest}
+        onSwitchBranch={handleSwitchBranch}
         isMutating={isMutating}
+        activeSessionFolder={activeSessionFolder}
       />
       <div className="vcs-changes-scroll">
         <section className="vcs-change-section">
