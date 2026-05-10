@@ -6,6 +6,7 @@ const MIN_COLS = 55;
 const MIN_ROWS = 25;
 
 import { FitAddon } from '@xterm/addon-fit';
+import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { Terminal } from '@xterm/xterm';
 
@@ -127,6 +128,7 @@ export const TerminalPaneView = ({
     if (!containerRef.current || terminalRef.current) return;
 
     const fitAddon = new FitAddon();
+    const unicode11Addon = new Unicode11Addon();
     const terminal = new Terminal({
       cursorBlink: true,
       convertEol: true,
@@ -135,10 +137,13 @@ export const TerminalPaneView = ({
         '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
       fontSize: 11,
       lineHeight: 1.15,
-      customGlyphs: true
+      customGlyphs: true,
+      allowProposedApi: true
     });
 
     terminal.loadAddon(fitAddon);
+    terminal.loadAddon(unicode11Addon);
+    terminal.unicode.activeVersion = '11';
     terminal.open(containerRef.current);
 
     terminal.attachCustomKeyEventHandler((event: KeyboardEvent) => {

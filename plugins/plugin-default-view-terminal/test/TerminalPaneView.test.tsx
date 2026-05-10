@@ -10,7 +10,9 @@ const writeMock = vi.fn();
 const disposeMock = vi.fn();
 const refreshMock = vi.fn();
 const focusMock = vi.fn();
-const terminalInstances: Array<{ options: { theme?: unknown } }> = [];
+const unicodeActiveVersionSetMock = vi.fn();
+const terminalInstances: Array<{ options: { theme?: unknown }; unicode: { activeVersion: string } }> =
+  [];
 const mutationObserverInstances: MutationObserverMock[] = [];
 
 const onDataCallbacks: Array<(data: string) => void> = [];
@@ -23,11 +25,27 @@ vi.mock('@xterm/addon-fit', () => ({
   }
 }));
 
+vi.mock('@xterm/addon-unicode11', () => ({
+  Unicode11Addon: class {
+    dispose = vi.fn();
+  }
+}));
+
 vi.mock('@xterm/xterm', () => ({
   Terminal: class {
     cols = 80;
     rows = 24;
     options: { theme?: unknown };
+    unicode = {
+      _activeVersion: '',
+      set activeVersion(value: string) {
+        unicodeActiveVersionSetMock(value);
+        this._activeVersion = value;
+      },
+      get activeVersion() {
+        return this._activeVersion;
+      }
+    };
     loadAddon = vi.fn();
     open = vi.fn();
     write = writeMock;
@@ -156,6 +174,7 @@ describe('TerminalPaneView', () => {
     disposeMock.mockClear();
     refreshMock.mockClear();
     focusMock.mockClear();
+    unicodeActiveVersionSetMock.mockClear();
     terminalInstances.length = 0;
     mutationObserverInstances.length = 0;
     vi.stubGlobal('ResizeObserver', ResizeObserverMock);
@@ -344,6 +363,15 @@ describe('TerminalPaneView', () => {
     });
 
     expect(window.terminalApp.sendTerminalInput).not.toHaveBeenCalled();
+  });
+
+  it('activates Unicode 11 support for correct emoji cell widths', async () => {
+    render(<TerminalPaneView {...baseProps} visible />);
+    await act(async () => {});
+
+    const terminal = terminalInstances[0];
+    expect(unicodeActiveVersionSetMock).toHaveBeenCalledWith('11');
+    expect(terminal?.unicode.activeVersion).toBe('11');
   });
 
   it('updates the mounted terminal theme when the app theme class changes', async () => {
