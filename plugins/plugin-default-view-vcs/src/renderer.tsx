@@ -707,7 +707,6 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
 
     setMutationError(null);
     setIsMutating(true);
-    setBranchMenuOpen(false);
     try {
       await window.terminalApp.vcs.switchBranch(activeSessionFolder, branchName);
     } catch (error) {
