@@ -121,8 +121,7 @@ const VcsRepositorySummary = ({
         setLoadingBranches(true);
         try {
           const branchList = await window.terminalApp.vcs.listBranches(activeSessionFolder);
-          // Limit to last 5 branches
-          setBranches(branchList.slice(0, 5));
+          setBranches(branchList);
         } catch (error) {
           console.error('Failed to load branches:', error);
           setBranches([]);
