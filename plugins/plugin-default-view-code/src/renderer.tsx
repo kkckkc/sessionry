@@ -87,7 +87,7 @@ const getEditorTheme = (theme: ThemeDefinition, bgOverride?: string): Extension 
         backgroundColor,
         color: foregroundColor,
         fontFamily:
-          '"BerkeleyMono Nerd Font Mono Plus Font Awesome Plus Octicons Plus Power Symbols Plus Codicons Plus Pomicons Plus Font Logos Plus Material Design Icons Plus Weather Icons", "SF Mono", "JetBrains Mono", ui-monospace, monospace',
+          '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
         fontSize: '11px'
       },
       '.cm-content': {

@@ -74,6 +74,50 @@ export const corePlugin: AppPlugin = {
 
         return { status: 'completed' };
       }
+    },
+    {
+      id: 'pane:close-focused',
+      name: 'Close Focused Pane',
+      icon: 'TbX',
+      description: 'Close the currently focused pane',
+      category: 'Pane',
+      defaultKeybinding: 'C-w',
+      surfaces: ['palette'],
+      run: async context => {
+        const activeSession = context.workspace.getSession(context.activeSessionId!);
+        if (!activeSession) return { status: 'completed' };
+
+        const focusedPaneId = activeSession.data.focusedPaneId;
+        if (!focusedPaneId) return { status: 'completed' };
+
+        const focusedPane = context.workspace.getPane(focusedPaneId);
+        if (!focusedPane) return { status: 'completed' };
+
+        return {
+          status: 'completed',
+          effects: [{ type: 'pane.close-focused', payload: { paneId: focusedPaneId } }]
+        };
+      }
+    },
+    {
+      id: 'pane:new-tab',
+      name: 'New Tab',
+      icon: 'TbPlus',
+      description: 'Create a new terminal tab in the active pane group',
+      category: 'Pane',
+      defaultKeybinding: 'C-t',
+      surfaces: ['palette'],
+      run: async context => {
+        const activeSession = context.workspace.getSession(context.activeSessionId!);
+        if (!activeSession) return { status: 'completed' };
+
+        const focusedPaneId = activeSession.data.focusedPaneId;
+
+        return {
+          status: 'completed',
+          effects: [{ type: 'pane.new-tab', payload: { focusedPaneId } }]
+        };
+      }
     }
   ],
   views: [

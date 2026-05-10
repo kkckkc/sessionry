@@ -721,6 +721,84 @@ export const WorkspacePaneTree = ({
       });
   };
 
+  const findParentPaneGroup = (paneId: string) => {
+    for (const group of snapshot.paneGroups) {
+      const hasPane = group.children.some(
+        child => child.kind === 'pane' && child.paneId === paneId
+      );
+      if (hasPane) return workspace.getPaneGroup(group.id);
+    }
+    return null;
+  };
+
+  const handleNewTab = async (focusedPaneId?: string) => {
+    if (!focusedPaneId) {
+      const rootGroup = workspace.getPaneGroup(activeSession.rootPaneGroupId);
+      if (!rootGroup) return;
+
+      if (rootGroup.data.direction === 'stacked') {
+        const newPane = await workspace.getSession(activeSession.id)?.createPane({
+          type: 'terminal',
+          state: { title: 'Terminal' },
+          parentPaneGroupId: rootGroup.id
+        });
+        if (newPane) {
+          await rootGroup.update({ activeChildId: newPane.id });
+        }
+      }
+      return;
+    }
+
+    const focusedPane = workspace.getPane(focusedPaneId);
+    if (!focusedPane) return;
+
+    const parentGroup = findParentPaneGroup(focusedPaneId);
+
+    if (parentGroup && parentGroup.data.direction === 'stacked') {
+      const newPane = await workspace.getSession(activeSession.id)?.createPane({
+        type: 'terminal',
+        state: { title: 'Terminal' },
+        parentPaneGroupId: parentGroup.id
+      });
+      if (newPane) {
+        await parentGroup.update({ activeChildId: newPane.id });
+      }
+    } else {
+      const newGroup = await focusedPane.convertToTabs();
+      if (newGroup) {
+        const newPane = await workspace.getSession(activeSession.id)?.createPane({
+          type: 'terminal',
+          state: { title: 'Terminal' },
+          parentPaneGroupId: newGroup.id
+        });
+        if (newPane) {
+          await newGroup.update({ activeChildId: newPane.id });
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleClosePaneEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ paneId: string }>;
+      const paneId = customEvent.detail.paneId;
+      handleRemovePaneNode({ kind: 'pane', paneId });
+    };
+
+    const handleNewTabEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ focusedPaneId?: string }>;
+      void handleNewTab(customEvent.detail.focusedPaneId);
+    };
+
+    window.addEventListener('sessionry:close-pane', handleClosePaneEvent);
+    window.addEventListener('sessionry:new-tab', handleNewTabEvent);
+
+    return () => {
+      window.removeEventListener('sessionry:close-pane', handleClosePaneEvent);
+      window.removeEventListener('sessionry:new-tab', handleNewTabEvent);
+    };
+  }, [workspace, activeSession, snapshot, paneById]);
+
   const renderNode = (
     child: PaneGroupChild,
     inStack = false,
