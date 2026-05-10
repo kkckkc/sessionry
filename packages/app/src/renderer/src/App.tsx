@@ -166,6 +166,31 @@ export const App = () => {
                 });
               break;
             }
+            case 'pane.close-focused': {
+              const paneId =
+                typeof effect.payload?.paneId === 'string' ? effect.payload.paneId : undefined;
+              if (!paneId) break;
+
+              window.dispatchEvent(
+                new CustomEvent('sessionry:close-pane', {
+                  detail: { paneId }
+                })
+              );
+              break;
+            }
+            case 'pane.new-tab': {
+              const focusedPaneId =
+                typeof effect.payload?.focusedPaneId === 'string'
+                  ? effect.payload.focusedPaneId
+                  : activeTerminalPaneId;
+
+              window.dispatchEvent(
+                new CustomEvent('sessionry:new-tab', {
+                  detail: { focusedPaneId }
+                })
+              );
+              break;
+            }
             default:
               break;
           }

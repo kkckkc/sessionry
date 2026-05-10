@@ -29,7 +29,9 @@ export interface ActionClientEffect {
     | 'layout.toggle-left'
     | 'layout.toggle-right'
     | 'terminal.clear-active'
-    | 'terminal.restart-active';
+    | 'terminal.restart-active'
+    | 'pane.close-focused'
+    | 'pane.new-tab';
   payload?: Record<string, unknown>;
 }
 

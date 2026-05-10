@@ -132,7 +132,7 @@ export const TerminalPaneView = ({
       convertEol: true,
       scrollback: 10000,
       fontFamily:
-        '"BerkeleyMono Nerd Font Mono Plus Font Awesome Plus Octicons Plus Power Symbols Plus Codicons Plus Pomicons Plus Font Logos Plus Material Design Icons Plus Weather Icons", "SF Mono", "JetBrains Mono", ui-monospace, monospace',
+        '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
       fontSize: 11,
       lineHeight: 1.15,
       customGlyphs: true
