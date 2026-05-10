@@ -1,7 +1,8 @@
 import './sessions.css';
 
 import { useState, useEffect, type FormEvent } from 'react';
-import { Menu } from '@base-ui-components/react/menu';
+import { TbPencil, TbTrash, TbX } from 'react-icons/tb';
+import { Menu } from '@sessionry/components';
 import {
   Button,
   ConfirmationDialog,
@@ -526,6 +527,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                   setContextMenu(null);
                 }}
               >
+                <TbPencil size={14} aria-hidden="true" />
                 Rename
               </Menu.Item>
               {contextMenu?.type === 'project' && (
@@ -537,6 +539,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                     setContextMenu(null);
                   }}
                 >
+                  <TbX size={14} aria-hidden="true" />
                   Close
                 </Menu.Item>
               )}
@@ -549,6 +552,7 @@ const ProjectSessionsSidebarView = ({ workspace }: SidebarViewProps) => {
                     setContextMenu(null);
                   }}
                 >
+                  <TbTrash size={14} aria-hidden="true" />
                   Remove
                 </Menu.Item>
               )}

@@ -2,7 +2,7 @@ import './styles.css';
 
 import { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { TbRefresh } from 'react-icons/tb';
+import { TbArrowDown, TbArrowUp, TbCheck, TbGitBranch, TbGitPullRequest, TbRefresh } from 'react-icons/tb';
 import type {
   RendererAppPlugin,
   ResolvedVcsStatus,
@@ -10,7 +10,7 @@ import type {
   VcsFileStatus,
   VcsRepositoryInfo
 } from '@sessionry/plugin-api';
-import { Dialog, DialogHeader, DialogContent, DialogFooter, Button, Input, SplitButton } from '@sessionry/components';
+import { Dialog, DialogHeader, DialogContent, DialogFooter, Button, Input, SplitButton, Menu } from '@sessionry/components';
 
 import { vcsViewPlugin } from '.';
 
@@ -106,47 +106,16 @@ const VcsRepositorySummary = ({
   const [branchMenuOpen, setBranchMenuOpen] = useState(false);
   const [branches, setBranches] = useState<string[]>([]);
   const [loadingBranches, setLoadingBranches] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; left?: number; right?: number } | null>(null);
-  const [branchMenuPosition, setBranchMenuPosition] = useState<{ top: number; left: number } | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const branchMenuRef = useRef<HTMLDivElement>(null);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [branchMenuAnchor, setBranchMenuAnchor] = useState<HTMLElement | null>(null);
   const branchButtonRef = useRef<HTMLButtonElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [menuOpen]);
-
-  useEffect(() => {
-    if (!branchMenuOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (branchMenuRef.current && !branchMenuRef.current.contains(e.target as Node)) {
-        setBranchMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [branchMenuOpen]);
 
   const handleBranchMenuToggle = async (e: ReactMouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     
     if (!branchMenuOpen) {
-      // Calculate position for fixed menu
-      if (branchButtonRef.current) {
-        const rect = branchButtonRef.current.getBoundingClientRect();
-        setBranchMenuPosition({
-          top: rect.bottom + 4,
-          left: rect.left
-        });
-      }
+      setBranchMenuAnchor(e.currentTarget);
       
       if (activeSessionFolder) {
         setLoadingBranches(true);
@@ -160,8 +129,6 @@ const VcsRepositorySummary = ({
           setLoadingBranches(false);
         }
       }
-    } else {
-      setBranchMenuPosition(null);
     }
     
     setBranchMenuOpen(o => !o);
@@ -199,7 +166,7 @@ const VcsRepositorySummary = ({
               {repository.branch}
             </span>
             {onSwitchBranch && (
-              <div className="vcs-branch-menu-container vcs-branch-switch-container" ref={branchMenuRef}>
+              <>
                 <button
                   ref={branchButtonRef}
                   type="button"
@@ -212,41 +179,47 @@ const VcsRepositorySummary = ({
                     <path d="M4 6l4 4 4-4z" />
                   </svg>
                 </button>
-                {branchMenuOpen && branchMenuPosition && (
-                  <div 
-                    className="vcs-branch-menu vcs-branch-switch-menu"
-                    style={{
-                      top: `${branchMenuPosition.top}px`,
-                      left: `${branchMenuPosition.left}px`
-                    }}
-                  >
-                    {loadingBranches ? (
-                      <div className="vcs-branch-menu-loading">Loading branches...</div>
-                    ) : branches.length > 0 ? (
-                      branches.map(branch => (
-                        <button
-                          key={branch}
-                          type="button"
-                          className={`vcs-branch-menu-item${branch === repository.branch ? ' vcs-branch-menu-item--active' : ''}`}
-                          onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
-                            e.stopPropagation();
-                            handleBranchSwitch(branch);
-                          }}
-                          disabled={isMutating || branch === repository.branch}
-                        >
-                          {branch}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="vcs-branch-menu-empty">No branches found</div>
-                    )}
-                  </div>
-                )}
-              </div>
+                <Menu.Root open={branchMenuOpen} onOpenChange={setBranchMenuOpen}>
+                  <Menu.Portal>
+                    <Menu.Positioner
+                      anchor={
+                        branchMenuAnchor
+                          ? { getBoundingClientRect: () => branchMenuAnchor.getBoundingClientRect() }
+                          : undefined
+                      }
+                    >
+                      <Menu.Popup className="vcs-branch-switch-menu">
+                        {loadingBranches ? (
+                          <div className="vcs-branch-menu-loading">Loading branches...</div>
+                        ) : branches.length > 0 ? (
+                          branches.map(branch => (
+                            <Menu.Item
+                              key={branch}
+                              onClick={() => handleBranchSwitch(branch)}
+                              disabled={isMutating || branch === repository.branch}
+                              className={branch === repository.branch ? 'vcs-branch-menu-item--active' : ''}
+                            >
+                              <TbCheck
+                                className="vcs-branch-menu-check"
+                                size={14}
+                                aria-hidden="true"
+                                data-visible={branch === repository.branch ? 'true' : undefined}
+                              />
+                              {branch}
+                            </Menu.Item>
+                          ))
+                        ) : (
+                          <div className="vcs-branch-menu-empty">No branches found</div>
+                        )}
+                      </Menu.Popup>
+                    </Menu.Positioner>
+                  </Menu.Portal>
+                </Menu.Root>
+              </>
             )}
           </div>
           {(onRefresh || onCreateBranch) && (
-            <div className="vcs-branch-menu-container" ref={menuRef}>
+            <div className="vcs-branch-menu-container">
               {onRefresh && (
                 <button
                   type="button"
@@ -267,15 +240,7 @@ const VcsRepositorySummary = ({
                 className="vcs-branch-menu-btn"
                 onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
-                  if (!menuOpen && menuButtonRef.current) {
-                    const rect = menuButtonRef.current.getBoundingClientRect();
-                    setMenuPosition({
-                      top: rect.bottom + 4,
-                      right: window.innerWidth - rect.right
-                    });
-                  } else {
-                    setMenuPosition(null);
-                  }
+                  setMenuAnchor(e.currentTarget);
                   setMenuOpen(o => !o);
                 }}
                 title="More options"
@@ -286,85 +251,78 @@ const VcsRepositorySummary = ({
                   <circle cx="14" cy="2" r="1.5" />
                 </svg>
               </button>
-              {menuOpen && menuPosition && (
-                <div 
-                  className="vcs-branch-menu"
-                  style={{
-                    top: `${menuPosition.top}px`,
-                    right: menuPosition.right !== undefined ? `${menuPosition.right}px` : undefined,
-                    left: menuPosition.left !== undefined ? `${menuPosition.left}px` : undefined
-                  }}
-                >
-                  {onPush && (
-                    <button
-                      type="button"
-                      className="vcs-branch-menu-item"
-                      onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
-                        e.stopPropagation();
-                        setMenuOpen(false);
-                        onPush();
-                      }}
-                      disabled={isMutating || (!!repository?.upstream && !repository?.ahead)}
-                    >
-                      Push
-                    </button>
-                  )}
-                  {onPull && (
-                    <button
-                      type="button"
-                      className="vcs-branch-menu-item"
-                      onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
-                        e.stopPropagation();
-                        setMenuOpen(false);
-                        onPull();
-                      }}
-                      disabled={isMutating}
-                    >
-                      Pull
-                    </button>
-                  )}
-                  {onCreatePullRequest && !repository?.pullRequest && (
-                    <button
-                      type="button"
-                      className="vcs-branch-menu-item"
-                      onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
-                        e.stopPropagation();
-                        setMenuOpen(false);
-                        onCreatePullRequest();
-                      }}
-                      disabled={isMutating}
-                    >
-                      Create PR
-                    </button>
-                  )}
-                  {onCreateBranch && (
-                    <button
-                      type="button"
-                      className="vcs-branch-menu-item"
-                      onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
-                        e.stopPropagation();
-                        setMenuOpen(false);
-                        onCreateBranch();
-                      }}
-                      disabled={isMutating}
-                    >
-                      Create Branch...
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="vcs-branch-menu-item"
-                  onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
-                      e.stopPropagation();
-                      setMenuOpen(false);
-                      onRefresh?.();
-                    }}
-                    disabled={isMutating}
+              <Menu.Root open={menuOpen} onOpenChange={setMenuOpen}>
+                <Menu.Portal>
+                  <Menu.Positioner
+                    anchor={
+                      menuAnchor
+                        ? { getBoundingClientRect: () => menuAnchor.getBoundingClientRect() }
+                        : undefined
+                    }
                   >
-                    Refresh
-                  </button>
-                </div>
-              )}
+                    <Menu.Popup>
+                      {onPush && (
+                        <Menu.Item
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onPush();
+                          }}
+                          disabled={isMutating || (!!repository?.upstream && !repository?.ahead)}
+                        >
+                          <TbArrowUp size={14} aria-hidden="true" />
+                          Push
+                        </Menu.Item>
+                      )}
+                      {onPull && (
+                        <Menu.Item
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onPull();
+                          }}
+                          disabled={isMutating}
+                        >
+                          <TbArrowDown size={14} aria-hidden="true" />
+                          Pull
+                        </Menu.Item>
+                      )}
+                      {onCreatePullRequest && !repository?.pullRequest && (
+                        <Menu.Item
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onCreatePullRequest();
+                          }}
+                          disabled={isMutating}
+                        >
+                          <TbGitPullRequest size={14} aria-hidden="true" />
+                          Create PR
+                        </Menu.Item>
+                      )}
+                      {onCreateBranch && (
+                        <Menu.Item
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onCreateBranch();
+                          }}
+                          disabled={isMutating}
+                        >
+                          <TbGitBranch size={14} aria-hidden="true" />
+                          Create Branch...
+                        </Menu.Item>
+                      )}
+                      <Menu.Item
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onRefresh?.();
+                        }}
+                        disabled={isMutating}
+                      >
+                        <TbRefresh size={14} aria-hidden="true" />
+                        Refresh
+                      </Menu.Item>
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
             </div>
           )}
         </div>

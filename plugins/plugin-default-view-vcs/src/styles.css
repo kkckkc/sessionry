@@ -180,6 +180,14 @@
   font-weight: 600;
 }
 
+.vcs-branch-menu-check {
+  visibility: hidden;
+}
+
+.vcs-branch-menu-check[data-visible="true"] {
+  visibility: visible;
+}
+
 .vcs-branch-switch-menu {
   max-height: 300px;
   overflow-y: auto;
