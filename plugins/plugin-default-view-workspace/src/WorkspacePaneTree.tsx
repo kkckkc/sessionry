@@ -609,10 +609,6 @@ export const WorkspacePaneTree = ({
   const groupById = new Map(snapshot.paneGroups.map(paneGroup => [paneGroup.id, paneGroup]));
   const activeTerminalPaneId = getActiveVisibleTerminalPaneId(snapshot, activeSession?.id);
 
-  if (!activeSession) {
-    return <section className="workspace-empty">No session available.</section>;
-  }
-
   const handleSelectStackedChild = (paneGroupId: string, childId: string) => {
     void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: childId });
   };
@@ -636,31 +632,36 @@ export const WorkspacePaneTree = ({
     void workspace.getSession(activeSession.id)?.setFocusedPane(paneId);
   };
 
-  const handleRemovePaneNode = async (node: PaneGroupChild) => {
-    // Check if confirmation is needed for panes
-    if (node.kind === 'pane') {
-      const settings = await window.terminalApp.settings.read();
+  const handleRemovePaneNode = useCallback(
+    async (node: PaneGroupChild) => {
+      if (!activeSession) return;
 
-      if (settings.confirmations.confirmPaneClose) {
-        const pane = paneById.get(node.paneId);
-        const title = pane ? getPaneTitle(pane) : 'Pane';
+      // Check if confirmation is needed for panes
+      if (node.kind === 'pane') {
+        const settings = await window.terminalApp.settings.read();
 
-        setConfirmDialog({
-          open: true,
-          title: 'Close Pane',
-          message: `Are you sure you want to close "${title}"?`,
-          intent: 'danger',
-          onConfirm: () => {
-            void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node);
-            setConfirmDialog(null);
-          }
-        });
-        return;
+        if (settings.confirmations.confirmPaneClose) {
+          const pane = paneById.get(node.paneId);
+          const title = pane ? getPaneTitle(pane) : 'Pane';
+
+          setConfirmDialog({
+            open: true,
+            title: 'Close Pane',
+            message: `Are you sure you want to close "${title}"?`,
+            intent: 'danger',
+            onConfirm: () => {
+              void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node);
+              setConfirmDialog(null);
+            }
+          });
+          return;
+        }
       }
-    }
 
-    void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node);
-  };
+      void workspace.getPaneGroup(activeSession.rootPaneGroupId)?.removeNode(node);
+    },
+    [activeSession, paneById, workspace]
+  );
 
   const handleSplitPane = (paneId: string, direction: 'horizontal' | 'vertical') => {
     void workspace.getPane(paneId)?.split(direction);
@@ -721,62 +722,70 @@ export const WorkspacePaneTree = ({
       });
   };
 
-  const findParentPaneGroup = (paneId: string) => {
-    for (const group of snapshot.paneGroups) {
-      const hasPane = group.children.some(
-        child => child.kind === 'pane' && child.paneId === paneId
-      );
-      if (hasPane) return workspace.getPaneGroup(group.id);
-    }
-    return null;
-  };
+  const findParentPaneGroup = useCallback(
+    (paneId: string) => {
+      for (const group of snapshot.paneGroups) {
+        const hasPane = group.children.some(
+          child => child.kind === 'pane' && child.paneId === paneId
+        );
+        if (hasPane) return workspace.getPaneGroup(group.id);
+      }
+      return null;
+    },
+    [snapshot.paneGroups, workspace]
+  );
 
-  const handleNewTab = async (focusedPaneId?: string) => {
-    if (!focusedPaneId) {
-      const rootGroup = workspace.getPaneGroup(activeSession.rootPaneGroupId);
-      if (!rootGroup) return;
+  const handleNewTab = useCallback(
+    async (focusedPaneId?: string) => {
+      if (!activeSession) return;
 
-      if (rootGroup.data.direction === 'stacked') {
+      if (!focusedPaneId) {
+        const rootGroup = workspace.getPaneGroup(activeSession.rootPaneGroupId);
+        if (!rootGroup) return;
+
+        if (rootGroup.data.direction === 'stacked') {
+          const newPane = await workspace.getSession(activeSession.id)?.createPane({
+            type: 'terminal',
+            state: { title: 'Terminal' },
+            parentPaneGroupId: rootGroup.id
+          });
+          if (newPane) {
+            await rootGroup.update({ activeChildId: newPane.id });
+          }
+        }
+        return;
+      }
+
+      const focusedPane = workspace.getPane(focusedPaneId);
+      if (!focusedPane) return;
+
+      const parentGroup = findParentPaneGroup(focusedPaneId);
+
+      if (parentGroup && parentGroup.data.direction === 'stacked') {
         const newPane = await workspace.getSession(activeSession.id)?.createPane({
           type: 'terminal',
           state: { title: 'Terminal' },
-          parentPaneGroupId: rootGroup.id
+          parentPaneGroupId: parentGroup.id
         });
         if (newPane) {
-          await rootGroup.update({ activeChildId: newPane.id });
+          await parentGroup.update({ activeChildId: newPane.id });
+        }
+      } else {
+        const newGroup = await focusedPane.convertToTabs();
+        if (newGroup) {
+          const newPane = await workspace.getSession(activeSession.id)?.createPane({
+            type: 'terminal',
+            state: { title: 'Terminal' },
+            parentPaneGroupId: newGroup.id
+          });
+          if (newPane) {
+            await newGroup.update({ activeChildId: newPane.id });
+          }
         }
       }
-      return;
-    }
-
-    const focusedPane = workspace.getPane(focusedPaneId);
-    if (!focusedPane) return;
-
-    const parentGroup = findParentPaneGroup(focusedPaneId);
-
-    if (parentGroup && parentGroup.data.direction === 'stacked') {
-      const newPane = await workspace.getSession(activeSession.id)?.createPane({
-        type: 'terminal',
-        state: { title: 'Terminal' },
-        parentPaneGroupId: parentGroup.id
-      });
-      if (newPane) {
-        await parentGroup.update({ activeChildId: newPane.id });
-      }
-    } else {
-      const newGroup = await focusedPane.convertToTabs();
-      if (newGroup) {
-        const newPane = await workspace.getSession(activeSession.id)?.createPane({
-          type: 'terminal',
-          state: { title: 'Terminal' },
-          parentPaneGroupId: newGroup.id
-        });
-        if (newPane) {
-          await newGroup.update({ activeChildId: newPane.id });
-        }
-      }
-    }
-  };
+    },
+    [activeSession, findParentPaneGroup, workspace]
+  );
 
   useEffect(() => {
     const handleClosePaneEvent = (event: Event) => {
@@ -797,7 +806,11 @@ export const WorkspacePaneTree = ({
       window.removeEventListener('sessionry:close-pane', handleClosePaneEvent);
       window.removeEventListener('sessionry:new-tab', handleNewTabEvent);
     };
-  }, [workspace, activeSession, snapshot, paneById]);
+  }, [handleNewTab, handleRemovePaneNode]);
+
+  if (!activeSession) {
+    return <section className="workspace-empty">No session available.</section>;
+  }
 
   const renderNode = (
     child: PaneGroupChild,
