@@ -86,6 +86,7 @@ const VcsRepositorySummary = ({
   onRefresh,
   onCreateBranch,
   onPush,
+  onPull,
   onCreatePullRequest,
   onSwitchBranch,
   isMutating,
@@ -95,6 +96,7 @@ const VcsRepositorySummary = ({
   onRefresh?: () => void;
   onCreateBranch?: () => void;
   onPush?: () => void;
+  onPull?: () => void;
   onCreatePullRequest?: () => void;
   onSwitchBranch?: (branchName: string) => void;
   isMutating?: boolean;
@@ -307,14 +309,14 @@ const VcsRepositorySummary = ({
                       Push
                     </button>
                   )}
-                  {onPush && (
+                  {onPull && (
                     <button
                       type="button"
                       className="vcs-branch-menu-item"
                       onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
                         e.stopPropagation();
                         setMenuOpen(false);
-                        handlePull();
+                        onPull();
                       }}
                       disabled={isMutating}
                     >
@@ -693,11 +695,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     setIsMutating(true);
     try {
       await window.terminalApp.vcs.push(activeSessionFolder);
+      refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to push changes.');
     } finally {
       setIsMutating(false);
-      refreshVcsStatus();
     }
   };
 
@@ -888,6 +890,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           onRefresh={refreshVcsStatus}
           onCreateBranch={handleCreateBranch}
           onPush={handlePush}
+          onPull={handlePull}
           onCreatePullRequest={handleCreatePullRequest}
           onSwitchBranch={handleSwitchBranch}
           isMutating={isMutating}
@@ -938,6 +941,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         onRefresh={refreshVcsStatus}
         onCreateBranch={handleCreateBranch}
         onPush={handlePush}
+        onPull={handlePull}
         onCreatePullRequest={handleCreatePullRequest}
         onSwitchBranch={handleSwitchBranch}
         isMutating={isMutating}

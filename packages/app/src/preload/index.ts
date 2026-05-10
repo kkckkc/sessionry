@@ -92,10 +92,9 @@ const api = {
       ipcRenderer.invoke(IPC_CHANNELS.vcsCommit, dirPath, message),
     push: (dirPath: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsPush, dirPath),
-    createPullRequest: (dirPath: string) =>
     pull: (dirPath: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsPull, dirPath),
-
+    createPullRequest: (dirPath: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsCreatePullRequest, dirPath),
     createBranch: (dirPath: string, branchName: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsCreateBranch, dirPath, branchName),
