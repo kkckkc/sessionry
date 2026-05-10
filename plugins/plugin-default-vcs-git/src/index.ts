@@ -301,7 +301,9 @@ export const createGitPullRequest = async (folder: string, run: ExecFileLike): P
 
 export const listGitBranches = async (folder: string, run: ExecFileLike): Promise<string[]> => {
   try {
-    const result = await run('git', ['branch', '--format=%(refname:short)'], { cwd: folder });
+    const result = await run('git', ['branch', '--sort=-committerdate', '--format=%(refname:short)'], {
+      cwd: folder
+    });
     const branches = String(result.stdout)
       .trim()
       .split('\n')

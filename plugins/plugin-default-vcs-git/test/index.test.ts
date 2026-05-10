@@ -5,6 +5,7 @@ import {
   commitGitChanges,
   createGitBranch,
   getGitFileDiff,
+  listGitBranches,
   parseGhPullRequest,
   parseGitBranchLine,
   parseGitShortStat,
@@ -345,5 +346,23 @@ describe('createGitVcsProvider', () => {
       cwd: '/tmp/project'
     });
     expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it('lists branches ordered by latest commit date', async () => {
+    const run = vi.fn(async () => ({
+      stdout: 'feature/recent\nmain\nfeature/old\n',
+      stderr: ''
+    }));
+
+    await expect(listGitBranches('/tmp/project', run)).resolves.toEqual([
+      'feature/recent',
+      'main',
+      'feature/old'
+    ]);
+    expect(run).toHaveBeenCalledWith(
+      'git',
+      ['branch', '--sort=-committerdate', '--format=%(refname:short)'],
+      { cwd: '/tmp/project' }
+    );
   });
 });
