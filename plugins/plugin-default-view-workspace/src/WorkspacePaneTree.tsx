@@ -628,7 +628,7 @@ export const WorkspacePaneTree = ({
   };
 
   const handlePaneFocus = (paneId: string) => {
-    if (activeSession.focusedPaneId === paneId) return;
+    if (!activeSession || activeSession.focusedPaneId === paneId) return;
     void workspace.getSession(activeSession.id)?.setFocusedPane(paneId);
   };
 
@@ -668,12 +668,15 @@ export const WorkspacePaneTree = ({
   };
 
   const handleRemovePaneGroup = async (paneGroupId: string) => {
+    if (!activeSession) return;
+
     const settings = await window.terminalApp.settings.read();
 
     if (settings.confirmations.confirmPaneGroupClose) {
       const paneGroup = groupById.get(paneGroupId);
       const title = paneGroup ? getGroupTitle(paneGroup) : 'Pane Group';
       const childCount = paneGroup?.children.length ?? 0;
+      const rootPaneGroupId = activeSession.rootPaneGroupId;
 
       setConfirmDialog({
         open: true,
@@ -681,9 +684,7 @@ export const WorkspacePaneTree = ({
         message: `Are you sure you want to close "${title}"? This will close ${childCount} ${childCount === 1 ? 'pane' : 'panes'}.`,
         intent: 'danger',
         onConfirm: () => {
-          void workspace
-            .getPaneGroup(activeSession.rootPaneGroupId)
-            ?.removeNode({ kind: 'group', paneGroupId });
+          void workspace.getPaneGroup(rootPaneGroupId)?.removeNode({ kind: 'group', paneGroupId });
           setConfirmDialog(null);
         }
       });
@@ -710,6 +711,8 @@ export const WorkspacePaneTree = ({
   };
 
   const handleAddTerminalPane = (paneGroupId: string) => {
+    if (!activeSession) return;
+
     void workspace
       .getSession(activeSession.id)
       ?.createPane({
@@ -718,6 +721,7 @@ export const WorkspacePaneTree = ({
         parentPaneGroupId: paneGroupId
       })
       .then(pane => {
+        if (!pane) return;
         void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: pane.id });
       });
   };
