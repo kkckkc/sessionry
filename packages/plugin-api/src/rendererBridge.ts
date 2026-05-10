@@ -36,6 +36,7 @@ export interface TerminalAppBridge {
     stageFiles: (dirPath: string, files: VcsFileStatus[]) => Promise<void>;
     commit: (dirPath: string, message: string) => Promise<void>;
     push: (dirPath: string) => Promise<void>;
+    pull: (dirPath: string) => Promise<void>;
     createPullRequest: (dirPath: string) => Promise<void>;
     createBranch: (dirPath: string, branchName: string) => Promise<void>;
     listBranches: (dirPath: string) => Promise<string[]>;

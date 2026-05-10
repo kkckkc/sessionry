@@ -307,6 +307,20 @@ const VcsRepositorySummary = ({
                       Push
                     </button>
                   )}
+                  {onPush && (
+                    <button
+                      type="button"
+                      className="vcs-branch-menu-item"
+                      onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        handlePull();
+                      }}
+                      disabled={isMutating}
+                    >
+                      Pull
+                    </button>
+                  )}
                   {onCreatePullRequest && !repository?.pullRequest && (
                     <button
                       type="button"
@@ -684,6 +698,21 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     } finally {
       setIsMutating(false);
       refreshVcsStatus();
+    }
+  };
+
+  const handlePull = async () => {
+    if (!activeSessionFolder || isMutating) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.pull(activeSessionFolder);
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to pull changes.');
+    } finally {
+      setIsMutating(false);
     }
   };
 

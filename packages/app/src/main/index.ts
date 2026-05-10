@@ -225,6 +225,10 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.vcsPush, (_event, dirPath: string) =>
     vcsService.push(dirPath)
   );
+  ipcMain.handle(IPC_CHANNELS.vcsPull, (_event, dirPath: string) =>
+    vcsService.pull(dirPath)
+  );
+
   ipcMain.handle(IPC_CHANNELS.vcsCreatePullRequest, (_event, dirPath: string) =>
     vcsService.createPullRequest(dirPath)
   );

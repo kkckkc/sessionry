@@ -287,6 +287,10 @@ export const pushGitChanges = async (folder: string, run: ExecFileLike): Promise
   }
 };
 
+export const pullGitChanges = async (folder: string, run: ExecFileLike): Promise<void> => {
+  await run('git', ['pull'], { cwd: folder });
+};
+
 export const createGitPullRequest = async (folder: string, run: ExecFileLike): Promise<void> => {
   try {
     await run('gh', ['pr', 'create', '--web'], { cwd: folder, timeout: 5_000 });
@@ -456,6 +460,9 @@ export const createGitVcsProvider = (
     },
     async push(folder) {
       await pushGitChanges(folder, run);
+    },
+    async pull(folder) {
+      await pullGitChanges(folder, run);
     },
     async createPullRequest(folder) {
       await createGitPullRequest(folder, run);

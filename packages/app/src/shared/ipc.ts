@@ -33,6 +33,7 @@ export const IPC_CHANNELS = {
   vcsStageFiles: 'vcs:stage-files',
   vcsCommit: 'vcs:commit',
   vcsPush: 'vcs:push',
+  vcsPull: 'vcs:pull',
   vcsCreatePullRequest: 'vcs:create-pull-request',
   vcsCreateBranch: 'vcs:create-branch',
   vcsListBranches: 'vcs:list-branches',
