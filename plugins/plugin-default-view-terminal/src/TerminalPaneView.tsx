@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
 import type { ITheme } from '@xterm/xterm';
+
+import type { TerminalPluginSettings } from './settings';
 
 const MIN_COLS = 55;
 const MIN_ROWS = 25;
@@ -91,6 +93,43 @@ export const TerminalPaneView = ({
   const sessionFolderRef = useRef(sessionFolder);
   sessionFolderRef.current = sessionFolder;
 
+  const [terminalFont, setTerminalFont] = useState<string>(
+    '"JetBrains Mono", "SF Mono", ui-monospace, monospace'
+  );
+
+  // Load font from settings
+  useEffect(() => {
+    const loadFont = async () => {
+      try {
+        const settings = await window.terminalApp.settings.read();
+        const pluginSettings = settings.plugins['plugin-default-view-terminal'] as
+          | TerminalPluginSettings
+          | undefined;
+
+        if (pluginSettings?.fontFamily) {
+          setTerminalFont(pluginSettings.fontFamily);
+        }
+      } catch (error) {
+        console.error('[Terminal] Failed to load font setting:', error);
+      }
+    };
+
+    void loadFont();
+
+    // Subscribe to settings changes
+    const unsubscribe = window.terminalApp.settings.onChange(newSettings => {
+      const pluginSettings = newSettings.plugins['plugin-default-view-terminal'] as
+        | TerminalPluginSettings
+        | undefined;
+
+      if (pluginSettings?.fontFamily) {
+        setTerminalFont(pluginSettings.fontFamily);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
   const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
@@ -133,8 +172,7 @@ export const TerminalPaneView = ({
       cursorBlink: true,
       convertEol: true,
       scrollback: 10000,
-      fontFamily:
-        '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
+      fontFamily: terminalFont,
       fontSize: 11,
       lineHeight: 1.15,
       customGlyphs: true,
@@ -315,9 +353,18 @@ export const TerminalPaneView = ({
       fitAddonRef.current = null;
     };
   }, [
-    pane.id, // Register focus handler with parent component
+    pane.id,
+    terminalFont,
     onRegisterFocusHandler
   ]);
+
+  // Update font when it changes
+  useEffect(() => {
+    if (terminalRef.current && terminalFont) {
+      terminalRef.current.options.fontFamily = terminalFont;
+      terminalRef.current.refresh(0, terminalRef.current.rows - 1);
+    }
+  }, [terminalFont]);
 
   // Keep the session cwd in sync when the workspace folder changes.
   useEffect(() => {

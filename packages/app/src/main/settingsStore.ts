@@ -24,6 +24,7 @@ const DEFAULTS: AppSettings = {
   },
   plugins: {
     'plugin-default-view-terminal': {
+      fontFamily: '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
       tmux: {
         enabled: false,
         dedicatedSocket: true,

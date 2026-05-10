@@ -1,25 +1,100 @@
+import { useState, useEffect } from 'react';
 import type { SettingsViewProps } from '@sessionry/plugin-api';
-import { SettingsSection, SettingToggle } from '@sessionry/components';
+import { SettingsSection, SettingToggle, SettingSelect } from '@sessionry/components';
+import type { SelectOption } from '@sessionry/components';
 
 import type { TerminalPluginSettings, TmuxSettings } from './settings';
+import { getMonospaceFonts } from './fontDetection';
 
 export const TerminalSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
-  const tmuxSettings: TmuxSettings = (settings as TerminalPluginSettings)?.tmux ?? {
-    enabled: false,
-    dedicatedSocket: true,
-    disableStatusBar: false,
-    inheritConfig: true,
-    killOnExit: true
+  const [fontOptions, setFontOptions] = useState<SelectOption[]>([]);
+  const [isLoadingFonts, setIsLoadingFonts] = useState(true);
+
+  const terminalSettings = (settings as TerminalPluginSettings) ?? {
+    fontFamily: '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
+    tmux: {
+      enabled: false,
+      dedicatedSocket: true,
+      disableStatusBar: false,
+      inheritConfig: true,
+      killOnExit: true
+    }
   };
+
+  const tmuxSettings: TmuxSettings = terminalSettings.tmux;
+  const currentFont =
+    terminalSettings.fontFamily || '"JetBrains Mono", "SF Mono", ui-monospace, monospace';
+
+  // Extract the first font family from the CSS font-family string
+  const extractFirstFont = (fontFamily: string): string => {
+    // Remove quotes and get first font in the list
+    const match = fontFamily.match(/^"?([^",]+)"?/);
+    return match ? match[1].trim() : fontFamily;
+  };
+
+  const selectedFontValue = extractFirstFont(currentFont);
+
+  // Load available fonts on mount
+  useEffect(() => {
+    const loadFonts = async () => {
+      try {
+        const fonts = await getMonospaceFonts();
+        const options: SelectOption[] = fonts.map(font => ({
+          value: font.family,
+          label: font.displayName
+        }));
+        setFontOptions(options);
+      } catch (error) {
+        console.error('[TerminalSettings] Failed to load fonts:', error);
+        // Provide fallback options
+        setFontOptions([
+          { value: 'monospace', label: 'System Monospace' },
+          { value: 'ui-monospace', label: 'UI Monospace' }
+        ]);
+      } finally {
+        setIsLoadingFonts(false);
+      }
+    };
+
+    void loadFonts();
+  }, []);
 
   const updateTmuxSetting = (key: keyof TmuxSettings, value: boolean) => {
     void onUpdate({
+      fontFamily: currentFont,
       tmux: { ...tmuxSettings, [key]: value }
+    });
+  };
+
+  const updateFontFamily = (fontFamily: string) => {
+    // Build font family string with fallbacks
+    const fontWithFallbacks =
+      fontFamily === 'monospace' || fontFamily === 'ui-monospace'
+        ? fontFamily
+        : `"${fontFamily}", ui-monospace, monospace`;
+
+    void onUpdate({
+      fontFamily: fontWithFallbacks,
+      tmux: tmuxSettings
     });
   };
 
   return (
     <div className="terminal-settings">
+      <SettingsSection
+        title="Appearance"
+        description="Configure the terminal's visual appearance"
+      >
+        <SettingSelect
+          label="Font Family"
+          description="Choose the monospace font for terminal text. Changes apply to new terminal sessions."
+          options={fontOptions}
+          value={selectedFontValue}
+          onChange={updateFontFamily}
+          disabled={isLoadingFonts}
+        />
+      </SettingsSection>
+
       <SettingsSection
         title="Tmux Integration"
         description="Configure how Sessionry integrates with tmux for session persistence"
