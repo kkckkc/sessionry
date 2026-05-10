@@ -623,11 +623,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     try {
       await window.terminalApp.vcs.commit(activeSessionFolder, commitMessage);
       setCommitMessage('');
-      refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to commit changes.');
     } finally {
       setIsMutating(false);
+      refreshVcsStatus();
     }
   };
 
@@ -640,11 +640,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       await window.terminalApp.vcs.commit(activeSessionFolder, commitMessage);
       await window.terminalApp.vcs.push(activeSessionFolder);
       setCommitMessage('');
-      refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to commit and push changes.');
     } finally {
       setIsMutating(false);
+      refreshVcsStatus();
     }
   };
 
@@ -658,11 +658,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       await window.terminalApp.vcs.push(activeSessionFolder);
       await window.terminalApp.vcs.createPullRequest(activeSessionFolder);
       setCommitMessage('');
-      refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to create pull request.');
     } finally {
       setIsMutating(false);
+      refreshVcsStatus();
     }
   };
 
@@ -679,11 +679,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     setIsMutating(true);
     try {
       await window.terminalApp.vcs.push(activeSessionFolder);
-      refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to push changes.');
     } finally {
       setIsMutating(false);
+      refreshVcsStatus();
     }
   };
 
@@ -694,11 +694,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     setIsMutating(true);
     try {
       await window.terminalApp.vcs.createPullRequest(activeSessionFolder);
-      refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to create pull request.');
     } finally {
       setIsMutating(false);
+      refreshVcsStatus();
     }
   };
 
@@ -707,13 +707,14 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
 
     setMutationError(null);
     setIsMutating(true);
+    setBranchMenuOpen(false);
     try {
       await window.terminalApp.vcs.switchBranch(activeSessionFolder, branchName);
-      refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to switch branch.');
     } finally {
       setIsMutating(false);
+      refreshVcsStatus();
     }
   };
 
@@ -725,11 +726,11 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     setShowCreateBranchDialog(false);
     try {
       await window.terminalApp.vcs.createBranch(activeSessionFolder, newBranchName.trim());
-      refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to create branch.');
     } finally {
       setIsMutating(false);
+      refreshVcsStatus();
     }
   };
 
