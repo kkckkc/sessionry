@@ -35,6 +35,8 @@ export const IPC_CHANNELS = {
   vcsPush: 'vcs:push',
   vcsCreatePullRequest: 'vcs:create-pull-request',
   vcsCreateBranch: 'vcs:create-branch',
+  vcsListBranches: 'vcs:list-branches',
+  vcsSwitchBranch: 'vcs:switch-branch',
 
   // Themes
   themesList: 'themes:list',

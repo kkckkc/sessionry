@@ -77,7 +77,9 @@ export function createMockTerminalApp(
       commit: vi.fn().mockResolvedValue(undefined),
       push: vi.fn().mockResolvedValue(undefined),
       createPullRequest: vi.fn().mockResolvedValue(undefined),
-      createBranch: vi.fn().mockResolvedValue(undefined)
+      createBranch: vi.fn().mockResolvedValue(undefined),
+      listBranches: vi.fn().mockResolvedValue([]),
+      switchBranch: vi.fn().mockResolvedValue(undefined)
     },
     getPathForDroppedFile: vi.fn().mockReturnValue('/mock/path'),
     formatPathForTerminal: vi.fn().mockImplementation((path) => path),

@@ -22,6 +22,8 @@ export interface VcsService {
   push: (folder: string) => Promise<void>;
   createPullRequest: (folder: string) => Promise<void>;
   createBranch: (folder: string, branchName: string) => Promise<void>;
+  listBranches: (folder: string) => Promise<string[]>;
+  switchBranch: (folder: string, branchName: string) => Promise<void>;
 }
 
 export interface CreateVcsServiceOptions {
@@ -160,6 +162,23 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       }
 
       await provider.createBranch(folder, branchName);
+      cache.delete(folder);
+    },
+    listBranches: async (folder) => {
+      const provider = getSortedProviders().find(provider => Boolean(provider.listBranches));
+      if (!provider?.listBranches) {
+        throw new Error('No VCS provider supports listing branches.');
+      }
+
+      return await provider.listBranches(folder);
+    },
+    switchBranch: async (folder, branchName) => {
+      const provider = getSortedProviders().find(provider => Boolean(provider.switchBranch));
+      if (!provider?.switchBranch) {
+        throw new Error('No VCS provider supports switching branches.');
+      }
+
+      await provider.switchBranch(folder, branchName);
       cache.delete(folder);
     }
   };
