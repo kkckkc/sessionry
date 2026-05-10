@@ -5,6 +5,7 @@ import type { ITheme } from '@xterm/xterm';
 const MIN_COLS = 55;
 const MIN_ROWS = 25;
 
+
 import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { Terminal } from '@xterm/xterm';
@@ -179,6 +180,19 @@ export const TerminalPaneView = ({
         window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x1bf' });
         return false;
       }
+      // Re-dispatch to document so the app's window-level shortcut handler can fire.
+      // Cmd+key combos have no PTY meaning on macOS, so suppress them in xterm.
+      // Ctrl+key combos are passed through to xterm as well (terminal control chars).
+      document.dispatchEvent(new KeyboardEvent('keydown', {
+        key: event.key,
+        code: event.code,
+        metaKey: event.metaKey,
+        ctrlKey: event.ctrlKey,
+        altKey: event.altKey,
+        shiftKey: event.shiftKey,
+        bubbles: true,
+      }));
+      if (event.metaKey) return false;
       return true;
     });
     terminal.loadAddon(new WebglAddon());

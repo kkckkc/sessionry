@@ -107,6 +107,9 @@ export function createMockTerminalApp(
       onInstallProgress: vi.fn().mockReturnValue(() => {}),
       onUpdateProgress: vi.fn().mockReturnValue(() => {})
     },
+    keybindings: {
+      onReload: vi.fn().mockReturnValue(() => {})
+    },
     onTerminalData: vi.fn().mockReturnValue(() => {}),
     onTerminalState: vi.fn().mockReturnValue(() => {}),
     onTerminalExit: vi.fn().mockReturnValue(() => {}),
