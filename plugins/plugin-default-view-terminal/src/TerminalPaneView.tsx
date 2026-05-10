@@ -161,6 +161,24 @@ export const TerminalPaneView = ({
         });
         return false;
       }
+      // Cmd+Left/Right: beginning/end of line
+      if (event.metaKey && event.key === 'ArrowLeft') {
+        window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x01' });
+        return false;
+      }
+      if (event.metaKey && event.key === 'ArrowRight') {
+        window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x05' });
+        return false;
+      }
+      // Option+Left/Right: word backward/forward
+      if (event.altKey && event.key === 'ArrowLeft') {
+        window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x1bb' });
+        return false;
+      }
+      if (event.altKey && event.key === 'ArrowRight') {
+        window.terminalApp.sendTerminalInput({ sessionId: currentSession, data: '\x1bf' });
+        return false;
+      }
       return true;
     });
     terminal.loadAddon(new WebglAddon());
