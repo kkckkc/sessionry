@@ -75,7 +75,7 @@ export interface MenuRootProps {
   /**
    * Whether the menu is open
    */
-  open: boolean;
+  open?: boolean;
 
   /**
    * Callback when open state changes
@@ -120,6 +120,120 @@ export const MenuRoot = ({ open, onOpenChange, children }: MenuRootProps) => {
 };
 
 MenuRoot.displayName = 'MenuRoot';
+
+export interface MenuTriggerProps {
+  /**
+   * Trigger content
+   */
+  children: ReactNode;
+
+  /**
+   * Whether the trigger is disabled
+   */
+  disabled?: boolean;
+
+  /**
+   * Additional CSS class
+   */
+  className?: string;
+
+  /**
+   * Button title
+   */
+  title?: string;
+}
+
+/**
+ * MenuTrigger component - opens the menu it belongs to.
+ */
+export const MenuTrigger = ({
+  children,
+  disabled = false,
+  className: customClassName,
+  title
+}: MenuTriggerProps) => {
+  return (
+    <BaseMenu.Trigger className={customClassName} disabled={disabled} title={title}>
+      {children}
+    </BaseMenu.Trigger>
+  );
+};
+
+MenuTrigger.displayName = 'MenuTrigger';
+
+export interface MenuSubmenuRootProps {
+  /**
+   * Whether the submenu is open
+   */
+  open?: boolean;
+
+  /**
+   * Callback when open state changes
+   */
+  onOpenChange?: (open: boolean, eventDetails: BaseMenuRoot.ChangeEventDetails) => void;
+
+  /**
+   * Submenu content
+   */
+  children: ReactNode;
+}
+
+/**
+ * MenuSubmenuRoot component - the root container for a nested menu.
+ */
+export const MenuSubmenuRoot = ({ open, onOpenChange, children }: MenuSubmenuRootProps) => {
+  return (
+    <BaseMenu.SubmenuRoot open={open} onOpenChange={onOpenChange}>
+      {children}
+    </BaseMenu.SubmenuRoot>
+  );
+};
+
+MenuSubmenuRoot.displayName = 'MenuSubmenuRoot';
+
+export interface MenuSubmenuTriggerProps {
+  /**
+   * Trigger content
+   */
+  children: ReactNode;
+
+  /**
+   * Whether the trigger is disabled
+   */
+  disabled?: boolean;
+
+  /**
+   * Additional CSS class
+   */
+  className?: string;
+
+  /**
+   * Text label for keyboard navigation
+   */
+  label?: string;
+}
+
+/**
+ * MenuSubmenuTrigger component - menu item that opens a nested menu.
+ */
+export const MenuSubmenuTrigger = ({
+  children,
+  disabled = false,
+  className: customClassName,
+  label
+}: MenuSubmenuTriggerProps) => {
+  const baseClassName = ['menu-item', customClassName]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <BaseMenu.SubmenuTrigger className={baseClassName} disabled={disabled} label={label}>
+      {children}
+    </BaseMenu.SubmenuTrigger>
+  );
+};
+
+MenuSubmenuTrigger.displayName = 'MenuSubmenuTrigger';
 
 export interface MenuPortalProps {
   /**
@@ -282,6 +396,9 @@ MenuSeparator.displayName = 'MenuSeparator';
  */
 export const Menu = {
   Root: MenuRoot,
+  Trigger: MenuTrigger,
+  SubmenuRoot: MenuSubmenuRoot,
+  SubmenuTrigger: MenuSubmenuTrigger,
   Portal: MenuPortal,
   Positioner: MenuPositioner,
   Popup: MenuPopup,

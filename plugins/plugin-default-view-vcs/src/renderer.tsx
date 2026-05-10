@@ -2,7 +2,15 @@ import './styles.css';
 
 import { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { TbArrowDown, TbArrowUp, TbCheck, TbGitBranch, TbGitPullRequest, TbRefresh } from 'react-icons/tb';
+import {
+  TbArrowDown,
+  TbArrowUp,
+  TbChevronRight,
+  TbGitBranch,
+  TbGitPullRequest,
+  TbRefresh,
+  TbSearch
+} from 'react-icons/tb';
 import type {
   RendererAppPlugin,
   ResolvedVcsStatus,
@@ -15,6 +23,7 @@ import { Dialog, DialogHeader, DialogContent, DialogFooter, Button, Input, Split
 import { vcsViewPlugin } from '.';
 
 const ACTIVE_SESSION_REFRESH_INTERVAL_MS = 60_000;
+const RECENT_BRANCH_LIMIT = 5;
 
 const getFileTitle = (filePath: string): string =>
   filePath.split(/[\\/]/).filter(Boolean).pop() ?? filePath;
@@ -107,31 +116,58 @@ const VcsRepositorySummary = ({
   const [branches, setBranches] = useState<string[]>([]);
   const [loadingBranches, setLoadingBranches] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const [branchMenuAnchor, setBranchMenuAnchor] = useState<HTMLElement | null>(null);
-  const branchButtonRef = useRef<HTMLButtonElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const switchableBranches = branches.filter(branch => branch !== repository?.branch);
+  const recentBranches = switchableBranches.slice(0, RECENT_BRANCH_LIMIT);
 
-  const handleBranchMenuToggle = async (e: ReactMouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    
-    if (!branchMenuOpen) {
-      setBranchMenuAnchor(e.currentTarget);
-      
-      if (activeSessionFolder) {
-        setLoadingBranches(true);
-        try {
-          const branchList = await window.terminalApp.vcs.listBranches(activeSessionFolder);
+  const renderBranchMenuItem = (branch: string) => (
+    <Menu.Item
+      key={branch}
+      onClick={() => handleBranchSwitch(branch)}
+      disabled={isMutating}
+    >
+      <TbGitBranch
+        className="vcs-branch-menu-icon"
+        size={14}
+        aria-hidden="true"
+      />
+      {branch}
+    </Menu.Item>
+  );
+
+  useEffect(() => {
+    if (!branchMenuOpen || !activeSessionFolder) {
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingBranches(true);
+    window.terminalApp.vcs
+      .listBranches(activeSessionFolder)
+      .then(branchList => {
+        if (!cancelled) {
           setBranches(branchList);
-        } catch (error) {
-          console.error('Failed to load branches:', error);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load branches:', error);
+        if (!cancelled) {
           setBranches([]);
-        } finally {
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
           setLoadingBranches(false);
         }
-      }
-    }
-    
-    setBranchMenuOpen(o => !o);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSessionFolder, branchMenuOpen]);
+
+  const handleBranchMenuOpenChange = (open: boolean) => {
+    setBranchMenuOpen(open);
   };
 
   const handleBranchSwitch = async (branchName: string) => {
@@ -166,56 +202,58 @@ const VcsRepositorySummary = ({
               {repository.branch}
             </span>
             {onSwitchBranch && (
-              <>
-                <button
-                  ref={branchButtonRef}
-                  type="button"
+              <Menu.Root open={branchMenuOpen} onOpenChange={handleBranchMenuOpenChange}>
+                <Menu.Trigger
                   className="vcs-branch-switch-btn"
-                  onClick={handleBranchMenuToggle}
-                  disabled={isMutating || loadingBranches}
+                  disabled={isMutating}
                   title="Switch branch"
                 >
                   <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10">
                     <path d="M4 6l4 4 4-4z" />
                   </svg>
-                </button>
-                <Menu.Root open={branchMenuOpen} onOpenChange={setBranchMenuOpen}>
-                  <Menu.Portal>
-                    <Menu.Positioner
-                      anchor={
-                        branchMenuAnchor
-                          ? { getBoundingClientRect: () => branchMenuAnchor.getBoundingClientRect() }
-                          : undefined
-                      }
-                    >
-                      <Menu.Popup className="vcs-branch-switch-menu">
-                        {loadingBranches ? (
-                          <div className="vcs-branch-menu-loading">Loading branches...</div>
-                        ) : branches.length > 0 ? (
-                          branches.map(branch => (
-                            <Menu.Item
-                              key={branch}
-                              onClick={() => handleBranchSwitch(branch)}
-                              disabled={isMutating || branch === repository.branch}
-                              className={branch === repository.branch ? 'vcs-branch-menu-item--active' : ''}
+                </Menu.Trigger>
+                <Menu.Portal>
+                  <Menu.Positioner>
+                    <Menu.Popup className="vcs-branch-switch-menu">
+                      {loadingBranches ? (
+                        <div className="vcs-branch-menu-loading">Loading branches...</div>
+                      ) : switchableBranches.length > 0 ? (
+                        <>
+                          <Menu.SubmenuRoot>
+                            <Menu.SubmenuTrigger
+                              className="vcs-branch-menu-all-trigger"
+                              label="Switch to"
                             >
-                              <TbCheck
-                                className="vcs-branch-menu-check"
+                              <TbSearch
+                                className="vcs-branch-menu-icon"
                                 size={14}
                                 aria-hidden="true"
-                                data-visible={branch === repository.branch ? 'true' : undefined}
                               />
-                              {branch}
-                            </Menu.Item>
-                          ))
-                        ) : (
-                          <div className="vcs-branch-menu-empty">No branches found</div>
-                        )}
-                      </Menu.Popup>
-                    </Menu.Positioner>
-                  </Menu.Portal>
-                </Menu.Root>
-              </>
+                              <span className="vcs-branch-menu-label">Switch to...</span>
+                              <TbChevronRight
+                                className="vcs-branch-menu-chevron"
+                                size={14}
+                                aria-hidden="true"
+                              />
+                            </Menu.SubmenuTrigger>
+                            <Menu.Portal>
+                              <Menu.Positioner>
+                                <Menu.Popup className="vcs-branch-all-menu">
+                                  {switchableBranches.map(renderBranchMenuItem)}
+                                </Menu.Popup>
+                              </Menu.Positioner>
+                            </Menu.Portal>
+                          </Menu.SubmenuRoot>
+                          <Menu.Separator />
+                          {recentBranches.map(renderBranchMenuItem)}
+                        </>
+                      ) : (
+                        <div className="vcs-branch-menu-empty">No branches found</div>
+                      )}
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
             )}
           </div>
           {(onRefresh || onCreateBranch) && (
