@@ -190,6 +190,10 @@ describe('App', () => {
       confirmPaneGroupClose: true,
       confirmSessionClose: true
     },
+    keybindings: {
+      custom: {},
+      disabled: []
+    },
     plugins: {}
   }));
   const settingsUpdate = vi.fn(async () => {});
