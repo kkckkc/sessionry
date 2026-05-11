@@ -12,5 +12,6 @@ export interface TmuxSettings {
 }
 
 export interface TerminalPluginSettings {
+  fontFamily: string;
   tmux: TmuxSettings;
 }
