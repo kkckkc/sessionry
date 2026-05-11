@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getActiveVisibleTerminalPaneId } from '@sessionry/plugin-default-view-workspace/renderer';
 
 import { AppShell } from './components/AppShell';
+import { CommandPalette } from './components/CommandPalette';
 import { createActionKeydownHandler, type KeybindingOverrides } from './lib/keybindings';
 import { SettingsView } from './components/SettingsView';
 import { WorkspaceSlotView } from './components/WorkspaceSlotView';
@@ -261,6 +262,10 @@ export const App = () => {
         open={showSettings}
         onClose={closeSettings}
         resolveRendererView={getRendererView}
+      />
+      <CommandPalette
+        actions={plugins.actions}
+        onExecute={(actionId, args) => executeAction(actionId, 'palette', args)}
       />
     </PluginManagerProvider>
   );

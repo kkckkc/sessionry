@@ -39,6 +39,7 @@
     "@sessionry/components": "workspace:*",
     "@sessionry/design-tokens": "workspace:*",
     "@sessionry/plugin-api": "workspace:*",
+    "cmdk": "^1.0.0",
     "@sessionry/plugin-debug-view-pane-hierarchy": "workspace:*",
     "@sessionry/plugin-default-vcs-git": "workspace:*",
     "@sessionry/plugin-default-view-code": "workspace:*",

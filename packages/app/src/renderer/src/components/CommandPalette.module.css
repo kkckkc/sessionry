@@ -1,0 +1,163 @@
+/* Dialog overlay */
+[cmdk-overlay] {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  animation: fadeIn 150ms ease-out;
+}
+
+/* Dialog container */
+[cmdk-dialog] {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 640px;
+  max-width: 90vw;
+  background: var(--surface-high);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-5);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  z-index: 1001;
+  animation: slideIn 200ms ease-out;
+}
+
+/* Input */
+[cmdk-input] {
+  width: 100%;
+  padding: var(--space-7);
+  font-size: var(--body-lg-font-size);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  outline: none;
+}
+
+[cmdk-input]::placeholder {
+  color: var(--text-muted);
+}
+
+/* List */
+[cmdk-list] {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+/* Group */
+[cmdk-group] {
+  padding: var(--space-2) 0;
+}
+
+[cmdk-group-heading] {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--caption-font-size);
+  font-weight: var(--caption-font-weight);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Item */
+[cmdk-item] {
+  padding: var(--space-4);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  color: var(--text);
+  font-size: var(--body-font-size);
+  transition: background 100ms ease;
+}
+
+[cmdk-item][data-selected='true'] {
+  background: var(--hover);
+  color: var(--accent);
+}
+
+[cmdk-item][data-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.itemContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.itemMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+  min-width: 0;
+}
+
+.icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.itemText {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemName {
+  font-weight: var(--body-font-weight);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemDescription {
+  font-size: var(--body-sm-font-size);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.keybinding {
+  padding: 2px 6px;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  border-radius: var(--radius-1);
+  font-size: var(--caption-font-size);
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+/* Empty state */
+[cmdk-empty] {
+  padding: var(--space-9);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--body-sm-font-size);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
