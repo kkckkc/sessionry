@@ -64,14 +64,28 @@ export async function getMonospaceFonts(): Promise<FontInfo[]> {
       // Sort alphabetically
       fonts.sort((a, b) => a.family.localeCompare(b.family));
     } else {
-      console.warn('[FontDetection] queryLocalFonts API not available, using fallback');
-      // Fall back to IPC-based detection
-      return window.terminalApp.fonts.getMonospaceFonts();
+      console.warn('[FontDetection] queryLocalFonts API not available, using common fonts fallback');
+      // Fallback to common monospace fonts
+      const commonFonts = [
+        'JetBrains Mono',
+        'Fira Code',
+        'Source Code Pro',
+        'SF Mono',
+        'Monaco',
+        'Menlo',
+        'Consolas',
+        'Courier New'
+      ];
+      
+      for (const family of commonFonts) {
+        if (isMonospace(family)) {
+          fonts.push({ family, displayName: family });
+        }
+      }
     }
   } catch (error) {
     console.error('[FontDetection] Error detecting fonts:', error);
-    // Fall back to IPC-based detection
-    return window.terminalApp.fonts.getMonospaceFonts();
+    // Return empty array, fallbacks will be added below
   }
 
   // Always include generic fallbacks at the end
