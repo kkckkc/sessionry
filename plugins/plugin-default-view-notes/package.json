@@ -1,0 +1,24 @@
+{
+  "name": "@sessionry/plugin-default-view-notes",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./renderer": "./src/renderer.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sessionry/components": "workspace:*",
+    "@sessionry/plugin-api": "workspace:*",
+    "react": "19.2.5",
+    "react-icons": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}

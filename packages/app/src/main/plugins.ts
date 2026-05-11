@@ -9,6 +9,7 @@ import paneHierarchyDebugPlugin from '@sessionry/plugin-debug-view-pane-hierarch
 import { defaultThemesPlugin } from '@sessionry/plugin-default-themes';
 import { gitVcsPlugin } from '@sessionry/plugin-default-vcs-git';
 import { vcsViewPlugin } from '@sessionry/plugin-default-view-vcs';
+import { notesViewPlugin } from '@sessionry/plugin-default-view-notes';
 
 import { corePlugin } from './corePlugin';
 
@@ -23,5 +24,6 @@ export const builtInPlugins: AppPlugin[] = [
   sidebarTabBarPlugin,
   fileBrowserPlugin,
   vcsViewPlugin,
+  notesViewPlugin,
   paneHierarchyDebugPlugin
 ];
