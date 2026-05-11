@@ -2,6 +2,7 @@ import type { AppPlugin } from '@sessionry/plugin-api';
 import { projectSessionsSidebarPlugin } from '@sessionry/plugin-default-view-left-sidebar';
 import { sidebarTabBarPlugin } from '@sessionry/plugin-default-view-sidebar-tabbar';
 import { codePanePlugin } from '@sessionry/plugin-default-view-code';
+import { terminalPresetsPlugin } from '@sessionry/plugin-default-terminal-presets';
 import { terminalPanePlugin } from '@sessionry/plugin-default-view-terminal';
 import { defaultWorkspacePanePlugin } from '@sessionry/plugin-default-view-workspace';
 import { fileBrowserPlugin } from '@sessionry/plugin-default-view-files';
@@ -19,6 +20,7 @@ export const builtInPlugins: AppPlugin[] = [
   defaultThemesPlugin,
   gitVcsPlugin,
   codePanePlugin,
+  terminalPresetsPlugin,
   terminalPanePlugin,
   chatPlugin,
   defaultWorkspacePanePlugin,

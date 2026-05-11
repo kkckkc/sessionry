@@ -10,6 +10,12 @@
       "@sessionry/plugin-default-view-code": [
         "../../plugins/plugin-default-view-code/src/index.ts"
       ],
+      "@sessionry/plugin-default-terminal-presets/renderer": [
+        "../../plugins/plugin-default-terminal-presets/src/renderer.tsx"
+      ],
+      "@sessionry/plugin-default-terminal-presets": [
+        "../../plugins/plugin-default-terminal-presets/src/index.ts"
+      ],
       "@sessionry/plugin-debug-view-pane-hierarchy/renderer": [
         "../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx"
       ],

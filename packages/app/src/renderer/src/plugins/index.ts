@@ -6,6 +6,7 @@ import type {
   RendererViewRegistration
 } from '@sessionry/plugin-api';
 import { debugPaneHierarchyRendererPlugin } from '@sessionry/plugin-debug-view-pane-hierarchy/renderer';
+import terminalPresetsRendererPlugin from '@sessionry/plugin-default-terminal-presets/renderer';
 import { codePaneRendererPlugin } from '@sessionry/plugin-default-view-code/renderer';
 import { defaultWorkspacePaneRendererPlugin } from '@sessionry/plugin-default-view-workspace/renderer';
 import { projectSessionsSidebarRendererPlugin } from '@sessionry/plugin-default-view-left-sidebar/renderer';
@@ -20,6 +21,7 @@ import { coreRendererPlugin } from './coreRendererPlugin';
 const builtInRendererPlugins = [
   coreRendererPlugin,
   codePaneRendererPlugin,
+  terminalPresetsRendererPlugin,
   terminalPaneRendererPlugin,
   chatRendererPlugin,
   defaultWorkspacePaneRendererPlugin,

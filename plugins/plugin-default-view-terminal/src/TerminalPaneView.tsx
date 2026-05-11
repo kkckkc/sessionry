@@ -85,6 +85,12 @@ export const TerminalPaneView = ({
   visible = true,
   onRegisterFocusHandler
 }: PaneViewProps) => {
+  const paneState = pane.state as {
+    title?: string;
+    name?: string;
+    initialCommand?: string;
+    initialCommandPending?: boolean;
+  };
   const containerRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -92,7 +98,8 @@ export const TerminalPaneView = ({
   const sessionFolder = workspace.getSession(pane.sessionId)?.data.folder;
   const sessionFolderRef = useRef(sessionFolder);
   sessionFolderRef.current = sessionFolder;
-  const paneTitleRef = useRef(typeof pane.state.title === 'string' ? pane.state.title : 'Terminal');
+  const paneTitleRef = useRef(typeof paneState.title === 'string' ? paneState.title : 'Terminal');
+  const initialCommandSentRef = useRef<string | null>(null);
 
   const [terminalFont, setTerminalFont] = useState<string>(
     '"JetBrains Mono", "SF Mono", ui-monospace, monospace'
@@ -357,6 +364,36 @@ export const TerminalPaneView = ({
         if (!terminalRef.current) return;
         const buf = session.buffer ?? '';
         if (buf) terminal.write(buf);
+
+        const paneHandle = workspace.getPane(pane.id);
+        const currentState = paneHandle?.data.state as
+          | {
+              initialCommand?: string;
+              initialCommandPending?: boolean;
+            }
+          | undefined;
+        const initialCommand =
+          typeof currentState?.initialCommand === 'string' ? currentState.initialCommand.trim() : '';
+
+        if (
+          paneHandle &&
+          currentState?.initialCommandPending === true &&
+          initialCommand &&
+          initialCommandSentRef.current !== initialCommand
+        ) {
+          initialCommandSentRef.current = initialCommand;
+          window.terminalApp.sendTerminalInput({
+            sessionId: pane.id,
+            data: `${initialCommand}\n`
+          });
+          void paneHandle.update({
+            state: {
+              ...currentState,
+              initialCommandPending: false
+            }
+          });
+        }
+
         for (const data of pendingData) terminal.write(data);
         historyLoaded = true;
         pendingData.length = 0;

@@ -258,6 +258,48 @@ describe('TerminalPaneView', () => {
     expect(writeMock).toHaveBeenCalledWith('hello');
   });
 
+  it('runs an initial preset command once and clears the pending flag', async () => {
+    const { workspace, update } = createWorkspaceWithPane({
+      name: 'Dev server',
+      title: 'Terminal',
+      initialCommand: 'pnpm dev',
+      initialCommandPending: true
+    });
+
+    render(
+      <TerminalPaneView
+        {...baseProps}
+        workspace={workspace}
+        pane={{
+          id: 'pane-terminal',
+          sessionId: 'session-1',
+          type: 'terminal',
+          state: {
+            name: 'Dev server',
+            title: 'Terminal',
+            initialCommand: 'pnpm dev',
+            initialCommandPending: true
+          }
+        }}
+      />
+    );
+
+    await act(async () => {});
+
+    expect(window.terminalApp.sendTerminalInput).toHaveBeenCalledWith({
+      sessionId: 'pane-terminal',
+      data: 'pnpm dev\n'
+    });
+    expect(update).toHaveBeenCalledWith({
+      state: {
+        name: 'Dev server',
+        title: 'Terminal',
+        initialCommand: 'pnpm dev',
+        initialCommandPending: false
+      }
+    });
+  });
+
   it('clears on demand and resizes when becoming visible', async () => {
     const { rerender } = render(<TerminalPaneView {...baseProps} visible={false} />);
 

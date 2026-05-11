@@ -12,6 +12,7 @@ export default defineConfig({
       externalizeDepsPlugin({
         exclude: [
           '@sessionry/plugin-api',
+          '@sessionry/plugin-default-terminal-presets',
           '@sessionry/plugin-default-view-code',
           '@sessionry/plugin-debug-view-pane-hierarchy',
           '@sessionry/plugin-default-view-sidebar-tabbar',
@@ -51,6 +52,14 @@ export default defineConfig({
         {
           find: /^@sessionry\/components\/style\.css$/,
           replacement: path.resolve(rootDir, '../components/src/style.css')
+        },
+        {
+          find: '@sessionry/plugin-default-terminal-presets/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-terminal-presets/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-default-terminal-presets',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-terminal-presets/src/index.ts')
         },
         {
           find: '@sessionry/plugin-default-view-chat/renderer',
@@ -156,6 +165,7 @@ export default defineConfig({
       externalizeDepsPlugin({
         exclude: [
           '@sessionry/plugin-api',
+          '@sessionry/plugin-default-terminal-presets',
           '@sessionry/plugin-default-view-code',
           '@sessionry/plugin-debug-view-pane-hierarchy',
           '@sessionry/plugin-default-view-sidebar-tabbar',
@@ -175,6 +185,10 @@ export default defineConfig({
         {
           find: '@sessionry/plugin-api',
           replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-terminal-presets',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-terminal-presets/src/index.ts')
         },
         {
           find: '@sessionry/plugin-default-view-chat',
@@ -250,6 +264,14 @@ export default defineConfig({
         {
           find: /^@sessionry\/components\/style\.css$/,
           replacement: path.resolve(rootDir, '../components/src/style.css')
+        },
+        {
+          find: '@sessionry/plugin-default-terminal-presets/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-terminal-presets/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-default-terminal-presets',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-terminal-presets/src/index.ts')
         },
         {
           find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
