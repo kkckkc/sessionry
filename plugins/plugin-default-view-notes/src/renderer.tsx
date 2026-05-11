@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { TbTrash } from 'react-icons/tb';
+import { TbTrash, TbHistory } from 'react-icons/tb';
 import type { RendererAppPlugin, SidebarViewProps } from '@sessionry/plugin-api';
-import { Section } from '@sessionry/components';
+import { Menu, Section } from '@sessionry/components';
 
 import { notesViewPlugin } from '.';
+import { useSnapshotManager } from './useSnapshotManager';
 import './styles.css';
 
 const NOTES_FILE = '.sessionry/notes.md';
@@ -14,6 +15,7 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showHistoryMenu, setShowHistoryMenu] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Calculate word and character counts
@@ -105,6 +107,24 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
     void saveNotes('');
   }, [saveNotes]);
 
+  // Handle restore from snapshot
+  const handleRestore = useCallback(
+    (restoredContent: string) => {
+      setContent(restoredContent);
+      void saveNotes(restoredContent);
+    },
+    [saveNotes]
+  );
+
+  const sessionFolder = getSessionFolder();
+
+  // Snapshot manager
+  const { snapshots, isLoadingSnapshots, restoreSnapshot, formatRelativeTime } = useSnapshotManager({
+    sessionFolder,
+    content,
+    onRestore: handleRestore
+  });
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -113,8 +133,6 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
       }
     };
   }, []);
-
-  const sessionFolder = getSessionFolder();
 
   if (!sessionFolder) {
     return (
@@ -142,14 +160,57 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
   return (
     <div className="notes-view">
       <div className="notes-toolbar">
-        <button
-          className="notes-clear-button"
-          onClick={handleClearNotes}
-          title="Clear notes"
-          disabled={!content}
-        >
-          <TbTrash />
-        </button>
+        <div className="notes-toolbar-left">
+          <div className="notes-history-dropdown">
+            <Menu.Root open={showHistoryMenu} onOpenChange={open => setShowHistoryMenu(open)}>
+              <Menu.Trigger
+                className="notes-history-button"
+                title="View history"
+                disabled={isLoadingSnapshots || snapshots.length === 0}
+              >
+                <TbHistory />
+                <span>History</span>
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner>
+                  <Menu.Popup className="notes-history-menu">
+                    <div className="notes-history-header">History</div>
+                    <div className="notes-history-list">
+                      {snapshots.map(snapshot => (
+                        <Menu.Item
+                          key={snapshot.timestamp}
+                          className="notes-history-item"
+                          onClick={() => {
+                            void restoreSnapshot(snapshot);
+                            setShowHistoryMenu(false);
+                          }}
+                        >
+                          <div className="notes-history-item-content">
+                            <div className="notes-history-time">
+                              {formatRelativeTime(snapshot.timestamp)}
+                            </div>
+                            <div className="notes-history-preview">{snapshot.preview}</div>
+                            <div className="notes-history-meta">
+                              {snapshot.wordCount} words, {snapshot.charCount} chars
+                            </div>
+                          </div>
+                        </Menu.Item>
+                      ))}
+                    </div>
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
+          </div>
+          <button
+            className="notes-clear-button"
+            onClick={handleClearNotes}
+            title="Clear notes"
+            disabled={!content}
+          >
+            <TbTrash />
+          </button>
+        </div>
         <div className="notes-status">
           {isSaving && <span className="notes-saving">Saving...</span>}
           {error && <span className="notes-error">{error}</span>}

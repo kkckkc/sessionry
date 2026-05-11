@@ -81,6 +81,10 @@ const api = {
     ipcRenderer.invoke(IPC_CHANNELS.readFile, filePath),
   writeFile: (filePath: string, content: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.writeFile, filePath, content),
+  deleteFile: (filePath: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.deleteFile, filePath),
+  createDirectory: (dirPath: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.createDirectory, dirPath),
   vcs: {
     getStatus: (dirPath: string, options?: { bypassCache?: boolean }) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsStatus, dirPath, ...(options ? [options] : [])),
