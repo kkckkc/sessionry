@@ -44,6 +44,16 @@ const activateMain = async (context: MainPluginContext): Promise<void> => {
     await chatService.clearHistory(paneId);
   });
 
+  context.ipc.handle(CHAT_IPC_CHANNELS.listModels, async () => {
+    try {
+      const models = await chatService.listModels();
+      return { models };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return { error: errorMessage };
+    }
+  });
+
   // Listen for settings changes
   let currentSettings = pluginSettings;
   context.workspace.subscribeAll(event => {

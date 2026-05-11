@@ -7,6 +7,10 @@
   }
 }
 
+.chat-settings-field {
+  padding: 10px 0;
+}
+
 /* Markdown rendering for AI messages */
 .chat-markdown {
   line-height: 1.55;

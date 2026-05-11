@@ -12,9 +12,15 @@ import { CHAT_IPC_CHANNELS } from './constants';
 
 type ProviderModelId = string & {};
 
+interface ModelInfo {
+  id: string;
+  name?: string;
+}
+
 export class ChatService {
   private sessions = new Map<string, ChatSession>();
   private aiModel: LanguageModel | null = null;
+  private currentProvider: ReturnType<typeof createOpenAI> | ReturnType<typeof createAnthropic> | ReturnType<typeof createGoogleGenerativeAI> | null = null;
   private settings: ChatPluginSettings;
   private historyDir: string;
 
@@ -40,6 +46,7 @@ export class ChatService {
             apiKey,
             baseURL: baseUrl
           });
+          this.currentProvider = openai;
           this.aiModel = openai(modelId);
           break;
         }
@@ -48,6 +55,7 @@ export class ChatService {
             apiKey,
             baseURL: baseUrl
           });
+          this.currentProvider = anthropic;
           this.aiModel = anthropic(modelId);
           break;
         }
@@ -56,6 +64,7 @@ export class ChatService {
             apiKey,
             baseURL: baseUrl
           });
+          this.currentProvider = google;
           this.aiModel = google(modelId);
           break;
         }
@@ -67,6 +76,7 @@ export class ChatService {
             apiKey,
             baseURL: baseUrl
           });
+          this.currentProvider = customProvider;
           this.aiModel = customProvider(modelId);
           break;
         }
@@ -76,6 +86,7 @@ export class ChatService {
     } catch (error) {
       console.error('[ChatService] Failed to initialize AI model:', error);
       this.aiModel = null;
+      this.currentProvider = null;
     }
   }
 
@@ -232,6 +243,46 @@ export class ChatService {
 
   removeSession(paneId: string): void {
     this.sessions.delete(paneId);
+  }
+
+  async listModels(): Promise<ModelInfo[]> {
+    if (!this.currentProvider) {
+      throw new Error('Provider not initialized');
+    }
+
+    try {
+      // Try using the listModels API if available (newer versions)
+      if ('listModels' in this.currentProvider && typeof this.currentProvider.listModels === 'function') {
+        const models = await this.currentProvider.listModels();
+        return models.map((m: { id: string; name?: string }) => ({
+          id: m.id,
+          name: m.name
+        }));
+      }
+
+      // Fallback: fetch from /v1/models endpoint for OpenAI-compatible providers
+      const { provider } = this.settings.provider;
+      if (provider === 'openai' || provider === 'custom') {
+        const baseUrl = this.settings.provider.baseUrl || 'https://api.openai.com/v1';
+        const response = await fetch(`${baseUrl}/models`, {
+          headers: {
+            'Authorization': `Bearer ${this.settings.provider.apiKey}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch models: ${response.statusText}`);
+        }
+
+        const data = await response.json() as { data: Array<{ id: string }> };
+        return data.data.map(m => ({ id: m.id }));
+      }
+
+      throw new Error('Model listing not supported for this provider');
+    } catch (error) {
+      console.error('[ChatService] Error listing models:', error);
+      throw error;
+    }
   }
 
   private async loadHistoryFromDisk(paneId: string): Promise<void> {
