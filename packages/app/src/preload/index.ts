@@ -178,7 +178,9 @@ const api = {
       ) => listener(payload);
       ipcRenderer.on('plugin:update:progress', wrapped);
       return () => ipcRenderer.removeListener('plugin:update:progress', wrapped);
-    }
+    },
+    approveIpc: (pluginId: string) => ipcRenderer.invoke('plugin:approve-ipc', pluginId),
+    revokeIpc: (pluginId: string) => ipcRenderer.invoke('plugin:revoke-ipc', pluginId)
   },
   onTerminalData: (listener: (event: TerminalDataEvent) => void): Unsubscribe => {
     const wrapped = (_event: Electron.IpcRendererEvent, payload: TerminalDataEvent) =>
@@ -201,6 +203,18 @@ const api = {
   clipboard: {
     readText: (): Promise<string> => ipcRenderer.invoke('clipboard:readText'),
     writeText: (text: string): Promise<void> => ipcRenderer.invoke('clipboard:writeText', text)
+  },
+  pluginIpc: {
+    invoke: <T>(channel: string, payload?: unknown): Promise<T> =>
+      ipcRenderer.invoke(channel, payload),
+    send: (channel: string, payload?: unknown): void => {
+      ipcRenderer.send(channel, payload);
+    },
+    on: (channel: string, listener: (payload: unknown) => void): Unsubscribe => {
+      const wrapped = (_event: Electron.IpcRendererEvent, payload: unknown) => listener(payload);
+      ipcRenderer.on(channel, wrapped);
+      return () => ipcRenderer.removeListener(channel, wrapped);
+    }
   }
 };
 

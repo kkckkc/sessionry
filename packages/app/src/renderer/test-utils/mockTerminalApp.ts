@@ -108,7 +108,14 @@ export function createMockTerminalApp(
       disable: vi.fn().mockResolvedValue({}),
       checkUpdates: vi.fn().mockResolvedValue([]),
       onInstallProgress: vi.fn().mockReturnValue(() => {}),
-      onUpdateProgress: vi.fn().mockReturnValue(() => {})
+      onUpdateProgress: vi.fn().mockReturnValue(() => {}),
+      approveIpc: vi.fn().mockResolvedValue({ success: true, requiresRestart: true }),
+      revokeIpc: vi.fn().mockResolvedValue({ success: true, requiresRestart: true })
+    },
+    pluginIpc: {
+      invoke: vi.fn().mockResolvedValue(undefined),
+      send: vi.fn(),
+      on: vi.fn().mockReturnValue(() => {})
     },
     keybindings: {
       onReload: vi.fn().mockReturnValue(() => {})

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { IconType } from 'react-icons';
 import * as TbIcons from 'react-icons/tb';
 
@@ -20,6 +20,7 @@ import { PluginSurface } from './PluginSurface';
 import { KeyboardShortcutsSettingsView } from './KeyboardShortcutsSettingsView';
 import type { KeybindingOverrides } from '../lib/keybindings';
 import { applyTheme, applyColorTheme } from '../lib/theme';
+import { getRendererSettingsViews } from '../plugins';
 import {
   usePluginManager,
   PluginCard,
@@ -43,6 +44,7 @@ interface PluginWithSettings {
     description?: string;
     icon?: string;
   };
+  isBuiltIn?: boolean;
 }
 
 interface SettingsViewProps {
@@ -56,6 +58,53 @@ const resolveTablerIcon = (name: string): IconType | null => {
   const icon = TbIcons[name as keyof typeof TbIcons];
   return icon ? (icon as IconType) : null;
 };
+
+const BUILT_IN_SETTINGS_ENTRIES: PluginWithSettings[] = [
+  {
+    id: 'app-appearance',
+    name: 'Appearance',
+    isBuiltIn: true,
+    settingsView: {
+      id: 'settings.appearance',
+      title: 'Appearance',
+      description: 'Configure the visual appearance of the app',
+      icon: 'TbPalette'
+    }
+  },
+  {
+    id: 'app-keyboard-shortcuts',
+    name: 'Keybindings',
+    isBuiltIn: true,
+    settingsView: {
+      id: 'settings.keyboard-shortcuts',
+      title: 'Keybindings',
+      description: 'Customize keybindings for actions',
+      icon: 'TbKeyboard'
+    }
+  },
+  {
+    id: 'app-confirmations',
+    name: 'Confirmations',
+    isBuiltIn: true,
+    settingsView: {
+      id: 'settings.confirmations',
+      title: 'Confirmations',
+      description: 'Configure confirmation dialogs for destructive actions',
+      icon: 'TbAlertCircle'
+    }
+  },
+  {
+    id: 'app-plugins',
+    name: 'Plugins',
+    isBuiltIn: true,
+    settingsView: {
+      id: 'settings.plugins',
+      title: 'Plugins',
+      description: 'Manage installed plugins and discover new ones',
+      icon: 'TbPuzzle'
+    }
+  }
+];
 
 export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsViewProps) => {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -72,64 +121,36 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
     return unsubscribe;
   }, []);
 
-  const pluginsWithSettings: PluginWithSettings[] = [
-    {
-      id: 'app-appearance',
-      name: 'Appearance',
-      settingsView: {
-        id: 'settings.appearance',
-        title: 'Appearance',
-        description: 'Configure the visual appearance of the app',
-        icon: 'TbPalette'
-      }
-    },
-    {
-      id: 'app-keyboard-shortcuts',
-      name: 'Keybindings',
-      settingsView: {
-        id: 'settings.keyboard-shortcuts',
-        title: 'Keybindings',
-        description: 'Customize keybindings for actions',
-        icon: 'TbKeyboard'
-      }
-    },
-    {
-      id: 'app-confirmations',
-      name: 'Confirmations',
-      settingsView: {
-        id: 'settings.confirmations',
-        title: 'Confirmations',
-        description: 'Configure confirmation dialogs for destructive actions',
-        icon: 'TbAlertCircle'
-      }
-    },
-    {
-      id: 'app-plugins',
-      name: 'Plugins',
-      settingsView: {
-        id: 'settings.plugins',
-        title: 'Plugins',
-        description: 'Manage installed plugins and discover new ones',
-        icon: 'TbPuzzle'
-      }
-    },
-    {
-      id: 'plugin-default-view-terminal',
-      name: 'Terminal',
-      settingsView: {
-        id: 'settings.terminal',
-        title: 'Terminal',
-        description: 'Configure terminal and tmux settings',
-        icon: 'TbTerminal'
-      }
-    }
-  ];
+  const pluginsWithSettings = useMemo<PluginWithSettings[]>(() => {
+    const pluginEntries = getRendererSettingsViews()
+      .map(plugin => ({
+        id: plugin.pluginId,
+        name: plugin.title,
+        settingsView: {
+          id: plugin.id,
+          title: plugin.title,
+          description: plugin.description,
+          icon: plugin.icon
+        }
+      }))
+      .filter(plugin => !BUILT_IN_SETTINGS_ENTRIES.some(entry => entry.id === plugin.id))
+      .sort((left, right) => left.settingsView.title.localeCompare(right.settingsView.title));
+
+    return [...BUILT_IN_SETTINGS_ENTRIES, ...pluginEntries];
+  }, []);
 
   useEffect(() => {
-    if (!selectedPluginId && pluginsWithSettings.length > 0) {
+    if (pluginsWithSettings.length === 0) {
+      if (selectedPluginId !== null) {
+        setSelectedPluginId(null);
+      }
+      return;
+    }
+
+    if (!selectedPluginId || !pluginsWithSettings.some(plugin => plugin.id === selectedPluginId)) {
       setSelectedPluginId(pluginsWithSettings[0].id);
     }
-  }, [selectedPluginId, pluginsWithSettings.length, pluginsWithSettings[0].id]);
+  }, [selectedPluginId, pluginsWithSettings]);
 
   const selectedPlugin = pluginsWithSettings.find(p => p.id === selectedPluginId);
   const selectedSettings =
@@ -151,7 +172,6 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
   const handleUpdateSettings = async (pluginId: string, updates: unknown) => {
     if (!settings) return;
 
-    // Handle built-in appearance settings
     if (pluginId === 'app-appearance') {
       const { theme, colorTheme, terminalBgOverride, terminalBgColor } = updates as {
         theme: AppTheme;
@@ -178,7 +198,6 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
       return;
     }
 
-    // Handle built-in keyboard shortcuts settings (not a plugin)
     if (pluginId === 'app-keyboard-shortcuts') {
       const nextSettings: AppSettings = {
         ...settings,
@@ -191,7 +210,6 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
       return;
     }
 
-    // Handle built-in confirmations settings (not a plugin)
     if (pluginId === 'app-confirmations') {
       const nextSettings: AppSettings = {
         ...settings,
@@ -204,7 +222,6 @@ export const SettingsView = ({ resolveRendererView, open, onClose }: SettingsVie
       return;
     }
 
-    // Handle plugin settings
     const nextSettings: AppSettings = {
       ...settings,
       plugins: {
@@ -289,7 +306,6 @@ const PluginSettingsContent = ({
   onUpdate,
   resolveRendererView
 }: PluginSettingsContentProps) => {
-  // Handle built-in appearance settings
   if (plugin.id === 'app-appearance') {
     return (
       <PluginSurface
@@ -313,7 +329,6 @@ const PluginSettingsContent = ({
     );
   }
 
-  // Handle built-in keyboard shortcuts settings
   if (plugin.id === 'app-keyboard-shortcuts') {
     return (
       <PluginSurface
@@ -335,7 +350,6 @@ const PluginSettingsContent = ({
     );
   }
 
-  // Handle built-in confirmations settings
   if (plugin.id === 'app-confirmations') {
     return (
       <PluginSurface
@@ -352,7 +366,6 @@ const PluginSettingsContent = ({
     );
   }
 
-  // Handle built-in plugin manager
   if (plugin.id === 'app-plugins') {
     return (
       <PluginSurface
@@ -469,7 +482,6 @@ interface ConfirmationsSettingsViewProps {
 }
 
 const ConfirmationsSettingsView = ({ settings, onUpdate }: ConfirmationsSettingsViewProps) => {
-  // Provide defaults if settings are undefined (for existing installations)
   const confirmations: ConfirmationsSettings = settings ?? {
     confirmPaneClose: true,
     confirmPaneGroupClose: true,

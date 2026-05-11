@@ -101,6 +101,13 @@ export interface TerminalAppBridge {
     onUpdateProgress: (
       listener: (data: { downloaded: number; total: number }) => void
     ) => Unsubscribe;
+    approveIpc: (pluginId: string) => Promise<{ success: boolean; requiresRestart: boolean }>;
+    revokeIpc: (pluginId: string) => Promise<{ success: boolean; requiresRestart: boolean }>;
+  };
+  pluginIpc: {
+    invoke: <T>(channel: string, payload?: unknown) => Promise<T>;
+    send: (channel: string, payload?: unknown) => void;
+    on: (channel: string, listener: (payload: unknown) => void) => Unsubscribe;
   };
   onTerminalData: (listener: (event: TerminalDataEvent) => void) => Unsubscribe;
   onTerminalState: (listener: (event: TerminalStateEvent) => void) => Unsubscribe;

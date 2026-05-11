@@ -63,4 +63,13 @@ export class PluginConfigStore {
   getDisabledPlugins(): InstalledPlugin[] {
     return this.config.installed.filter(p => !p.enabled);
   }
+
+  isIpcApproved(pluginId: string): boolean {
+    const plugin = this.getPlugin(pluginId);
+    return plugin?.ipcApproved ?? false;
+  }
+
+  setIpcApproval(pluginId: string, approved: boolean): void {
+    this.updatePlugin(pluginId, { ipcApproved: approved });
+  }
 }

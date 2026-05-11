@@ -18,6 +18,7 @@ export interface InstalledPlugin {
   source: PluginSource;
   version: string;
   enabled: boolean;
+  ipcApproved?: boolean;
 
   // For npm plugins
   package?: string;

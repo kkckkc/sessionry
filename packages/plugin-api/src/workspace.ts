@@ -66,7 +66,7 @@ export interface WorkspaceStateSnapshot {
   activeSessionId?: string;
 }
 
-export type WorkspaceEntityType = 'project' | 'session' | 'paneGroup' | 'pane';
+export type WorkspaceEntityType = 'project' | 'session' | 'paneGroup' | 'pane' | 'settings';
 
 export type WorkspaceEventType =
   | 'project.created'
@@ -82,7 +82,8 @@ export type WorkspaceEventType =
   | 'paneGroup.removed'
   | 'pane.created'
   | 'pane.updated'
-  | 'pane.removed';
+  | 'pane.removed'
+  | 'settings.updated';
 
 interface WorkspaceEventBase<
   TType extends WorkspaceEventType,
@@ -162,6 +163,12 @@ export interface PaneRemovedEvent extends WorkspaceEventBase<'pane.removed', 'pa
   before: PaneData;
 }
 
+
+export interface SettingsUpdatedEvent extends WorkspaceEventBase<'settings.updated', 'settings'> {
+  before: Record<string, unknown>;
+  after: Record<string, unknown>;
+}
+
 export type WorkspaceEvent =
   | ProjectCreatedEvent
   | ProjectUpdatedEvent
@@ -176,7 +183,8 @@ export type WorkspaceEvent =
   | PaneGroupRemovedEvent
   | PaneCreatedEvent
   | PaneUpdatedEvent
-  | PaneRemovedEvent;
+  | PaneRemovedEvent
+  | SettingsUpdatedEvent;
 
 export interface CreateProjectInput {
   id?: string;

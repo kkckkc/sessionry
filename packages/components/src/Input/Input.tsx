@@ -1,5 +1,6 @@
 import { Input as BaseInput } from '@base-ui/react/input';
 import { Field } from '@base-ui/react/field';
+import type { CSSProperties } from 'react';
 import './Input.css';
 
 export interface InputProps {
@@ -66,6 +67,11 @@ export interface InputProps {
    * Name attribute for form submission
    */
   name?: string;
+  id?: string;
+  min?: number | string;
+  max?: number | string;
+  step?: number | string;
+  style?: CSSProperties;
   autoFocus?: boolean;
   className?: string;
   'aria-label'?: string;

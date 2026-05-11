@@ -1,30 +1,78 @@
-import type { AppPlugin } from '@sessionry/plugin-api';
+import type { AppPlugin, MainPluginContext } from '@sessionry/plugin-api';
+import { chatPluginDefinition } from './definition';
+import type { ChatPluginSettings } from './settings';
+import { DEFAULT_CHAT_SETTINGS } from './settings';
+import { CHAT_IPC_CHANNELS } from './constants';
+import type {
+  SendMessagePayload,
+  LoadHistoryPayload,
+  ClearHistoryPayload
+} from './types';
+
+const activateMain = async (context: MainPluginContext): Promise<void> => {
+  // Dynamically import ChatService to avoid bundling node dependencies in renderer
+  const { ChatService } = await import('./chatService');
+
+  const pluginSettings = (context.settings.plugins['plugin-default-view-chat'] as
+    | ChatPluginSettings
+    | undefined) ?? DEFAULT_CHAT_SETTINGS;
+
+  // Get workspace root for history storage
+  const workspaceState = context.workspace.snapshot;
+  const workspaceRoot = workspaceState.sessions[0]?.folder ?? process.cwd();
+
+  const chatService = new ChatService(
+    (channel, data) => context.ipc.emit(channel, data),
+    pluginSettings,
+    workspaceRoot
+  );
+
+  // Register IPC handlers
+  context.ipc.on(CHAT_IPC_CHANNELS.sendMessage, async (payload: unknown) => {
+    const { paneId, content } = payload as SendMessagePayload;
+    await chatService.sendMessage(paneId, content);
+  });
+
+  context.ipc.handle(CHAT_IPC_CHANNELS.loadHistory, async (payload: unknown) => {
+    const { paneId } = payload as LoadHistoryPayload;
+    const messages = await chatService.loadHistory(paneId);
+    return { messages };
+  });
+
+  context.ipc.on(CHAT_IPC_CHANNELS.clearHistory, async (payload: unknown) => {
+    const { paneId } = payload as ClearHistoryPayload;
+    await chatService.clearHistory(paneId);
+  });
+
+  // Listen for settings changes
+  let currentSettings = pluginSettings;
+  context.workspace.subscribeAll(event => {
+    if (event.type === 'settings.updated') {
+      const afterSettings = event.after as unknown as { plugins?: Record<string, unknown> };
+      const newPluginSettings = (afterSettings.plugins?.['plugin-default-view-chat'] as
+        | ChatPluginSettings
+        | undefined) ?? DEFAULT_CHAT_SETTINGS;
+
+      // Check if provider settings changed
+      if (JSON.stringify(newPluginSettings.provider) !== JSON.stringify(currentSettings.provider)) {
+        chatService.updateSettings(newPluginSettings);
+      }
+
+      currentSettings = newPluginSettings;
+    }
+  });
+
+  // Clean up sessions when panes are removed
+  context.workspace.subscribeAll(event => {
+    if (event.type === 'pane.removed' && event.before.type === 'chat') {
+      chatService.removeSession(event.before.id);
+    }
+  });
+};
 
 export const chatPlugin: AppPlugin = {
-  id: 'plugin-default-view-chat',
-  name: 'Chat Pane',
-  actions: [
-    {
-      id: 'chat:new',
-      name: 'New Chat',
-      icon: 'TbMessageCircle',
-      description: 'Create a new chat pane',
-      category: 'Chat',
-      surfaces: ['palette'],
-      run: () => ({
-        status: 'completed',
-        effects: [{ type: 'pane.new-chat' }]
-      })
-    }
-  ],
-  views: [
-    {
-      id: 'pane.chat.default',
-      title: 'Chat',
-      slot: 'pane:chat',
-      isDefault: true
-    }
-  ]
+  ...chatPluginDefinition,
+  activateMain
 };
 
 export default chatPlugin;

@@ -1480,6 +1480,14 @@ export class WorkspaceStore {
     });
   }
 
+  /**
+   * Emit a workspace event. This is used to notify plugins of changes.
+   * @param event The event to emit
+   */
+  emitEvent(event: WorkspaceEvent): void {
+    this.emit(event);
+  }
+
   private validateChildren(
     children: PaneGroupChild[],
     sessionId: string,

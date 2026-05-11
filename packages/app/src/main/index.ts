@@ -221,6 +221,13 @@ app.whenReady().then(async () => {
     emit: (channel, ...args) => mainWindow?.webContents.send(channel, ...args)
   };
 
+  const ipcApprovedPluginIds = new Set(
+    pluginConfigStore
+      .getInstalledPlugins()
+      .filter(p => p.ipcApproved)
+      .map(p => p.id)
+  );
+
   const pluginManager = createPluginManager(
     {
       workspace: workspaceApi,
@@ -232,7 +239,8 @@ app.whenReady().then(async () => {
       onBeforeQuit: handler => app.on('before-quit', handler)
     },
     enabledBuiltInPlugins,
-    allUserPlugins.map(p => p.plugin)
+    allUserPlugins.map(p => p.plugin),
+    ipcApprovedPluginIds
   );
 
   // Helper function to update window title based on active project
@@ -340,8 +348,21 @@ app.whenReady().then(async () => {
     event.returnValue = settingsStore.read();
   });
   ipcMain.handle(IPC_CHANNELS.settingsUpdate, (_event, updates) => {
+    const beforeSettings = settingsStore.read();
     settingsStore.update(updates);
-    mainWindow?.webContents.send('settings:changed', settingsStore.read());
+    const afterSettings = settingsStore.read();
+    
+    mainWindow?.webContents.send('settings:changed', afterSettings);
+
+    // Emit workspace event for settings change
+    const settingsEvent: WorkspaceEvent = {
+      type: 'settings.updated',
+      entityType: 'settings',
+      entityId: 'app-settings',
+      before: beforeSettings as unknown as Record<string, unknown>,
+      after: afterSettings as unknown as Record<string, unknown>
+    };
+    workspaceStore.emitEvent(settingsEvent);
 
     // Notify all windows if keybindings changed
     if (updates.keybindings) {
@@ -368,6 +389,16 @@ app.whenReady().then(async () => {
     return { success: true, requiresRestart: true };
   });
   ipcMain.handle(IPC_CHANNELS.pluginManagementGetConfig, () => pluginConfigStore.getConfig());
+  ipcMain.handle('plugin:approve-ipc', async (_event, pluginId: string) => {
+    pluginConfigStore.setIpcApproval(pluginId, true);
+    settingsStore.update({ pluginManagement: pluginConfigStore.getConfig() });
+    return { success: true, requiresRestart: true };
+  });
+  ipcMain.handle('plugin:revoke-ipc', async (_event, pluginId: string) => {
+    pluginConfigStore.setIpcApproval(pluginId, false);
+    settingsStore.update({ pluginManagement: pluginConfigStore.getConfig() });
+    return { success: true, requiresRestart: true };
+  });
 
   // Register theme IPC handlers
   registerThemeHandlers();

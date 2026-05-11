@@ -14,14 +14,20 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sessionry/plugin-api": "workspace:*"
+    "@ai-sdk/anthropic": "^0.0.54",
+    "@ai-sdk/google": "^0.0.52",
+    "@ai-sdk/openai": "^0.0.66",
+    "@sessionry/components": "workspace:*",
+    "@sessionry/plugin-api": "workspace:*",
+    "ai": "^3.4.33"
   },
   "devDependencies": {
+    "@types/node": "latest",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "typescript": "^5.3.0",
+    "typescript": "latest",
     "vite": "^5.0.0"
   },
   "peerDependencies": {

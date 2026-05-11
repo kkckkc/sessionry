@@ -21,7 +21,12 @@ export default defineConfig({
           '@sessionry/plugin-default-view-files',
           '@sessionry/plugin-default-themes',
           '@sessionry/plugin-default-vcs-git',
-          '@sessionry/plugin-default-view-vcs'
+          '@sessionry/plugin-default-view-vcs',
+          '@sessionry/plugin-default-view-chat',
+          '@ai-sdk/openai',
+          '@ai-sdk/anthropic',
+          '@ai-sdk/google',
+          'ai'
         ]
       })
     ],
@@ -46,6 +51,14 @@ export default defineConfig({
         {
           find: /^@sessionry\/components\/style\.css$/,
           replacement: path.resolve(rootDir, '../components/src/style.css')
+        },
+        {
+          find: '@sessionry/plugin-default-view-chat/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-chat/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-default-view-chat',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-chat/src/index.ts')
         },
         {
           find: '@sessionry/plugin-default-view-code/renderer',
@@ -136,7 +149,7 @@ export default defineConfig({
           replacement: path.resolve(rootDir, 'src/shared')
         }
       ]
-    }
+    },
   },
   preload: {
     plugins: [
@@ -152,7 +165,8 @@ export default defineConfig({
           '@sessionry/plugin-default-view-files',
           '@sessionry/plugin-default-themes',
           '@sessionry/plugin-default-vcs-git',
-          '@sessionry/plugin-default-view-vcs'
+          '@sessionry/plugin-default-view-vcs',
+          '@sessionry/plugin-default-view-chat'
         ]
       })
     ],
@@ -161,6 +175,10 @@ export default defineConfig({
         {
           find: '@sessionry/plugin-api',
           replacement: path.resolve(rootDir, '../plugin-api/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-view-chat',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-chat/src/index.ts')
         },
         {
           find: '@sessionry/plugin-default-view-code',
@@ -280,6 +298,14 @@ export default defineConfig({
         {
           find: '@sessionry/plugin-default-view-files',
           replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-files/src/index.ts')
+        },
+        {
+          find: '@sessionry/plugin-default-view-chat/renderer',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-chat/src/renderer.tsx')
+        },
+        {
+          find: '@sessionry/plugin-default-view-chat',
+          replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-chat/src/index.ts')
         },
         {
           find: '@sessionry/plugin-default-view-vcs/renderer',

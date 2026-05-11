@@ -1,24 +1,23 @@
 import type { RendererAppPlugin } from '@sessionry/plugin-api';
-
-import chatPlugin from '.';
-
-function ChatView() {
-  return (
-    <div style={{ padding: '1rem' }}>
-      <h2>Chat</h2>
-      <p>Chat functionality coming soon...</p>
-    </div>
-  );
-}
+import { chatPluginDefinition } from './definition';
+import { ChatView } from './ChatView';
+import { ChatSettingsView } from './SettingsView';
+import './styles.css';
 
 const chatRendererPlugin: RendererAppPlugin = {
-  ...chatPlugin,
+  ...chatPluginDefinition,
   views: [
     {
-      ...chatPlugin.views![0],
+      ...chatPluginDefinition.views![0],
       component: ChatView
     }
-  ]
+  ],
+  settingsView: chatPluginDefinition.settingsView
+    ? {
+        ...chatPluginDefinition.settingsView,
+        component: ChatSettingsView
+      }
+    : undefined
 };
 
 export default chatRendererPlugin;
