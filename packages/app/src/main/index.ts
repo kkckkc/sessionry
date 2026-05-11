@@ -355,6 +355,36 @@ app.whenReady().then(async () => {
     const settings = settingsStore.read();
     const template: Electron.MenuItemConstructorOptions[] = [
       {
+        label: 'Edit',
+        submenu: [
+          { role: 'undo' },
+          { role: 'redo' },
+          { type: 'separator' },
+          { role: 'cut' },
+          { role: 'copy' },
+          { role: 'paste' },
+          ...(process.platform === 'darwin'
+            ? [
+                { role: 'pasteAndMatchStyle' as const },
+                { role: 'delete' as const },
+                { role: 'selectAll' as const },
+                { type: 'separator' as const },
+                {
+                  label: 'Speech',
+                  submenu: [
+                    { role: 'startSpeaking' as const },
+                    { role: 'stopSpeaking' as const }
+                  ]
+                }
+              ]
+            : [
+                { role: 'delete' as const },
+                { type: 'separator' as const },
+                { role: 'selectAll' as const }
+              ])
+        ]
+      },
+      {
         label: 'View',
         submenu: [
           { role: 'reload' },
