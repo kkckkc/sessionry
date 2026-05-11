@@ -61,6 +61,10 @@ export const App = () => {
     ? (terminalSessions[activeTerminalPaneId] ?? null)
     : null;
 
+  const brandText = activeProject?.name 
+    ? `Sessionry: ${activeProject.name}` 
+    : 'Sessionry';
+
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
@@ -240,6 +244,7 @@ export const App = () => {
         leftVisible={leftVisible}
         rightVisible={rightVisible}
         statusBarVisible={statusBarVisible}
+        brandText={brandText}
         mainContent={
           <WorkspaceSlotView
             plugins={plugins}

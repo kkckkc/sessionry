@@ -64,6 +64,25 @@ protocol.registerSchemesAsPrivileged([
 
 let mainWindow: BrowserWindow | null = null;
 
+// Set app name for macOS menu (affects both dev and production)
+app.setName('Sessionry');
+
+// Get icon path - works in both dev and production
+const getIconPath = () => {
+  const iconName = process.platform === 'darwin' ? 'sessionry.icns' : 'sessionry-icon-512.png';
+  
+  if (app.isPackaged) {
+    // In production, icons should be in the resources directory
+    return path.join(process.resourcesPath, 'icons', iconName);
+  }
+  
+  // In development, use app.getAppPath() to get the project root
+  const iconPath = path.join(app.getAppPath(), 'icons', iconName);
+  console.log('[Icon] Attempting to load icon from:', iconPath);
+  console.log('[Icon] File exists:', fs.existsSync(iconPath));
+  return iconPath;
+};
+
 const createWindow = (): void => {
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -73,6 +92,7 @@ const createWindow = (): void => {
     backgroundColor: '#0d1118',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 15, y: 12 },
+    icon: getIconPath(),
     webPreferences: {
       // electron-vite emits preload as ESM in production.
       preload: path.join(__dirname, '../preload/index.mjs'),
@@ -94,6 +114,15 @@ const createWindow = (): void => {
 };
 
 app.whenReady().then(async () => {
+  // Set dock icon for development mode on macOS
+  if (process.platform === 'darwin' && !app.isPackaged) {
+    const iconPath = path.join(app.getAppPath(), 'icons', 'sessionry-1024x1024-padded.png');
+    if (fs.existsSync(iconPath)) {
+      app.dock.setIcon(iconPath);
+      console.log('[Icon] Dock icon set for development mode');
+    }
+  }
+
   const settingsStorePath = path.join(app.getPath('userData'), 'settings.yaml');
   const settingsStore = new SettingsStore(settingsStorePath);
 
@@ -185,8 +214,34 @@ app.whenReady().then(async () => {
     userPlugins.map(p => p.plugin)
   );
 
+  // Helper function to update window title based on active project
+  const updateWindowTitle = () => {
+    if (!mainWindow) return;
+    
+    const state = workspaceStore.read();
+    if (!state.activeSessionId) {
+      mainWindow.setTitle('Sessionry');
+      return;
+    }
+    
+    const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+    if (!activeSession) {
+      mainWindow.setTitle('Sessionry');
+      return;
+    }
+    
+    const project = state.projects.find(p => p.id === activeSession.projectId);
+    const projectName = project?.name || 'Unknown Project';
+    mainWindow.setTitle(`Sessionry: ${projectName}`);
+  };
+
   workspaceStore.subscribeAll((event: WorkspaceEvent) => {
     mainWindow?.webContents.send(IPC_CHANNELS.workspaceEvent, event);
+    
+    // Update window title when active session changes
+    if (event.type === 'session.activated') {
+      updateWindowTitle();
+    }
   });
 
   ipcMain.handle(IPC_CHANNELS.pluginModel, () => pluginManager.getViewModel());
@@ -368,6 +423,9 @@ app.whenReady().then(async () => {
 
   createWindow();
   createMenu();
+  
+  // Set initial window title based on active project
+  updateWindowTitle();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

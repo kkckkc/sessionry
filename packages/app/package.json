@@ -19,13 +19,16 @@
     "appId": "com.sessionry.app",
     "productName": "Sessionry",
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "icons/sessionry-1024x1024-padded.png"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "icons/sessionry-icon-512.png"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "icon": "icons/sessionry-icon-512.png"
     },
     "files": [
       "out/**/*"
