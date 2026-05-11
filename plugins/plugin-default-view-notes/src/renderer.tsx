@@ -17,16 +17,16 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
   const [error, setError] = useState<string | null>(null);
   const [showHistoryMenu, setShowHistoryMenu] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+
   // Calculate word and character counts
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
   const charCount = content.length;
-  
+
   // Get active session folder
   const getSessionFolder = useCallback(() => {
     const activeSessionId = workspace.snapshot.activeSessionId;
     if (!activeSessionId) return null;
-    
+
     const session = workspace.snapshot.sessions.find(s => s.id === activeSessionId);
     return session?.folder ?? null;
   }, [workspace]);
@@ -52,7 +52,7 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
       const notesPath = `${sessionFolderRef.current}/${NOTES_FILE}`;
       const fileContent = await window.terminalApp.readFile(notesPath);
       setContent(fileContent);
-    } catch (err) {
+    } catch (_err) {
       // File doesn't exist yet, start with empty content
       setContent('');
       setError(null);
@@ -119,11 +119,13 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
   const sessionFolder = getSessionFolder();
 
   // Snapshot manager
-  const { snapshots, isLoadingSnapshots, restoreSnapshot, formatRelativeTime } = useSnapshotManager({
-    sessionFolder,
-    content,
-    onRestore: handleRestore
-  });
+  const { snapshots, isLoadingSnapshots, restoreSnapshot, formatRelativeTime } = useSnapshotManager(
+    {
+      sessionFolder,
+      content,
+      onRestore: handleRestore
+    }
+  );
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -203,6 +205,7 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
             </Menu.Root>
           </div>
           <button
+            type="button"
             className="notes-clear-button"
             onClick={handleClearNotes}
             title="Clear notes"
@@ -230,7 +233,8 @@ export const NotesView = ({ workspace }: SidebarViewProps) => {
       />
       <div className="notes-footer">
         <span className="notes-stats">
-          {wordCount} {wordCount === 1 ? 'word' : 'words'}, {charCount} {charCount === 1 ? 'character' : 'characters'}
+          {wordCount} {wordCount === 1 ? 'word' : 'words'}, {charCount}{' '}
+          {charCount === 1 ? 'character' : 'characters'}
         </span>
       </div>
     </div>

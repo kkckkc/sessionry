@@ -17,7 +17,11 @@ interface UseSnapshotManagerOptions {
   onRestore: (content: string) => void;
 }
 
-export function useSnapshotManager({ sessionFolder, content, onRestore }: UseSnapshotManagerOptions) {
+export function useSnapshotManager({
+  sessionFolder,
+  content,
+  onRestore
+}: UseSnapshotManagerOptions) {
   const [snapshots, setSnapshots] = useState<NoteSnapshot[]>([]);
   const [isLoadingSnapshots, setIsLoadingSnapshots] = useState(false);
   const snapshotTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -41,7 +45,7 @@ export function useSnapshotManager({ sessionFolder, content, onRestore }: UseSna
     try {
       // Ensure directory exists before reading
       await window.terminalApp.createDirectory(historyDir);
-      
+
       const files = await window.terminalApp.readDirectory(historyDir);
       const snapshotFiles = files
         .filter(f => !f.isDirectory && f.name.endsWith('.json'))
@@ -65,9 +69,11 @@ export function useSnapshotManager({ sessionFolder, content, onRestore }: UseSna
       // Sort by timestamp descending (newest first)
       loadedSnapshots.sort((a, b) => b.timestamp - a.timestamp);
       setSnapshots(loadedSnapshots);
-    } catch (err) {
+    } catch (_err) {
       // Directory doesn't exist yet - this is normal on first run
-      console.log('[Snapshots] History directory does not exist yet, will be created on first snapshot');
+      console.log(
+        '[Snapshots] History directory does not exist yet, will be created on first snapshot'
+      );
       setSnapshots([]);
     } finally {
       setIsLoadingSnapshots(false);

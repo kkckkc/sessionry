@@ -12,9 +12,9 @@ interface RetentionBucket {
 }
 
 const RETENTION_BUCKETS: RetentionBucket[] = [
-  { maxAge: 1 * 60 * 60 * 1000, interval: 5 * 60 * 1000 },           // 0-1h: every 5m
-  { maxAge: 6 * 60 * 60 * 1000, interval: 15 * 60 * 1000 },          // 1-6h: every 15m
-  { maxAge: 24 * 60 * 60 * 1000, interval: 60 * 60 * 1000 },         // 6-24h: every 1h
+  { maxAge: 1 * 60 * 60 * 1000, interval: 5 * 60 * 1000 }, // 0-1h: every 5m
+  { maxAge: 6 * 60 * 60 * 1000, interval: 15 * 60 * 1000 }, // 1-6h: every 15m
+  { maxAge: 24 * 60 * 60 * 1000, interval: 60 * 60 * 1000 }, // 6-24h: every 1h
   { maxAge: 7 * 24 * 60 * 60 * 1000, interval: 6 * 60 * 60 * 1000 }, // 1-7d: every 6h
   { maxAge: 30 * 24 * 60 * 60 * 1000, interval: 24 * 60 * 60 * 1000 }, // 7-30d: every 1d
   { maxAge: Number.POSITIVE_INFINITY, interval: 7 * 24 * 60 * 60 * 1000 } // 30d+: every 1w

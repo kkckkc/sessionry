@@ -164,8 +164,9 @@
   width: 100%;
   flex: 1;
   padding: 16px;
-  font-family: ui-monospace, 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Menlo, Consolas,
-    'DejaVu Sans Mono', monospace;
+  font-family:
+    ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
   font-size: 12px;
   line-height: 1.6;
   background: var(--surface-bg);
