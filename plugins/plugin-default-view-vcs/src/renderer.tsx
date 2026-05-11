@@ -9,7 +9,11 @@ import {
   TbGitBranch,
   TbGitPullRequest,
   TbRefresh,
-  TbSearch
+  TbSearch,
+  TbFile,
+  TbFileCode,
+  TbRestore,
+  TbTrash
 } from 'react-icons/tb';
 import type {
   RendererAppPlugin,
@@ -444,6 +448,8 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [showCreateBranchDialog, setShowCreateBranchDialog] = useState(false);
   const [newBranchName, setNewBranchName] = useState('');
+  const [fileMenuOpenKey, setFileMenuOpenKey] = useState<string | null>(null);
+  const [fileMenuPosition, setFileMenuPosition] = useState<{ x: number; y: number } | null>(null);
 
   // Subscribe to workspace changes
   useEffect(() => workspace.subscribeAll(() => setRefreshKey(k => k + 1)), [workspace]);
@@ -558,17 +564,24 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     await session.setFocusedPane(codePane.id);
   };
 
-  const handleFileDoubleClick = async (file: VcsFileStatus) => {
+  const openFile = async (file: VcsFileStatus) => {
+    if (!activeSession) return;
+
+    const filePath = `${activeSession.folder}/${file.path}`;
+    await openCodePane({
+      title: getFileTitle(filePath),
+      filePath
+    });
+  };
+
+  const openDiff = async (file: VcsFileStatus) => {
     if (!activeSession) return;
 
     const filePath = `${activeSession.folder}/${file.path}`;
     const diff = await window.terminalApp.vcs.getDiff(activeSession.folder, file);
 
     if (!diff) {
-      await openCodePane({
-        title: getFileTitle(filePath),
-        filePath
-      });
+      await openFile(file);
       return;
     }
 
@@ -580,6 +593,10 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       content: diff,
       readOnly: true
     });
+  };
+
+  const handleFileDoubleClick = async (file: VcsFileStatus) => {
+    await openDiff(file);
   };
 
   const getStatusLabel = (status: string): string => {
@@ -611,6 +628,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const stagedFiles = files.filter(isStagedFile);
   const unstagedFiles = files.filter(isUnstagedFile);
   const canCommit = stagedFiles.length > 0 && commitMessage.trim().length > 0 && !isMutating;
+  const activeSessionRoot = activeSession?.folder ?? '';
 
   const handleStageFiles = async (targetFiles: VcsFileStatus[]) => {
     if (!activeSessionFolder || targetFiles.length === 0) return;
@@ -622,6 +640,36 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       refreshVcsStatus();
     } catch (error) {
       setMutationError(error instanceof Error ? error.message : 'Unable to stage files.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const handleDeleteFile = async (file: VcsFileStatus) => {
+    if (!activeSessionFolder) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.deleteFile(`${activeSessionFolder}/${file.path}`);
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to delete file.');
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const handleRevertFiles = async (targetFiles: VcsFileStatus[]) => {
+    if (!activeSessionFolder || targetFiles.length === 0) return;
+
+    setMutationError(null);
+    setIsMutating(true);
+    try {
+      await window.terminalApp.vcs.revertFiles(activeSessionFolder, targetFiles);
+      refreshVcsStatus();
+    } catch (error) {
+      setMutationError(error instanceof Error ? error.message : 'Unable to revert files.');
     } finally {
       setIsMutating(false);
     }
@@ -773,17 +821,35 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           options.kind === 'staged'
             ? (file.stagedStatus ?? file.status)
             : (file.unstagedStatus ?? file.status);
+        const fullPath = `${activeSessionRoot}/${file.path}`;
+        const fileKey = `${options.kind}:${file.oldPath ?? ''}:${file.path}:${index}`;
+        const isDeleteEnabled =
+          options.kind === 'unstaged' && (file.status === '??' || file.unstagedStatus === '??');
 
         return (
           <li
-            key={`${options.kind}:${file.oldPath ?? ''}:${file.path}:${index}`}
+            key={fileKey}
             className="vcs-file-item"
+            draggable
+            onDragStart={event => {
+              const dragText = window.terminalApp.formatPathForTerminal(
+                fullPath,
+                activeSessionRoot
+              );
+              event.dataTransfer.setData('text/plain', dragText);
+              event.dataTransfer.effectAllowed = 'copy';
+            }}
           >
             <button
               type="button"
               className="vcs-file-button"
               onDoubleClick={() => {
                 void handleFileDoubleClick(file);
+              }}
+              onContextMenu={event => {
+                event.preventDefault();
+                setFileMenuPosition({ x: event.clientX, y: event.clientY });
+                setFileMenuOpenKey(fileKey);
               }}
               title={getStatusLabel(displayStatus)}
             >
@@ -800,6 +866,81 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
                 )}
               </span>
             </button>
+            <Menu.Root
+              open={fileMenuOpenKey === fileKey}
+              onOpenChange={open => {
+                setFileMenuOpenKey(open ? fileKey : null);
+                if (!open) {
+                  setFileMenuPosition(null);
+                }
+              }}
+            >
+              <Menu.Portal>
+                <Menu.Positioner
+                  anchor={
+                    fileMenuOpenKey === fileKey && fileMenuPosition
+                      ? {
+                          getBoundingClientRect: () => ({
+                            x: fileMenuPosition.x,
+                            y: fileMenuPosition.y,
+                            width: 0,
+                            height: 0,
+                            top: fileMenuPosition.y,
+                            right: fileMenuPosition.x,
+                            bottom: fileMenuPosition.y,
+                            left: fileMenuPosition.x,
+                            toJSON: () => ({})
+                          })
+                        }
+                      : undefined
+                  }
+                >
+                  <Menu.Popup>
+                    <Menu.Item
+                      onClick={() => {
+                        setFileMenuOpenKey(null);
+                        void openFile(file);
+                      }}
+                      disabled={isMutating}
+                    >
+                      <TbFile size={14} aria-hidden="true" />
+                      Open file
+                    </Menu.Item>
+                    <Menu.Item
+                      onClick={() => {
+                        setFileMenuOpenKey(null);
+                        void openDiff(file);
+                      }}
+                      disabled={isMutating}
+                    >
+                      <TbFileCode size={14} aria-hidden="true" />
+                      Open diff
+                    </Menu.Item>
+                    <Menu.Item
+                      onClick={() => {
+                        setFileMenuOpenKey(null);
+                        void handleRevertFiles([file]);
+                      }}
+                      disabled={isMutating}
+                    >
+                      <TbRestore size={14} aria-hidden="true" />
+                      Revert
+                    </Menu.Item>
+                    <Menu.Item
+                      className="menu-item--danger"
+                      onClick={() => {
+                        setFileMenuOpenKey(null);
+                        void handleDeleteFile(file);
+                      }}
+                      disabled={isMutating || !isDeleteEnabled}
+                    >
+                      <TbTrash size={14} aria-hidden="true" />
+                      Delete
+                    </Menu.Item>
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
             {options.canStage && (
               <button
                 type="button"

@@ -237,6 +237,9 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.vcsStageFiles, (_event, dirPath: string, files) =>
     vcsService.stageFiles(dirPath, files)
   );
+  ipcMain.handle(IPC_CHANNELS.vcsRevertFiles, (_event, dirPath: string, files) =>
+    vcsService.revertFiles(dirPath, files)
+  );
   ipcMain.handle(IPC_CHANNELS.vcsCommit, (_event, dirPath: string, message: string) =>
     vcsService.commit(dirPath, message)
   );

@@ -242,6 +242,34 @@ export const stageGitFiles = async (
   await run('git', ['add', '--', ...targets], { cwd: folder });
 };
 
+export const revertGitFiles = async (
+  folder: string,
+  files: VcsFileStatus[],
+  run: ExecFileLike
+): Promise<void> => {
+  const targets = getGitStageTargets(files);
+  if (targets.length === 0) {
+    return;
+  }
+
+  const trackedFiles = files.filter(file => file.status !== '??' && file.unstagedStatus !== '??');
+  const untrackedFiles = files.filter(file => file.status === '??' || file.unstagedStatus === '??');
+
+  if (trackedFiles.length > 0) {
+    await run(
+      'git',
+      ['restore', '--staged', '--worktree', '--', ...getGitStageTargets(trackedFiles)],
+      {
+        cwd: folder
+      }
+    );
+  }
+
+  if (untrackedFiles.length > 0) {
+    await run('git', ['clean', '-f', '--', ...getGitStageTargets(untrackedFiles)], { cwd: folder });
+  }
+};
+
 export const commitGitChanges = async (
   folder: string,
   message: string,
@@ -462,6 +490,9 @@ export const createGitVcsProvider = (
     },
     async stageFiles(folder, files) {
       await stageGitFiles(folder, files, run);
+    },
+    async revertFiles(folder, files) {
+      await revertGitFiles(folder, files, run);
     },
     async commit(folder, message) {
       await commitGitChanges(folder, message, run);

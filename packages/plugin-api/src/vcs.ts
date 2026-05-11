@@ -52,6 +52,7 @@ export interface VcsProviderDefinition {
   getStatus: (folder: string) => Promise<VcsStatusResult> | VcsStatusResult;
   getDiff?: (folder: string, file: VcsFileStatus) => Promise<string | null> | string | null;
   stageFiles?: (folder: string, files: VcsFileStatus[]) => Promise<void> | void;
+  revertFiles?: (folder: string, files: VcsFileStatus[]) => Promise<void> | void;
   commit?: (folder: string, message: string) => Promise<void> | void;
   push?: (folder: string) => Promise<void> | void;
   pull?: (folder: string) => Promise<void> | void;

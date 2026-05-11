@@ -36,6 +36,7 @@ export const IPC_CHANNELS = {
   vcsStatus: 'vcs:status',
   vcsDiff: 'vcs:diff',
   vcsStageFiles: 'vcs:stage-files',
+  vcsRevertFiles: 'vcs:revert-files',
   vcsCommit: 'vcs:commit',
   vcsPush: 'vcs:push',
   vcsPull: 'vcs:pull',
