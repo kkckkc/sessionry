@@ -17,7 +17,7 @@ import { createActionKeydownHandler, type KeybindingOverrides } from './lib/keyb
 import { SettingsView } from './components/SettingsView';
 import { WorkspaceSlotView } from './components/WorkspaceSlotView';
 import { readWorkspaceSnapshot, workspace } from './lib/workspace';
-import { getRendererView, loadUserPluginRenderers } from './plugins';
+import { getDynamicPaneCreations, getRendererView, loadUserPluginRenderers } from './plugins';
 import { applyTheme, applyColorTheme, watchSystemTheme } from './lib/theme';
 import { PluginManagerProvider } from '../components/PluginManager';
 
@@ -25,6 +25,7 @@ const emptyPlugins: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
   statusItems: [],
+  paneCreations: [],
   viewsBySlot: {}
 };
 
@@ -265,6 +266,7 @@ export const App = () => {
             workspace={workspace}
             selectedViewId={showSettings ? undefined : activeProject?.activeViews.workspace}
             resolveRendererView={getRendererView}
+            resolvePaneCreations={getDynamicPaneCreations}
             clearSignal={clearSignal}
           />
         }

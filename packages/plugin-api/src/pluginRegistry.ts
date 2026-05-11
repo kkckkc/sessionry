@@ -1,5 +1,7 @@
 import type {
   AppPlugin,
+  PaneCreationContribution,
+  PaneCreationContributionModel,
   PluginViewModel,
   PluginViewContribution,
   PluginViewDefinition,
@@ -11,6 +13,16 @@ export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
     (plugin.actions ?? []).map(({ run: _run, ...action }) => action)
   );
   const statusItems = plugins.flatMap(plugin => plugin.statusItems ?? []);
+  const paneCreations = plugins.flatMap(plugin =>
+    (plugin.paneCreations ?? []).map<PaneCreationContributionModel>(
+      (paneCreation: PaneCreationContribution) => ({
+        ...paneCreation,
+        icon: paneCreation.icon ?? plugin.icon,
+        pluginId: plugin.id,
+        pluginIcon: plugin.icon
+      })
+    )
+  );
   const views = plugins.flatMap(plugin =>
     (plugin.views ?? []).map<PluginViewContribution>((view: PluginViewDefinition) => ({
       ...view,
@@ -45,6 +57,7 @@ export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
     actions,
     toolbarActionIds: sortedToolbarActions.map(action => action.id),
     statusItems,
+    paneCreations,
     viewsBySlot
   };
 };
