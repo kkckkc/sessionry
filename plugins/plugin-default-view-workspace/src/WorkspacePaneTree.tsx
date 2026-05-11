@@ -316,12 +316,14 @@ const StackedPaneGroup = ({
       setNewPaneMenuOpen(open);
       if (!open || !resolvePaneCreations) return;
 
-      void resolvePaneCreations({
-        workspace,
-        session: activeSession,
-        paneGroup,
-        activeChild
-      }).then(entries => {
+      void Promise.resolve(
+        resolvePaneCreations({
+          workspace,
+          session: activeSession,
+          paneGroup,
+          activeChild
+        })
+      ).then(entries => {
         setDynamicPaneCreations(entries);
       });
     },
