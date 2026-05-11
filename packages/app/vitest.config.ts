@@ -33,6 +33,14 @@ export default defineConfig({
         replacement: path.resolve(rootDir, '../../plugins/plugin-default-view-code/src/index.ts')
       },
       {
+        find: '@sessionry/plugin-default-terminal-presets/renderer',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-terminal-presets/src/renderer.tsx')
+      },
+      {
+        find: '@sessionry/plugin-default-terminal-presets',
+        replacement: path.resolve(rootDir, '../../plugins/plugin-default-terminal-presets/src/index.ts')
+      },
+      {
         find: '@sessionry/plugin-debug-view-pane-hierarchy/renderer',
         replacement: path.resolve(rootDir, '../../plugins/plugin-debug-view-pane-hierarchy/src/renderer.tsx')
       },
