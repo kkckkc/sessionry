@@ -14,7 +14,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: false,
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime', '@sessionry/plugin-api']
+      external: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', '@sessionry/plugin-api']
     }
   }
 })

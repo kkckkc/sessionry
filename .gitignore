@@ -11,6 +11,7 @@ coverage/
 Thumbs.db
 
 .bob/
+.bobignore
 .idea/
 .vscode/
 .superset
@@ -27,3 +28,5 @@ yarn-error.log*
 
 .sessionry
 .claude
+
+plugins-local/
