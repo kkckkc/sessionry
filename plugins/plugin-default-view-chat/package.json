@@ -19,7 +19,9 @@
     "@ai-sdk/openai": "^0.0.66",
     "@sessionry/components": "workspace:*",
     "@sessionry/plugin-api": "workspace:*",
-    "ai": "^3.4.33"
+    "ai": "^3.4.33",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@types/node": "latest",

@@ -1,110 +1,68 @@
-import { useState } from 'react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { Message as MessageType } from '../types';
 
 interface MessageProps {
   message: MessageType;
   isStreaming?: boolean;
+  showHeader?: boolean;
+  timestamp?: string;
 }
 
-export const Message = ({ message, isStreaming }: MessageProps) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(message.content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error('Failed to copy message:', error);
-    }
-  };
-
+export const Message = ({ message, isStreaming, showHeader, timestamp }: MessageProps) => {
   const isUser = message.role === 'user';
-  const timestamp = new Date(message.timestamp).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const label = isUser ? 'You' : 'AI';
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: isUser ? 'flex-end' : 'flex-start',
-        marginBottom: '1rem',
-        maxWidth: '85%',
-        alignSelf: isUser ? 'flex-end' : 'flex-start'
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          marginBottom: '0.25rem',
-          fontSize: '0.75rem',
-          opacity: 0.7
-        }}
-      >
-        <span style={{ fontWeight: 500 }}>
-          {isUser ? 'You' : 'Assistant'}
-        </span>
-        <span>{timestamp}</span>
-      </div>
-
-      <div
-        style={{
-          position: 'relative',
-          padding: '0.75rem 1rem',
-          borderRadius: '0.5rem',
-          backgroundColor: isUser
-            ? 'var(--color-primary-bg, #0066cc)'
-            : message.error
-              ? 'var(--color-error-bg, #ff4444)'
-              : 'var(--color-surface-2, #2a2a2a)',
-          color: isUser || message.error ? '#ffffff' : 'inherit',
-          wordBreak: 'break-word',
-          whiteSpace: 'pre-wrap',
-          border: message.error ? '1px solid var(--color-error, #ff6666)' : 'none'
-        }}
-      >
-        {message.content}
-        {isStreaming && (
-          <span
-            style={{
-              display: 'inline-block',
-              width: '0.5rem',
-              height: '1rem',
-              backgroundColor: 'currentColor',
-              marginLeft: '0.25rem',
-              animation: 'blink 1s infinite'
-            }}
-          />
+    <div className="chat-message-group" style={{
+      padding: '8px 24px',
+      paddingLeft: isUser ? '6rem' : 24,
+      display: 'flex',
+      gap: 12
+    }}>
+<div style={{ flex: 1, minWidth: 0 }}>
+        {showHeader && !isUser && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+              {label}
+            </span>
+          </div>
         )}
-
-        {!isUser && !isStreaming && message.content && (
-          <button
-            type="button"
-            onClick={handleCopy}
-            style={{
-              position: 'absolute',
-              top: '0.5rem',
-              right: '0.5rem',
-              padding: '0.25rem 0.5rem',
-              fontSize: '0.75rem',
-              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-              border: 'none',
-              borderRadius: '0.25rem',
-              cursor: 'pointer',
-              opacity: 0.7,
-              transition: 'opacity 0.2s'
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '0.7')}
-          >
-            {copied ? '✓ Copied' : 'Copy'}
-          </button>
-        )}
+        <div
+          style={{
+            fontSize: 13,
+            color: message.error ? 'var(--danger, #f87171)' : 'var(--text)',
+            lineHeight: 1.55,
+            letterSpacing: '-0.01em',
+            wordWrap: 'break-word',
+            ...(isUser ? { whiteSpace: 'pre-wrap' } : {}),
+            ...(isUser ? {
+              background: 'var(--canvas-bg, #141416)',
+              borderRadius: 8,
+              padding: '8px 12px'
+            } : {})
+          }}
+        >
+          {isUser ? message.content : <div className="chat-markdown"><Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown></div>}
+          {isStreaming && (
+            <span
+              style={{
+                display: 'inline-block',
+                width: 6,
+                height: 14,
+                backgroundColor: 'var(--text-muted)',
+                marginLeft: 3,
+                verticalAlign: 'text-bottom',
+                animation: 'blink 1s infinite'
+              }}
+            />
+          )}
+          {isUser && showHeader && timestamp && (
+            <div style={{ fontSize: 10, color: 'var(--text-dim)', fontFamily: "'JetBrains Mono', monospace", marginTop: 4, textAlign: 'right' }}>
+              {timestamp}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
