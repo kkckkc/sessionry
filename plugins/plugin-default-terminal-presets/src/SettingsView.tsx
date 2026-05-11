@@ -73,43 +73,52 @@ export const TerminalPresetsSettingsView = ({ settings, onUpdate }: SettingsView
         description="Add reusable commands to the new pane menu for stacked tab groups."
       >
         <div className="terminal-presets-settings">
-          <div className="terminal-presets-settings__grid" role="table" aria-label="Terminal presets">
-            <div className="terminal-presets-settings__header" role="row">
-              <div role="columnheader">Name</div>
-              <div role="columnheader">Command</div>
-              <div aria-hidden="true" />
-            </div>
-
-            {draftPresets.map((preset: TerminalPreset, index: number) => (
-              <div key={preset.id} className="terminal-presets-settings__row" role="row">
-                <input
-                  className="terminal-presets-settings__input"
-                  type="text"
-                  value={preset.name}
-                  onChange={event => updatePreset(preset.id, { name: event.target.value })}
-                  placeholder="Dev server"
-                  aria-label={`Preset ${index + 1} name`}
-                />
-                <input
-                  className="terminal-presets-settings__input terminal-presets-settings__input--mono"
-                  type="text"
-                  value={preset.command}
-                  onChange={event => updatePreset(preset.id, { command: event.target.value })}
-                  placeholder="pnpm dev"
-                  aria-label={`Preset ${index + 1} command`}
-                />
-                <button
-                  type="button"
-                  className="terminal-presets-settings__delete"
-                  title="Delete preset"
-                  aria-label={`Delete preset ${index + 1}`}
-                  onClick={() => removePreset(preset.id)}
-                >
-                  <TbTrash size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
+          <table className="terminal-presets-settings__grid" aria-label="Terminal presets">
+            <thead>
+              <tr className="terminal-presets-settings__header">
+                <th scope="col">Name</th>
+                <th scope="col">Command</th>
+                <th scope="col" />
+              </tr>
+            </thead>
+            <tbody>
+              {draftPresets.map((preset: TerminalPreset, index: number) => (
+                <tr key={preset.id} className="terminal-presets-settings__row">
+                  <td>
+                    <input
+                      className="terminal-presets-settings__input"
+                      type="text"
+                      value={preset.name}
+                      onChange={event => updatePreset(preset.id, { name: event.target.value })}
+                      placeholder="Dev server"
+                      aria-label={`Preset ${index + 1} name`}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="terminal-presets-settings__input terminal-presets-settings__input--mono"
+                      type="text"
+                      value={preset.command}
+                      onChange={event => updatePreset(preset.id, { command: event.target.value })}
+                      placeholder="pnpm dev"
+                      aria-label={`Preset ${index + 1} command`}
+                    />
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="terminal-presets-settings__delete"
+                      title="Delete preset"
+                      aria-label={`Delete preset ${index + 1}`}
+                      onClick={() => removePreset(preset.id)}
+                    >
+                      <TbTrash size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
           <Button variant="secondary" className="terminal-presets-settings__add" onClick={addPreset}>
             Add preset
