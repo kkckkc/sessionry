@@ -4,7 +4,8 @@ export const CHAT_IPC_CHANNELS = {
   streamComplete: 'chat:stream-complete',
   streamError: 'chat:stream-error',
   clearHistory: 'chat:clear-history',
-  loadHistory: 'chat:load-history'
+  loadHistory: 'chat:load-history',
+  listModels: 'chat:list-models'
 } as const;
 
 export const DEFAULT_SYSTEM_PROMPT = 'You are a helpful AI assistant integrated into Sessionry, a developer-focused terminal and workspace application.';

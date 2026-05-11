@@ -4,6 +4,7 @@ import {
   SettingsSection,
   SettingToggle,
   SettingSelect,
+  Combobox,
   Input,
   Button,
   Textarea
@@ -13,10 +14,19 @@ import type { SelectOption } from '@sessionry/components';
 import type { ChatPluginSettings } from './settings';
 import { DEFAULT_CHAT_SETTINGS, validateProviderConfig } from './settings';
 import { PROVIDER_OPTIONS, PROVIDER_MODELS } from './constants';
+import { CHAT_IPC_CHANNELS } from './constants';
+
+interface ListModelsResponse {
+  models?: Array<{ id: string; name?: string }>;
+  error?: string;
+}
 
 export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [fetchedModels, setFetchedModels] = useState<SelectOption[]>([]);
+  const [isFetchingModels, setIsFetchingModels] = useState(false);
+  const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
 
   const chatSettings = (settings as ChatPluginSettings) ?? DEFAULT_CHAT_SETTINGS;
   const { provider, systemPrompt, persistHistory, maxHistoryMessages } = chatSettings;
@@ -53,6 +63,49 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
     });
   };
 
+  const handleFetchModels = async () => {
+    // Only fetch if we haven't already or if there was an error
+    if (fetchedModels.length > 0 || isFetchingModels) return;
+
+    setIsFetchingModels(true);
+    setFetchModelsError(null);
+
+    try {
+      const result = await window.terminalApp.pluginIpc.invoke<ListModelsResponse>(
+        CHAT_IPC_CHANNELS.listModels
+      );
+
+      if (result.error) {
+        setFetchModelsError(result.error);
+        setFetchedModels([]);
+      } else if (result.models) {
+        const modelOptions = result.models
+          .map(m => ({
+            value: m.id,
+            label: m.name || m.id
+          }))
+          .sort((a, b) => (
+            a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }) ||
+            a.value.localeCompare(b.value, undefined, { numeric: true, sensitivity: 'base' })
+          ));
+        setFetchedModels(modelOptions);
+        setFetchModelsError(null);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch models';
+      setFetchModelsError(errorMessage);
+      setFetchedModels([]);
+    } finally {
+      setIsFetchingModels(false);
+    }
+  };
+
+  const handleComboboxOpen = (open: boolean) => {
+    if (open && provider.apiKey && provider.baseUrl) {
+      void handleFetchModels();
+    }
+  };
+
   return (
     <div className="chat-settings">
       <SettingsSection
@@ -81,29 +134,28 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
           }}
         />
 
-        <div style={{ padding: '10px 0' }}>
-          <label className="input-label" htmlFor="api-key">API Key</label>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.25rem' }}>
+        <div className="chat-settings-field">
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
             <Input
               id="api-key"
+              label="API Key"
+              description="Your API key is stored securely and never shared"
               type={showApiKey ? 'text' : 'password'}
               value={provider.apiKey}
               onChange={e => updateProviderField('apiKey', e.target.value)}
               placeholder="Enter your API key"
               style={{ flex: 1, minWidth: 0 }}
-              className="input-field"
             />
             <Button
               type="button"
               onClick={() => setShowApiKey(!showApiKey)}
               variant="secondary"
               size="medium"
-              style={{ flexShrink: 0 }}
+              style={{ flexShrink: 0, marginTop: '1.625rem' }}
             >
               {showApiKey ? 'Hide' : 'Show'}
             </Button>
           </div>
-          <p className="input-description" style={{ marginTop: '0.25rem' }}>Your API key is stored securely and never shared</p>
         </div>
 
         {provider.provider !== 'custom' && (
@@ -118,7 +170,7 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
 
         {provider.provider === 'custom' && (
           <>
-            <div style={{ padding: '10px 0' }}>
+            <div className="chat-settings-field">
               <Input
                 id="base-url"
                 label="Base URL"
@@ -130,13 +182,18 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
               />
             </div>
 
-            <div style={{ padding: '10px 0' }}>
-              <Input
+            <div className="chat-settings-field">
+              <Combobox
                 id="model-name"
                 label="Model Name"
-                type="text"
+                description="Enter model name or select from available models"
+                options={fetchedModels}
                 value={provider.model}
-                onChange={e => updateProviderField('model', e.target.value)}
+                onChange={value => updateProviderField('model', value)}
+                onOpenChange={handleComboboxOpen}
+                loading={isFetchingModels}
+                loadingMessage="Fetching available models..."
+                errorMessage={fetchModelsError || undefined}
                 placeholder="gpt-3.5-turbo"
               />
             </div>
