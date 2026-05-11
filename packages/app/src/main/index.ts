@@ -220,6 +220,12 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.writeFile, (_event, filePath: string, content: string) =>
     fs.writeFileSync(filePath, content, 'utf-8')
   );
+  ipcMain.handle(IPC_CHANNELS.deleteFile, (_event, filePath: string) =>
+    fs.unlinkSync(filePath)
+  );
+  ipcMain.handle(IPC_CHANNELS.createDirectory, (_event, dirPath: string) =>
+    fs.mkdirSync(dirPath, { recursive: true })
+  );
   ipcMain.handle(
     IPC_CHANNELS.vcsStatus,
     (_event, dirPath: string, options?: { bypassCache?: boolean }) =>

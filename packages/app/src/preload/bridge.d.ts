@@ -42,6 +42,8 @@ export interface TerminalAppBridge {
   readDirectory: (dirPath: string) => Promise<{ name: string; isDirectory: boolean }[]>;
   readFile: (filePath: string) => Promise<string>;
   writeFile: (filePath: string, content: string) => Promise<void>;
+  deleteFile: (filePath: string) => Promise<void>;
+  createDirectory: (dirPath: string) => Promise<void>;
   openExternal: (url: string) => Promise<void>;
   vcs: {
     getStatus: (

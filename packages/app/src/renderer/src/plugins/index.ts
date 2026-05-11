@@ -7,6 +7,7 @@ import { sidebarTabBarRendererPlugin } from '@sessionry/plugin-default-view-side
 import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-terminal/renderer';
 import { fileBrowserRendererPlugin } from '@sessionry/plugin-default-view-files/renderer';
 import { vcsViewRendererPlugin } from '@sessionry/plugin-default-view-vcs/renderer';
+import { notesViewRendererPlugin } from '@sessionry/plugin-default-view-notes/renderer';
 import { coreRendererPlugin } from './coreRendererPlugin';
 
 const builtInRendererPlugins = [
@@ -18,6 +19,7 @@ const builtInRendererPlugins = [
   sidebarTabBarRendererPlugin,
   fileBrowserRendererPlugin,
   vcsViewRendererPlugin,
+  notesViewRendererPlugin,
   debugPaneHierarchyRendererPlugin
 ];
 

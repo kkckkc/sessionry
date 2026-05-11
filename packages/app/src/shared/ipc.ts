@@ -31,6 +31,8 @@ export const IPC_CHANNELS = {
   readDirectory: 'fs:read-directory',
   readFile: 'fs:read-file',
   writeFile: 'fs:write-file',
+  deleteFile: 'fs:delete-file',
+  createDirectory: 'fs:create-directory',
   vcsStatus: 'vcs:status',
   vcsDiff: 'vcs:diff',
   vcsStageFiles: 'vcs:stage-files',
