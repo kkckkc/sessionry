@@ -31,9 +31,25 @@ export const MessageInput = ({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+    if (e.key === 'Enter') {
+      if (e.altKey) {
+        // Alt+Enter: insert newline manually
+        e.preventDefault();
+        const textarea = e.currentTarget;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const newValue = input.substring(0, start) + '\n' + input.substring(end);
+        setInput(newValue);
+        // Set cursor position after the newline
+        requestAnimationFrame(() => {
+          textarea.selectionStart = textarea.selectionEnd = start + 1;
+          resizeTextarea(textarea);
+        });
+      } else {
+        // Enter without Alt: send message
+        e.preventDefault();
+        handleSend();
+      }
     }
   };
 
@@ -108,7 +124,7 @@ export const MessageInput = ({
         </button>
       </div>
       <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 6, letterSpacing: '0.02em' }}>
-        Enter to send · Shift+Enter for newline
+        Enter to send · Opt+Enter for newline
       </div>
     </div>
   );
