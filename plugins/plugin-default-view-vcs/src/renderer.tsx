@@ -38,6 +38,8 @@ import { vcsViewPlugin } from '.';
 const ACTIVE_SESSION_REFRESH_INTERVAL_MS = 60_000;
 const RECENT_BRANCH_LIMIT = 5;
 
+type CommitActionPreference = 'commit' | 'commitAndPush';
+
 const getFileTitle = (filePath: string): string =>
   filePath.split(/[\\/]/).filter(Boolean).pop() ?? filePath;
 
@@ -450,6 +452,9 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const [newBranchName, setNewBranchName] = useState('');
   const [fileMenuOpenKey, setFileMenuOpenKey] = useState<string | null>(null);
   const [fileMenuPosition, setFileMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [commitActionPreference, setCommitActionPreference] =
+    useState<CommitActionPreference>('commit');
+  const previousBranchRef = useRef<string | null | undefined>(undefined);
 
   // Subscribe to workspace changes
   useEffect(() => workspace.subscribeAll(() => setRefreshKey(k => k + 1)), [workspace]);
@@ -500,6 +505,17 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       clearInterval(intervalId);
     };
   }, [activeSessionFolder, manualRefreshKey]);
+
+  useEffect(() => {
+    const currentBranch = status?.repository?.branch ?? null;
+    const previousBranch = previousBranchRef.current;
+
+    if (previousBranch !== undefined && currentBranch !== previousBranch) {
+      setCommitActionPreference('commit');
+    }
+
+    previousBranchRef.current = currentBranch;
+  }, [status?.repository?.branch]);
 
   const openCodePane = async (state: Record<string, unknown>) => {
     if (!activeSession) return;
@@ -727,6 +743,26 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
       setIsMutating(false);
       refreshVcsStatus();
     }
+  };
+
+  const handleCommitActionPreference = async (
+    preference: CommitActionPreference,
+    event?: FormEvent<HTMLFormElement>
+  ) => {
+    event?.preventDefault();
+    setCommitActionPreference(preference);
+
+    if (preference === 'commitAndPush') {
+      await handleCommitAndPush();
+      return;
+    }
+
+    await handleCommit();
+  };
+
+  const handleCreatePRAndPreferPush = async () => {
+    setCommitActionPreference('commitAndPush');
+    await handleCreatePR();
   };
 
   const handleCreateBranch = () => {
@@ -961,8 +997,14 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
     </ul>
   );
 
+  const defaultCommitActionLabel =
+    commitActionPreference === 'commitAndPush' ? 'Commit & Push' : 'Commit';
+
   const commitForm = (
-    <form className="vcs-commit" onSubmit={event => void handleCommit(event)}>
+    <form
+      className="vcs-commit"
+      onSubmit={event => void handleCommitActionPreference(commitActionPreference, event)}
+    >
       <textarea
         className="vcs-commit-message"
         value={commitMessage}
@@ -975,21 +1017,20 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         variant="primary"
         type="submit"
         disabled={!canCommit}
-        onClick={() => void handleCommit()}
         options={[
           {
             label: 'Commit',
-            onClick: () => void handleCommit(),
+            onClick: () => void handleCommitActionPreference('commit'),
             disabled: !canCommit
           },
           {
             label: 'Commit & Push',
-            onClick: () => void handleCommitAndPush(),
+            onClick: () => void handleCommitActionPreference('commitAndPush'),
             disabled: !canCommit
           },
           {
             label: 'Create PR',
-            onClick: () => void handleCreatePR(),
+            onClick: () => void handleCreatePRAndPreferPush(),
             disabled: !canCommit
           }
         ]}
@@ -998,8 +1039,8 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
         {isMutating
           ? 'Working...'
           : stagedFiles.length > 0
-            ? `Commit (${stagedFiles.length})`
-            : 'Commit'}
+            ? `${defaultCommitActionLabel} (${stagedFiles.length})`
+            : defaultCommitActionLabel}
       </SplitButton>
     </form>
   );
