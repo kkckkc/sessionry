@@ -115,7 +115,7 @@ app.whenReady().then(async () => {
   // Set dock icon for development mode on macOS
   if (process.platform === 'darwin' && !app.isPackaged) {
     const iconPath = path.join(app.getAppPath(), 'icons', 'sessionry-1024x1024-padded.png');
-    if (fs.existsSync(iconPath)) {
+    if (fs.existsSync(iconPath) && app.dock) {
       app.dock.setIcon(iconPath);
     }
   }

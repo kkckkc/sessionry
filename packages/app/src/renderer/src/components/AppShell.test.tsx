@@ -62,6 +62,7 @@ describe('AppShell', () => {
         leftVisible
         rightVisible
         statusBarVisible
+        brandText="Sessionry"
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
         resolveRendererView={() => null}
@@ -99,6 +100,7 @@ describe('AppShell', () => {
         leftVisible
         rightVisible={false}
         statusBarVisible
+        brandText="Sessionry"
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
         resolveRendererView={() => ({
@@ -122,6 +124,7 @@ describe('AppShell', () => {
         leftVisible={false}
         rightVisible
         statusBarVisible
+        brandText="Sessionry"
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
         resolveRendererView={() => null}
@@ -194,6 +197,7 @@ describe('AppShell', () => {
         leftVisible={false}
         rightVisible
         statusBarVisible
+        brandText="Sessionry"
         mainContent={<div data-testid="workspace-content">workspace</div>}
         onToolbarAction={() => {}}
         resolveRendererView={viewId => {
