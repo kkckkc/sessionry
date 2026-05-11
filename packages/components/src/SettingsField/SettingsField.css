@@ -1,0 +1,98 @@
+.sr-settings-field {
+  display: flex;
+  gap: 0.5rem;
+  padding: 10px 0;
+}
+
+.sr-settings-field--vertical {
+  flex-direction: column;
+}
+
+.sr-settings-field--horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sr-settings-field-meta {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sr-settings-field-label {
+  color: var(--text);
+  font-size: var(--body-font-size);
+  font-weight: var(--body-font-weight);
+  line-height: 1.4;
+}
+
+.sr-settings-field--disabled .sr-settings-field-meta {
+  opacity: 0.45;
+}
+
+.sr-settings-field-description {
+  max-width: 80%;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--body-sm-font-size);
+  font-weight: var(--body-sm-font-weight);
+  line-height: 1.4;
+}
+
+.sr-settings-field--horizontal .sr-settings-field-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.sr-settings-field-control {
+  min-width: 0;
+}
+
+.sr-settings-field--horizontal .sr-settings-field-control {
+  flex-shrink: 0;
+}
+
+.sr-settings-field--vertical .sr-settings-field-control {
+  width: 100%;
+}
+
+.sr-settings-field--vertical
+  .sr-settings-field-control
+  > :where(.input-field, .textarea-field, .combobox-field) {
+  width: 100%;
+}
+
+.sr-settings-field--vertical
+  .sr-settings-field-control
+  > :where(.input-field, .textarea-field, .combobox-field)
+  > :where(.input-label, .textarea-label, .combobox-label),
+.sr-settings-field--vertical
+  .sr-settings-field-control
+  > :where(.input-field, .textarea-field, .combobox-field)
+  > :where(.input-description, .textarea-description, .combobox-description) {
+  display: none;
+}
+
+.sr-settings-field--vertical
+  .sr-settings-field-control
+  > :where(.input-field, .textarea-field, .combobox-field)
+  > :where(.input, .textarea, .combobox-input-wrapper) {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .sr-settings-field--horizontal {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sr-settings-field-description {
+    max-width: none;
+  }
+}

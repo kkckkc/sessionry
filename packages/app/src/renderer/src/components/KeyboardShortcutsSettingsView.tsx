@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ActionDescriptor } from '@sessionry/plugin-api';
-import { SettingsSection, Button } from '@sessionry/components';
+import { Button } from '@sessionry/components';
 import {
   detectKeybindingConflicts,
   type KeybindingOverrides,
@@ -116,7 +116,7 @@ export const KeyboardShortcutsSettingsView = ({
 
       {conflicts.length > 0 && (
         <div className="keyboard-shortcuts-conflicts">
-          <strong>⚠️ Keybinding Conflicts:</strong>
+          <strong>Keybinding conflicts</strong>
           <ul>
             {conflicts.map(conflict => {
               const actionNames = conflict.actionIds
@@ -136,38 +136,43 @@ export const KeyboardShortcutsSettingsView = ({
         {Object.entries(groupedActions)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([category, categoryActions]) => (
-            <SettingsSection key={category} title={category}>
-              {categoryActions
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map(action => {
-                  const customKeybinding = settings.custom[action.id];
-                  const isDisabled = settings.disabled.includes(action.id);
-                  const currentKeybinding = customKeybinding ?? action.defaultKeybinding ?? '';
-                  const isCustomized = customKeybinding !== undefined || isDisabled;
+            <section key={category} className="keyboard-shortcuts-category">
+              <h2 className="keyboard-shortcuts-category-title">{category}</h2>
+              <div className="keyboard-shortcuts-category-rows">
+                {categoryActions
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(action => {
+                    const customKeybinding = settings.custom[action.id];
+                    const isDisabled = settings.disabled.includes(action.id);
+                    const currentKeybinding = customKeybinding ?? action.defaultKeybinding ?? '';
+                    const isCustomized = customKeybinding !== undefined || isDisabled;
 
-                  return (
-                    <div key={action.id} className="keyboard-shortcut-row">
-                      <input
-                        type="checkbox"
-                        className="keyboard-shortcut-enabled"
-                        checked={!isDisabled}
-                        onChange={e => handleDisableToggle(action.id, !e.target.checked)}
-                        title={isDisabled ? 'Enable keybinding' : 'Disable keybinding'}
-                      />
-                      <div className="keyboard-shortcut-info">
-                        <div className="keyboard-shortcut-name">{action.name}</div>
+                    return (
+                      <div key={action.id} className="keyboard-shortcut-row">
+                        <input
+                          type="checkbox"
+                          className="keyboard-shortcut-enabled"
+                          checked={!isDisabled}
+                          onChange={e => handleDisableToggle(action.id, !e.target.checked)}
+                          title={isDisabled ? 'Enable keybinding' : 'Disable keybinding'}
+                          aria-label={`${isDisabled ? 'Enable' : 'Disable'} ${action.name}`}
+                        />
+                        <div className="keyboard-shortcut-info">
+                          <div className="keyboard-shortcut-name">{action.name}</div>
+                          <div className="keyboard-shortcut-id">{action.id}</div>
+                        </div>
+                        <KeyboardShortcutInput
+                          value={currentKeybinding}
+                          onChange={value => handleKeybindingChange(action.id, value)}
+                          onReset={() => handleResetToDefault(action.id)}
+                          disabled={isDisabled}
+                          hasCustomValue={isCustomized}
+                        />
                       </div>
-                      <KeyboardShortcutInput
-                        value={currentKeybinding}
-                        onChange={value => handleKeybindingChange(action.id, value)}
-                        onReset={() => handleResetToDefault(action.id)}
-                        disabled={isDisabled}
-                        hasCustomValue={isCustomized}
-                      />
-                    </div>
-                  );
-                })}
-            </SettingsSection>
+                    );
+                  })}
+              </div>
+            </section>
           ))}
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { SettingsViewProps } from '@sessionry/plugin-api';
 import {
   SettingsSection,
+  SettingsField,
   SettingToggle,
   SettingSelect,
   Combobox,
@@ -84,10 +85,11 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
             value: m.id,
             label: m.name || m.id
           }))
-          .sort((a, b) => (
-            a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }) ||
-            a.value.localeCompare(b.value, undefined, { numeric: true, sensitivity: 'base' })
-          ));
+          .sort(
+            (a, b) =>
+              a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }) ||
+              a.value.localeCompare(b.value, undefined, { numeric: true, sensitivity: 'base' })
+          );
         setFetchedModels(modelOptions);
         setFetchModelsError(null);
       }
@@ -108,9 +110,7 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
 
   return (
     <div className="chat-settings">
-      <SettingsSection
-        title="AI Provider Configuration"
-      >
+      <SettingsSection title="AI Provider Configuration">
         <SettingSelect
           label="Provider"
           options={PROVIDER_OPTIONS.map(p => ({ value: p.value, label: p.label }))}
@@ -134,12 +134,16 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
           }}
         />
 
-        <div className="chat-settings-field">
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+        <SettingsField
+          label="API Key"
+          description="Your API key is stored securely and never shared"
+          layout="vertical"
+          htmlFor="api-key"
+        >
+          <div className="chat-settings-api-key-row">
             <Input
               id="api-key"
-              label="API Key"
-              description="Your API key is stored securely and never shared"
+              aria-label="API Key"
               type={showApiKey ? 'text' : 'password'}
               value={provider.apiKey}
               onChange={e => updateProviderField('apiKey', e.target.value)}
@@ -151,12 +155,12 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
               onClick={() => setShowApiKey(!showApiKey)}
               variant="secondary"
               size="medium"
-              style={{ flexShrink: 0, marginTop: '1.625rem' }}
+              style={{ flexShrink: 0 }}
             >
               {showApiKey ? 'Hide' : 'Show'}
             </Button>
           </div>
-        </div>
+        </SettingsField>
 
         {provider.provider !== 'custom' && (
           <SettingSelect
@@ -170,23 +174,27 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
 
         {provider.provider === 'custom' && (
           <>
-            <div className="chat-settings-field">
+            <SettingsField
+              label="Base URL"
+              description="OpenAI-compatible API endpoint"
+              htmlFor="base-url"
+            >
               <Input
                 id="base-url"
-                label="Base URL"
-                description="OpenAI-compatible API endpoint"
                 type="text"
                 value={provider.baseUrl || ''}
                 onChange={e => updateProviderField('baseUrl', e.target.value)}
                 placeholder="https://api.example.com/v1"
               />
-            </div>
+            </SettingsField>
 
-            <div className="chat-settings-field">
+            <SettingsField
+              label="Model Name"
+              description="Enter model name or select from available models"
+              htmlFor="model-name"
+            >
               <Combobox
                 id="model-name"
-                label="Model Name"
-                description="Enter model name or select from available models"
                 options={fetchedModels}
                 value={provider.model}
                 onChange={value => updateProviderField('model', value)}
@@ -196,7 +204,7 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
                 errorMessage={fetchModelsError || undefined}
                 placeholder="gpt-3.5-turbo"
               />
-            </div>
+            </SettingsField>
           </>
         )}
 
@@ -215,68 +223,59 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
         )}
       </SettingsSection>
 
-      <SettingsSection
-        title="Advanced Settings"
-      >
-        <div style={{ padding: '10px 0' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-            <label
-              htmlFor="temperature"
-              style={{
-                fontSize: '0.875rem',
-                color: 'var(--text)',
-                fontWeight: 500
-              }}
-            >
-              Temperature
-            </label>
-            <input
-              id="temperature"
-              type="range"
-              min="0"
-              max="2"
-              step="0.1"
-              value={provider.temperature ?? 0.7}
-              onChange={e => updateProviderField('temperature', parseFloat(e.target.value))}
-              style={{ width: '100%' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <p className="input-description" style={{ margin: 0 }}>
-                Controls randomness: 0 is focused, 2 is creative
-              </p>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text)', fontWeight: 500 }}>
-                {provider.temperature ?? 0.7}
-              </span>
-            </div>
-          </div>
-        </div>
+      <SettingsSection title="Advanced Settings">
+        <SettingsField
+          label="Temperature"
+          description={
+            <span className="chat-settings-range-description">
+              <span>Controls randomness: 0 is focused, 2 is creative</span>
+              <span>{provider.temperature ?? 0.7}</span>
+            </span>
+          }
+          htmlFor="temperature"
+        >
+          <input
+            id="temperature"
+            type="range"
+            min="0"
+            max="2"
+            step="0.1"
+            value={provider.temperature ?? 0.7}
+            onChange={e => updateProviderField('temperature', parseFloat(e.target.value))}
+            style={{ width: '100%' }}
+          />
+        </SettingsField>
 
-        <div style={{ padding: '10px 0' }}>
+        <SettingsField
+          label="Max Tokens"
+          description="Maximum length of the response"
+          htmlFor="max-tokens"
+        >
           <Input
             id="max-tokens"
-            label="Max Tokens"
-            description="Maximum length of the response"
             type="number"
             value={provider.maxTokens ?? 2000}
             onChange={e => updateProviderField('maxTokens', parseInt(e.target.value, 10))}
             min={1}
             max={100000}
           />
-        </div>
+        </SettingsField>
 
-        <Textarea
-          id="system-prompt"
+        <SettingsField
           label="System Prompt"
           description="Instructions that guide the AI's behavior"
-          value={systemPrompt}
-          onChange={e => updateSetting('systemPrompt', e.target.value)}
-          rows={4}
-        />
+          htmlFor="system-prompt"
+        >
+          <Textarea
+            id="system-prompt"
+            value={systemPrompt}
+            onChange={e => updateSetting('systemPrompt', e.target.value)}
+            rows={4}
+          />
+        </SettingsField>
       </SettingsSection>
 
-      <SettingsSection
-        title="History Settings"
-      >
+      <SettingsSection title="History Settings">
         <SettingToggle
           label="Persist chat history"
           description="Save chat conversations across sessions"
@@ -284,11 +283,14 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
           onChange={checked => updateSetting('persistHistory', checked)}
         />
 
-        <div style={{ padding: '10px 0' }}>
+        <SettingsField
+          label="Max messages to keep"
+          description="Older messages will be automatically removed"
+          htmlFor="max-messages"
+          disabled={!persistHistory}
+        >
           <Input
             id="max-messages"
-            label="Max messages to keep"
-            description="Older messages will be automatically removed"
             type="number"
             value={maxHistoryMessages}
             onChange={e => updateSetting('maxHistoryMessages', parseInt(e.target.value, 10))}
@@ -296,7 +298,7 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
             max={1000}
             disabled={!persistHistory}
           />
-        </div>
+        </SettingsField>
       </SettingsSection>
     </div>
   );
