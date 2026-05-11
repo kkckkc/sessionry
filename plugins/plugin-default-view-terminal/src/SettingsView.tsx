@@ -81,10 +81,7 @@ export const TerminalSettingsView = ({ settings, onUpdate }: SettingsViewProps) 
 
   return (
     <div className="terminal-settings">
-      <SettingsSection
-        title="Appearance"
-        description="Configure the terminal's visual appearance"
-      >
+      <SettingsSection title="Appearance" description="Configure the terminal's visual appearance">
         <SettingSelect
           label="Font Family"
           description="Choose the monospace font for terminal text. Changes apply to new terminal sessions."

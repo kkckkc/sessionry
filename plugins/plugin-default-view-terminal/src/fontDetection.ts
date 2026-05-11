@@ -9,6 +9,23 @@ export interface FontInfo {
 }
 
 /**
+ * Font data returned by queryLocalFonts API
+ */
+interface FontData {
+  family: string;
+  fullName?: string;
+  postscriptName?: string;
+  style?: string;
+}
+
+/**
+ * Extended Window interface with queryLocalFonts API
+ */
+interface WindowWithFonts extends Window {
+  queryLocalFonts(): Promise<FontData[]>;
+}
+
+/**
  * Detects if a font is monospace by measuring character widths
  * Monospace fonts have the same width for all characters
  */
@@ -39,8 +56,8 @@ export async function getMonospaceFonts(): Promise<FontInfo[]> {
   try {
     // Check if queryLocalFonts is available (Chromium 103+)
     if ('queryLocalFonts' in window) {
-      const availableFonts = await (window as any).queryLocalFonts();
-      
+      const availableFonts = await (window as WindowWithFonts).queryLocalFonts();
+
       // Get unique font families
       const uniqueFamilies = new Set<string>();
       for (const font of availableFonts) {
@@ -64,7 +81,9 @@ export async function getMonospaceFonts(): Promise<FontInfo[]> {
       // Sort alphabetically
       fonts.sort((a, b) => a.family.localeCompare(b.family));
     } else {
-      console.warn('[FontDetection] queryLocalFonts API not available, using common fonts fallback');
+      console.warn(
+        '[FontDetection] queryLocalFonts API not available, using common fonts fallback'
+      );
       // Fallback to common monospace fonts
       const commonFonts = [
         'JetBrains Mono',
@@ -76,7 +95,7 @@ export async function getMonospaceFonts(): Promise<FontInfo[]> {
         'Consolas',
         'Courier New'
       ];
-      
+
       for (const family of commonFonts) {
         if (isMonospace(family)) {
           fonts.push({ family, displayName: family });
