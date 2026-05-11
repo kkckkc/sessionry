@@ -196,6 +196,19 @@ export const App = () => {
               );
               break;
             }
+            case 'pane.new-chat': {
+              const focusedPaneId =
+                typeof effect.payload?.focusedPaneId === 'string'
+                  ? effect.payload.focusedPaneId
+                  : activeTerminalPaneId;
+
+              window.dispatchEvent(
+                new CustomEvent('sessionry:new-chat', {
+                  detail: { focusedPaneId }
+                })
+              );
+              break;
+            }
             default:
               break;
           }

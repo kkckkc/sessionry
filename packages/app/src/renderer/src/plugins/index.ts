@@ -8,12 +8,14 @@ import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-termi
 import { fileBrowserRendererPlugin } from '@sessionry/plugin-default-view-files/renderer';
 import { vcsViewRendererPlugin } from '@sessionry/plugin-default-view-vcs/renderer';
 import { notesViewRendererPlugin } from '@sessionry/plugin-default-view-notes/renderer';
+import chatRendererPlugin from '@sessionry/plugin-default-view-chat/renderer';
 import { coreRendererPlugin } from './coreRendererPlugin';
 
 const builtInRendererPlugins = [
   coreRendererPlugin,
   codePaneRendererPlugin,
   terminalPaneRendererPlugin,
+  chatRendererPlugin,
   defaultWorkspacePaneRendererPlugin,
   projectSessionsSidebarRendererPlugin,
   sidebarTabBarRendererPlugin,
