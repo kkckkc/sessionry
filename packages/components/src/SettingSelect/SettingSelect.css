@@ -1,10 +1,5 @@
 .sr-setting-select {
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.sr-setting-select:last-child {
-  border-bottom: none;
 }
 
 .sr-setting-select-row {

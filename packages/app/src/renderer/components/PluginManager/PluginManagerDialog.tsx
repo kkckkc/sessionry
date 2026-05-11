@@ -119,6 +119,24 @@ export function PluginManagerDialog({ open, onClose }: PluginManagerDialogProps)
     }
   };
 
+  const handleApproveIpc = async (pluginId: string) => {
+    try {
+      await window.terminalApp.plugins.approveIpc(pluginId);
+      await refreshInstalledPlugins();
+    } catch (error) {
+      console.error('Failed to approve plugin IPC:', error);
+    }
+  };
+
+  const handleRevokeIpc = async (pluginId: string) => {
+    try {
+      await window.terminalApp.plugins.revokeIpc(pluginId);
+      await refreshInstalledPlugins();
+    } catch (error) {
+      console.error('Failed to revoke plugin IPC:', error);
+    }
+  };
+
   /**
    * Get plugins for current tab
    */
@@ -236,6 +254,8 @@ export function PluginManagerDialog({ open, onClose }: PluginManagerDialogProps)
                     onUpdate={handleUpdate}
                     onEnable={handleEnable}
                     onDisable={handleDisable}
+                    onApproveIpc={handleApproveIpc}
+                    onRevokeIpc={handleRevokeIpc}
                     disabled={isLoading}
                   />
                 ))}

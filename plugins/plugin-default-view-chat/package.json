@@ -1,0 +1,39 @@
+{
+  "name": "@sessionry/plugin-default-view-chat",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/main.js",
+  "exports": {
+    ".": "./src/index.ts",
+    "./renderer": "./src/renderer.tsx"
+  },
+  "scripts": {
+    "build": "pnpm build:main && pnpm build:renderer",
+    "build:main": "vite build --config vite.main.config.ts",
+    "build:renderer": "vite build --config vite.renderer.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^0.0.54",
+    "@ai-sdk/google": "^0.0.52",
+    "@ai-sdk/openai": "^0.0.66",
+    "@sessionry/components": "workspace:*",
+    "@sessionry/plugin-api": "workspace:*",
+    "ai": "^3.4.33",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "latest",
+    "vite": "^5.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

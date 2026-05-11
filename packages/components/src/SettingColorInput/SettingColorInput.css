@@ -1,10 +1,5 @@
 .sr-setting-color-input {
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.sr-setting-color-input:last-child {
-  border-bottom: none;
 }
 
 .sr-setting-color-input-row {

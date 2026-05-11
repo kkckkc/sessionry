@@ -791,6 +791,58 @@ export const WorkspacePaneTree = ({
     [activeSession, findParentPaneGroup, workspace]
   );
 
+  const handleNewChat = useCallback(
+    async (focusedPaneId?: string) => {
+      if (!activeSession) return;
+
+      if (!focusedPaneId) {
+        const rootGroup = workspace.getPaneGroup(activeSession.rootPaneGroupId);
+        if (!rootGroup) return;
+
+        if (rootGroup.data.direction === 'stacked') {
+          const newPane = await workspace.getSession(activeSession.id)?.createPane({
+            type: 'chat',
+            state: { title: 'Chat' },
+            parentPaneGroupId: rootGroup.id
+          });
+          if (newPane) {
+            await rootGroup.update({ activeChildId: newPane.id });
+          }
+        }
+        return;
+      }
+
+      const focusedPane = workspace.getPane(focusedPaneId);
+      if (!focusedPane) return;
+
+      const parentGroup = findParentPaneGroup(focusedPaneId);
+
+      if (parentGroup && parentGroup.data.direction === 'stacked') {
+        const newPane = await workspace.getSession(activeSession.id)?.createPane({
+          type: 'chat',
+          state: { title: 'Chat' },
+          parentPaneGroupId: parentGroup.id
+        });
+        if (newPane) {
+          await parentGroup.update({ activeChildId: newPane.id });
+        }
+      } else {
+        const newGroup = await focusedPane.convertToTabs();
+        if (newGroup) {
+          const newPane = await workspace.getSession(activeSession.id)?.createPane({
+            type: 'chat',
+            state: { title: 'Chat' },
+            parentPaneGroupId: newGroup.id
+          });
+          if (newPane) {
+            await newGroup.update({ activeChildId: newPane.id });
+          }
+        }
+      }
+    },
+    [activeSession, findParentPaneGroup, workspace]
+  );
+
   useEffect(() => {
     const handleClosePaneEvent = (event: Event) => {
       const customEvent = event as CustomEvent<{ paneId: string }>;
@@ -803,14 +855,21 @@ export const WorkspacePaneTree = ({
       void handleNewTab(customEvent.detail.focusedPaneId);
     };
 
+    const handleNewChatEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ focusedPaneId?: string }>;
+      void handleNewChat(customEvent.detail.focusedPaneId);
+    };
+
     window.addEventListener('sessionry:close-pane', handleClosePaneEvent);
     window.addEventListener('sessionry:new-tab', handleNewTabEvent);
+    window.addEventListener('sessionry:new-chat', handleNewChatEvent);
 
     return () => {
       window.removeEventListener('sessionry:close-pane', handleClosePaneEvent);
       window.removeEventListener('sessionry:new-tab', handleNewTabEvent);
+      window.removeEventListener('sessionry:new-chat', handleNewChatEvent);
     };
-  }, [handleNewTab, handleRemovePaneNode]);
+  }, [handleNewTab, handleNewChat, handleRemovePaneNode]);
 
   if (!activeSession) {
     return <section className="workspace-empty">No session available.</section>;

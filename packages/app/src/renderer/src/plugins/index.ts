@@ -1,4 +1,8 @@
-import type { RendererAppPlugin, RendererViewRegistration } from '@sessionry/plugin-api';
+import type {
+  RendererAppPlugin,
+  RendererPluginSettingsViewDefinition,
+  RendererViewRegistration
+} from '@sessionry/plugin-api';
 import { debugPaneHierarchyRendererPlugin } from '@sessionry/plugin-debug-view-pane-hierarchy/renderer';
 import { codePaneRendererPlugin } from '@sessionry/plugin-default-view-code/renderer';
 import { defaultWorkspacePaneRendererPlugin } from '@sessionry/plugin-default-view-workspace/renderer';
@@ -8,12 +12,14 @@ import { terminalPaneRendererPlugin } from '@sessionry/plugin-default-view-termi
 import { fileBrowserRendererPlugin } from '@sessionry/plugin-default-view-files/renderer';
 import { vcsViewRendererPlugin } from '@sessionry/plugin-default-view-vcs/renderer';
 import { notesViewRendererPlugin } from '@sessionry/plugin-default-view-notes/renderer';
+import chatRendererPlugin from '@sessionry/plugin-default-view-chat/renderer';
 import { coreRendererPlugin } from './coreRendererPlugin';
 
 const builtInRendererPlugins = [
   coreRendererPlugin,
   codePaneRendererPlugin,
   terminalPaneRendererPlugin,
+  chatRendererPlugin,
   defaultWorkspacePaneRendererPlugin,
   projectSessionsSidebarRendererPlugin,
   sidebarTabBarRendererPlugin,
@@ -30,14 +36,30 @@ const rendererViews = builtInRendererPlugins.flatMap(plugin =>
   }))
 );
 
-type RegisteredRendererView = RendererViewRegistration & { pluginId: string };
+export type RegisteredRendererView = RendererViewRegistration & { pluginId: string };
+export type RegisteredRendererSettingsView = RendererPluginSettingsViewDefinition & { pluginId: string };
 
 const rendererViewById = new Map<string, RegisteredRendererView>(
   rendererViews.map(view => [view.id, view])
 );
 
+const rendererSettingsViewById = new Map<string, RegisteredRendererSettingsView>();
+
+const registerPluginSettingsView = (plugin: RendererAppPlugin): void => {
+  if (!plugin.settingsView) {
+    return;
+  }
+
+  rendererSettingsViewById.set(plugin.settingsView.id, {
+    ...plugin.settingsView,
+    pluginId: plugin.id
+  });
+};
+
 // Also register settings views
 for (const plugin of builtInRendererPlugins) {
+  registerPluginSettingsView(plugin);
+
   if (plugin.settingsView) {
     rendererViewById.set(plugin.settingsView.id, {
       ...plugin.settingsView,
@@ -49,6 +71,9 @@ for (const plugin of builtInRendererPlugins) {
 export const getRendererView = (viewId: string): RegisteredRendererView | null =>
   rendererViewById.get(viewId) ?? null;
 
+export const getRendererSettingsViews = (): RegisteredRendererSettingsView[] =>
+  Array.from(rendererSettingsViewById.values());
+
 /** Loads renderer bundles for user-installed plugins and registers their views. */
 export const loadUserPluginRenderers = async (): Promise<void> => {
   const infos = await window.terminalApp.getUserPluginRenderers();
@@ -59,6 +84,10 @@ export const loadUserPluginRenderers = async (): Promise<void> => {
       for (const view of plugin.views ?? []) {
         rendererViewById.set(view.id, { ...view, pluginId });
       }
+      registerPluginSettingsView({
+        ...plugin,
+        id: pluginId
+      });
     } catch (err) {
       console.error(`[plugin-loader] Failed to load renderer for plugin ${pluginId}:`, err);
     }

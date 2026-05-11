@@ -31,7 +31,8 @@ export interface ActionClientEffect {
     | 'terminal.clear-active'
     | 'terminal.restart-active'
     | 'pane.close-focused'
-    | 'pane.new-tab';
+    | 'pane.new-tab'
+    | 'pane.new-chat';
   payload?: Record<string, unknown>;
 }
 

@@ -101,6 +101,8 @@ export interface TerminalAppBridge {
     onUpdateProgress: (
       listener: (data: { downloaded: number; total: number }) => void
     ) => () => void;
+    approveIpc: (pluginId: string) => Promise<{ success: boolean; requiresRestart: boolean }>;
+    revokeIpc: (pluginId: string) => Promise<{ success: boolean; requiresRestart: boolean }>;
   };
   onTerminalData: (listener: (event: TerminalDataEvent) => void) => () => void;
   onTerminalState: (listener: (event: TerminalStateEvent) => void) => () => void;
@@ -108,5 +110,10 @@ export interface TerminalAppBridge {
   clipboard: {
     readText: () => Promise<string>;
     writeText: (text: string) => Promise<void>;
+  };
+  pluginIpc: {
+    invoke: <T>(channel: string, payload?: unknown) => Promise<T>;
+    send: (channel: string, payload?: unknown) => void;
+    on: (channel: string, listener: (payload: unknown) => void) => () => void;
   };
 }

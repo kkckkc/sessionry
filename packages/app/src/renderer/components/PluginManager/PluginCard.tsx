@@ -21,6 +21,8 @@ export interface PluginCardProps {
   onUpdate?: (pluginId: string, packageName: string) => void;
   onEnable?: (pluginId: string) => void;
   onDisable?: (pluginId: string) => void;
+  onApproveIpc?: (pluginId: string) => void;
+  onRevokeIpc?: (pluginId: string) => void;
   disabled?: boolean;
 }
 
@@ -49,6 +51,8 @@ export function PluginCard({
   onUpdate,
   onEnable,
   onDisable,
+  onApproveIpc,
+  onRevokeIpc,
   disabled = false
 }: PluginCardProps) {
   // Extract plugin info based on type
@@ -84,7 +88,9 @@ export function PluginCard({
         // biome-ignore lint/suspicious/noExplicitAny: Plugin metadata may have additional properties from npm registry
         canUninstall: (plugin as any).canUninstall ?? true,
         // biome-ignore lint/suspicious/noExplicitAny: Plugin metadata may have additional properties from npm registry
-        source: (plugin as any).source
+        source: (plugin as any).source,
+        unsafeIpc: plugin.unsafeIpc === true,
+        ipcApproved: plugin.ipcApproved === true
       };
 
   const statusBadges: React.ReactNode[] = [];
@@ -101,6 +107,14 @@ export function PluginCard({
     statusBadges.push(
       <Badge key="enabled" variant={pluginInfo.enabled ? 'success' : 'default'}>
         {pluginInfo.enabled ? 'Enabled' : 'Disabled'}
+      </Badge>
+    );
+  }
+
+  if (variant === 'installed' && pluginInfo.unsafeIpc) {
+    statusBadges.push(
+      <Badge key="unsafe-ipc" variant={pluginInfo.ipcApproved ? 'success' : 'warning'}>
+        {pluginInfo.ipcApproved ? 'IPC approved' : 'IPC blocked'}
       </Badge>
     );
   }
@@ -142,6 +156,18 @@ export function PluginCard({
       } else if (!plugin.enabled && onEnable) {
         onEnable(plugin.id);
       }
+    }
+  };
+
+  const handleToggleIpcApproval = () => {
+    if (!isInstalledPlugin(plugin)) {
+      return;
+    }
+
+    if (plugin.ipcApproved && onRevokeIpc) {
+      onRevokeIpc(plugin.id);
+    } else if (!plugin.ipcApproved && onApproveIpc) {
+      onApproveIpc(plugin.id);
     }
   };
 
@@ -204,6 +230,18 @@ export function PluginCard({
               title={!pluginInfo.canDisable ? 'Built-in plugins cannot be disabled' : undefined}
             >
               {pluginInfo.enabled ? 'Disable' : 'Enable'}
+            </Button>
+          )}
+
+          {variant === 'installed' && pluginInfo.unsafeIpc && pluginInfo.source !== 'builtin' && (
+            <Button
+              onClick={handleToggleIpcApproval}
+              disabled={disabled}
+              size="small"
+              variant={pluginInfo.ipcApproved ? 'secondary' : 'primary'}
+              title="Changing IPC approval requires an app restart"
+            >
+              {pluginInfo.ipcApproved ? 'Revoke IPC' : 'Approve IPC'}
             </Button>
           )}
 

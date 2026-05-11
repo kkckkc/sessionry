@@ -12,6 +12,7 @@ export interface PluginManifest {
   version: string;
   main: string;
   renderer?: string;
+  unsafeIpc?: boolean;
 }
 
 export interface LoadedUserPlugin {
@@ -61,6 +62,7 @@ export const loadUserPlugins = async (
       }
       const mod = await import(pathToFileURL(mainPath).href);
       const plugin: AppPlugin = mod.default;
+      if (manifest.unsafeIpc) plugin.unsafeIpc = true;
       loaded.push({ manifest, pluginDir, dirName: entry.name, plugin });
     } catch (err) {
       console.error(`[plugin-loader] Failed to load plugin from ${pluginDir}:`, err);
@@ -118,6 +120,7 @@ export const loadLocalDevPlugins = async (
 
           const mod = await import(pathToFileURL(mainPath).href);
           const plugin: AppPlugin = mod.default;
+          if (manifest.unsafeIpc) plugin.unsafeIpc = true;
 
           // Use repo/plugin format for dirName to ensure uniqueness
           const dirName = `${repoEntry.name}/${pluginEntry.name}`;

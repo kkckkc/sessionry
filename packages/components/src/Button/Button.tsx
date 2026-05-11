@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type CSSProperties, type ReactNode } from 'react';
 import { Button as BaseButton } from '@base-ui/react/button';
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip';
 import './Button.css';
@@ -37,6 +37,7 @@ export interface ButtonProps {
   disabled?: boolean;
   title?: string;
   className?: string;
+  style?: CSSProperties;
   size?: 'small' | 'medium';
 
   /**
@@ -80,6 +81,7 @@ export const Button = ({
   const className = [
     'btn',
     size === 'small' && 'is-small',
+    size === 'medium' && 'is-medium',
     variant === 'secondary' && 'is-secondary',
     variant === 'ghost' && 'is-ghost',
     variant === 'primary' && 'is-primary',

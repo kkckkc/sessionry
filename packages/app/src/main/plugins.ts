@@ -10,6 +10,7 @@ import { defaultThemesPlugin } from '@sessionry/plugin-default-themes';
 import { gitVcsPlugin } from '@sessionry/plugin-default-vcs-git';
 import { vcsViewPlugin } from '@sessionry/plugin-default-view-vcs';
 import { notesViewPlugin } from '@sessionry/plugin-default-view-notes';
+import { chatPlugin } from '@sessionry/plugin-default-view-chat';
 
 import { corePlugin } from './corePlugin';
 
@@ -19,6 +20,7 @@ export const builtInPlugins: AppPlugin[] = [
   gitVcsPlugin,
   codePanePlugin,
   terminalPanePlugin,
+  chatPlugin,
   defaultWorkspacePanePlugin,
   projectSessionsSidebarPlugin,
   sidebarTabBarPlugin,

@@ -108,6 +108,8 @@ export interface AppPlugin {
   views?: PluginViewDefinition[];
   settingsView?: PluginSettingsViewDefinition;
   themes?: ThemeDefinition[];
+  /** When true, this plugin requires direct IPC access between renderer and main process. */
+  unsafeIpc?: boolean;
   activateMain?: (context: MainPluginContext) => void | Promise<void>;
   activateRenderer?: (context: RendererPluginContext) => void | Promise<void>;
 }

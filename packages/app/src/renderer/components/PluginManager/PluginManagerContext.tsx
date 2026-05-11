@@ -17,8 +17,13 @@ export interface PluginState {
   description?: string;
   author?: string;
   keywords?: string[];
+  source?: string;
   installed: boolean;
   enabled: boolean;
+  canDisable?: boolean;
+  canUninstall?: boolean;
+  unsafeIpc?: boolean;
+  ipcApproved?: boolean;
   updateAvailable?: boolean;
   latestVersion?: string;
 }

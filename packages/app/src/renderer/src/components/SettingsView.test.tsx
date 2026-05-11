@@ -6,6 +6,19 @@ import { createMockTerminalApp } from '../../test-utils/mockTerminalApp';
 
 import { SettingsView } from './SettingsView';
 
+vi.mock('../plugins', () => ({
+  getRendererSettingsViews: vi.fn(() => [
+    {
+      id: 'chat-settings',
+      pluginId: 'plugin-default-view-chat',
+      title: 'Chat',
+      description: 'Configure AI provider and chat behavior',
+      icon: 'TbMessageCircle',
+      component: () => null
+    }
+  ])
+}));
+
 const initialSettings: AppSettings = {
   version: 1,
   theme: 'system',
@@ -47,6 +60,27 @@ describe('SettingsView', () => {
         onReload: vi.fn(() => () => {})
       }
     });
+  });
+
+  it('shows dynamically registered plugin settings entries', async () => {
+    const ChatSettingsComponent = () => <div>Chat settings content</div>;
+
+    render(
+      <SettingsView
+        open
+        onClose={() => {}}
+        resolveRendererView={(viewId: string): RendererViewRegistration | null =>
+          viewId === 'chat-settings' ? { component: ChatSettingsComponent } : null
+        }
+      />
+    );
+
+    const chatButton = await screen.findByRole('button', { name: 'Chat' });
+    expect(chatButton).toBeInTheDocument();
+
+    fireEvent.click(chatButton);
+
+    expect(await screen.findByText('Chat settings content')).toBeInTheDocument();
   });
 
   it('optimistically updates confirmation toggles and persists the new settings', async () => {
