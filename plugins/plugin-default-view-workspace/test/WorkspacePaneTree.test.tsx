@@ -248,6 +248,41 @@ describe('WorkspacePaneTree', () => {
     expect(screen.getByTestId('pane-pane-outline').querySelector('.header')).toBeNull();
   });
 
+  it('uses pane names for tabs and pane titles for pane headers', () => {
+    const namedSnapshot: WorkspaceStateSnapshot = {
+      ...snapshot,
+      panes: snapshot.panes.map(pane =>
+        pane.id === 'pane-terminal'
+          ? {
+              ...pane,
+              state: {
+                ...pane.state,
+                name: 'Terminal 1',
+                title: 'npm test'
+              }
+            }
+          : pane
+      )
+    };
+
+    render(
+      <WorkspacePaneTree
+        plugins={plugins}
+        workspace={createWorkspaceStub({
+          get snapshot() {
+            return namedSnapshot;
+          }
+        })}
+        resolveRendererView={() => paneRendererRegistration}
+        clearSignal={0}
+      />
+    );
+
+    expect(screen.getByRole('tab', { name: /Terminal 1/ })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /npm test/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'npm test', hidden: true })).toBeInTheDocument();
+  });
+
   it('moves nested split-group actions into the parent tab row and hides the nested header', async () => {
     const Harness = () => {
       const [currentSnapshot, setCurrentSnapshot] = React.useState(nestedSplitInTabsSnapshot);

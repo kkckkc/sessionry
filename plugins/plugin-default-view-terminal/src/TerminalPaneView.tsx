@@ -92,6 +92,7 @@ export const TerminalPaneView = ({
   const sessionFolder = workspace.getSession(pane.sessionId)?.data.folder;
   const sessionFolderRef = useRef(sessionFolder);
   sessionFolderRef.current = sessionFolder;
+  const paneTitleRef = useRef(typeof pane.state.title === 'string' ? pane.state.title : 'Terminal');
 
   const [terminalFont, setTerminalFont] = useState<string>(
     '"JetBrains Mono", "SF Mono", ui-monospace, monospace'
@@ -309,6 +310,27 @@ export const TerminalPaneView = ({
         data
       });
     });
+    const terminalTitleSubscription = terminal.onTitleChange(title => {
+      const nextTitle = title.trim() || 'Terminal';
+      const paneHandle = workspace.getPane(currentSession);
+      if (!paneHandle) return;
+
+      const currentState = paneHandle.data.state;
+      if (paneTitleRef.current === nextTitle && currentState.title === nextTitle) return;
+      if (currentState.title === nextTitle) {
+        paneTitleRef.current = nextTitle;
+        return;
+      }
+
+      paneTitleRef.current = nextTitle;
+      const nextState: Record<string, unknown> = { ...currentState, title: nextTitle };
+      if (typeof currentState.name !== 'string' || currentState.name.length === 0) {
+        nextState.name = typeof currentState.title === 'string' && currentState.title.length > 0
+          ? currentState.title
+          : 'Terminal';
+      }
+      void paneHandle.update({ state: nextState });
+    });
 
     terminalRef.current = terminal;
     fitAddonRef.current = fitAddon;
@@ -345,6 +367,7 @@ export const TerminalPaneView = ({
       pendingData.length = 0;
       unsubscribeData();
       terminalInputSubscription.dispose();
+      terminalTitleSubscription.dispose();
       resizeObserver.disconnect();
       themeObserver.disconnect();
       terminal.dispose();
@@ -355,7 +378,8 @@ export const TerminalPaneView = ({
   }, [
     pane.id,
     terminalFont,
-    onRegisterFocusHandler
+    onRegisterFocusHandler,
+    workspace
   ]);
 
   // Update font when it changes

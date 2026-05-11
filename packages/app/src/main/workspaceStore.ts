@@ -888,7 +888,7 @@ export class WorkspaceStore {
       const newGroup = this.createPaneGroup({
         sessionId: pane.sessionId,
         // biome-ignore lint/suspicious/noExplicitAny: Pane state is plugin-specific and dynamically typed
-        name: (pane.state as any)?.title || '',
+        name: (pane.state as any)?.name || (pane.state as any)?.title || '',
         direction,
         parentPaneGroupId: parentGroup.id,
         index: paneIndex
@@ -904,7 +904,7 @@ export class WorkspaceStore {
         sessionId: pane.sessionId,
         type: 'terminal',
         preferredSizePct: 50,
-        state: { title: 'Terminal' },
+        state: { name: 'Terminal', title: 'Terminal' },
         parentPaneGroupId: newGroup.id
       });
 
@@ -928,7 +928,7 @@ export class WorkspaceStore {
         sessionId: pane.sessionId,
         type: 'terminal',
         preferredSizePct: 50,
-        state: { title: 'Terminal' },
+        state: { name: 'Terminal', title: 'Terminal' },
         parentPaneGroupId: parentGroup.id,
         index: paneIndex + 1
       });
@@ -953,7 +953,7 @@ export class WorkspaceStore {
     const newGroup = this.createPaneGroup({
       sessionId: pane.sessionId,
       // biome-ignore lint/suspicious/noExplicitAny: Pane state is plugin-specific and dynamically typed
-      name: (pane.state as any)?.title || '',
+      name: (pane.state as any)?.name || (pane.state as any)?.title || '',
       direction,
       parentPaneGroupId: parentGroup.id,
       index: paneIndex
@@ -965,7 +965,7 @@ export class WorkspaceStore {
       sessionId: pane.sessionId,
       type: 'terminal',
       preferredSizePct: 50,
-      state: { title: 'Terminal' },
+      state: { name: 'Terminal', title: 'Terminal' },
       parentPaneGroupId: newGroup.id
     });
 
@@ -1085,7 +1085,7 @@ export class WorkspaceStore {
         const newPane = this.createPane({
           sessionId: paneGroup.sessionId,
           type: 'terminal',
-          state: { title: 'Terminal' }
+          state: { name: 'Terminal', title: 'Terminal' }
         });
         storedNewRootGroup.children.push({ kind: 'pane', paneId: newPane.id });
       }
@@ -1191,7 +1191,7 @@ export class WorkspaceStore {
       this.createPane({
         sessionId: paneGroup.sessionId,
         type: 'terminal',
-        state: { title: 'Terminal' },
+        state: { name: 'Terminal', title: 'Terminal' },
         parentPaneGroupId: newParentGroup.id,
         preferredSizePct: 50
       });
@@ -1254,7 +1254,7 @@ export class WorkspaceStore {
       const newPane = this.createPane({
         sessionId: pane.sessionId,
         type: 'terminal',
-        state: { title: 'Terminal' },
+        state: { name: 'Terminal', title: 'Terminal' },
         parentPaneGroupId: parentGroup.id,
         index: paneIndex + 1
       });
@@ -1277,7 +1277,7 @@ export class WorkspaceStore {
     const newGroup = this.createPaneGroup({
       sessionId: pane.sessionId,
       // biome-ignore lint/suspicious/noExplicitAny: Pane state is plugin-specific and dynamically typed
-      name: (pane.state as any)?.title || '',
+      name: (pane.state as any)?.name || (pane.state as any)?.title || '',
       direction: 'stacked',
       preferredSizePct: pane.preferredSizePct,
       parentPaneGroupId: parentGroup.id,
@@ -1291,7 +1291,7 @@ export class WorkspaceStore {
     const newPane = this.createPane({
       sessionId: pane.sessionId,
       type: 'terminal',
-      state: { title: 'Terminal' },
+      state: { name: 'Terminal', title: 'Terminal' },
       parentPaneGroupId: newGroup.id
     });
 
@@ -2007,7 +2007,7 @@ export class WorkspaceStore {
       sessionId: session.id,
       type: 'terminal',
       preferredSizePct: 50,
-      state: { title: 'Terminal', description: 'Primary terminal surface' },
+      state: { name: 'Terminal', title: 'Terminal', description: 'Primary terminal surface' },
       parentPaneGroupId: leftTabs.id
     });
     this.createPane({
@@ -2074,6 +2074,7 @@ export class WorkspaceStore {
       type: 'terminal',
       preferredSizePct: 100,
       state: {
+        name: 'Secondary Terminal',
         title: 'Secondary Terminal',
         description: 'Alternate terminal surface for session switching'
       },

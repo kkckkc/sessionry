@@ -38,7 +38,7 @@ export const MessageInput = ({
         const textarea = e.currentTarget;
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        const newValue = input.substring(0, start) + '\n' + input.substring(end);
+        const newValue = `${input.substring(0, start)}\n${input.substring(end)}`;
         setInput(newValue);
         // Set cursor position after the newline
         requestAnimationFrame(() => {
