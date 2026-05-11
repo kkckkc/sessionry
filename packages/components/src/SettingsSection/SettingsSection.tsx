@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { SettingsGroup } from '../SettingsGroup';
 import './SettingsSection.css';
 
 export interface SettingsSectionProps {
@@ -14,7 +15,9 @@ export const SettingsSection = ({ title, description, children }: SettingsSectio
         <h2>{title}</h2>
         {description && <p className="sr-settings-section-description">{description}</p>}
       </div>
-      <div className="sr-settings-section-content">{children}</div>
+      <div className="sr-settings-section-content">
+        <SettingsGroup>{children}</SettingsGroup>
+      </div>
     </section>
   );
 };

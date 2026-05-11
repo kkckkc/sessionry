@@ -1,3 +1,4 @@
+import { SettingsField } from '../SettingsField';
 import { Toggle } from '../Toggle';
 import './SettingToggle.css';
 
@@ -18,16 +19,20 @@ export const SettingToggle = ({
 }: SettingToggleProps) => {
   return (
     <div className="sr-setting-toggle">
-      <div className="sr-setting-toggle-header">
+      <SettingsField
+        label={label}
+        description={description}
+        layout="horizontal"
+        disabled={disabled}
+      >
         <Toggle
-          label={label}
+          aria-label={label}
           checked={checked}
           onChange={onChange}
           disabled={disabled}
           className="sr-setting-toggle-control"
         />
-      </div>
-      {description && <p className="sr-setting-toggle-description">{description}</p>}
+      </SettingsField>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { SettingsField, type SettingsFieldLayout } from '../SettingsField';
 import { Select } from '../Select';
 import type { SelectOption } from '../Select';
 import './SettingSelect.css';
@@ -9,6 +10,7 @@ export interface SettingSelectProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  layout?: SettingsFieldLayout;
 }
 
 export const SettingSelect = ({
@@ -17,15 +19,14 @@ export const SettingSelect = ({
   options,
   value,
   onChange,
-  disabled = false
+  disabled = false,
+  layout = 'vertical'
 }: SettingSelectProps) => {
   return (
     <div className="sr-setting-select">
-      <div className="sr-setting-select-row">
-        <span className="sr-setting-select-label">{label}</span>
+      <SettingsField label={label} description={description} layout={layout} disabled={disabled}>
         <Select options={options} value={value} onChange={onChange} disabled={disabled} />
-      </div>
-      {description && <p className="sr-setting-select-description">{description}</p>}
+      </SettingsField>
     </div>
   );
 };

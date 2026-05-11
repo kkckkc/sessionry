@@ -1,3 +1,4 @@
+import { SettingsField } from '../SettingsField';
 import './SettingColorInput.css';
 
 export interface SettingColorInputProps {
@@ -17,8 +18,12 @@ export const SettingColorInput = ({
 }: SettingColorInputProps) => {
   return (
     <div className="sr-setting-color-input">
-      <div className="sr-setting-color-input-row">
-        <span className="sr-setting-color-input-label">{label}</span>
+      <SettingsField
+        label={label}
+        description={description}
+        layout="horizontal"
+        disabled={disabled}
+      >
         <div className="sr-setting-color-input-control">
           <div className="sr-setting-color-swatch" style={{ background: value }} />
           <input
@@ -29,8 +34,7 @@ export const SettingColorInput = ({
             className="sr-setting-color-native"
           />
         </div>
-      </div>
-      {description && <p className="sr-setting-color-input-description">{description}</p>}
+      </SettingsField>
     </div>
   );
 };

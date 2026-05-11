@@ -8,6 +8,8 @@
 @import "./ConfirmationDialog/ConfirmationDialog.css";
 @import "./Section/Section.css";
 @import "./SettingsSection/SettingsSection.css";
+@import "./SettingsGroup/SettingsGroup.css";
+@import "./SettingsField/SettingsField.css";
 @import "./SettingToggle/SettingToggle.css";
 @import "./SettingSelect/SettingSelect.css";
 @import "./SegmentedControl/SegmentedControl.css";

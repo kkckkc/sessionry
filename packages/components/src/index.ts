@@ -38,6 +38,12 @@ export type { SectionProps } from './Section';
 export { SettingsSection } from './SettingsSection';
 export type { SettingsSectionProps } from './SettingsSection';
 
+export { SettingsGroup } from './SettingsGroup';
+export type { SettingsGroupProps } from './SettingsGroup';
+
+export { SettingsField } from './SettingsField';
+export type { SettingsFieldLayout, SettingsFieldProps } from './SettingsField';
+
 export { SettingToggle } from './SettingToggle';
 export type { SettingToggleProps } from './SettingToggle';
 
