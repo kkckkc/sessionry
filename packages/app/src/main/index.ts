@@ -78,8 +78,6 @@ const getIconPath = () => {
   
   // In development, use app.getAppPath() to get the project root
   const iconPath = path.join(app.getAppPath(), 'icons', iconName);
-  console.log('[Icon] Attempting to load icon from:', iconPath);
-  console.log('[Icon] File exists:', fs.existsSync(iconPath));
   return iconPath;
 };
 
@@ -119,7 +117,6 @@ app.whenReady().then(async () => {
     const iconPath = path.join(app.getAppPath(), 'icons', 'sessionry-1024x1024-padded.png');
     if (fs.existsSync(iconPath)) {
       app.dock.setIcon(iconPath);
-      console.log('[Icon] Dock icon set for development mode');
     }
   }
 

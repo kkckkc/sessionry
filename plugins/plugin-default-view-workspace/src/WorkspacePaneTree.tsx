@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 
 import { TbLayoutColumns, TbLayoutRows, TbLayoutNavbar } from 'react-icons/tb';
-import { Tabs } from '@base-ui-components/react/tabs';
+import { Tabs } from '@base-ui/react/tabs';
 import { ConfirmationDialog } from '@sessionry/components';
 import { PaneTitle } from './components/PaneTitle';
 import {

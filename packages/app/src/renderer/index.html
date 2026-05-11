@@ -8,14 +8,15 @@
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sessionry</title>
-    <!-- Maps bare specifiers used by external plugin bundles to host-provided
-         shared libraries served via the sessionry:// protocol. This ensures
-         all plugins share the same React instance as the host app. -->
+    <!-- Maps bare specifiers to host-provided shared libraries served via the
+         sessionry:// protocol. Ensures all plugins share the same React
+         instance as the host app. -->
     <script type="importmap">
       {
         "imports": {
           "react": "sessionry://host/react.js",
           "react-dom": "sessionry://host/react-dom.js",
+          "react-dom/client": "sessionry://host/react-dom-client.js",
           "react/jsx-runtime": "sessionry://host/react-jsx-runtime.js",
           "@sessionry/plugin-api": "sessionry://host/plugin-api.js"
         }
