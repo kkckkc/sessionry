@@ -21,6 +21,7 @@ interface AppShellProps {
   leftVisible: boolean;
   rightVisible: boolean;
   statusBarVisible: boolean;
+  brandText: string;
   mainContent: ReactNode;
   onToolbarAction: (actionId: string) => void;
   resolveRendererView: (viewId: string) => RendererViewRegistration | null;
@@ -120,6 +121,7 @@ export const AppShell = ({
   leftVisible,
   rightVisible,
   statusBarVisible,
+  brandText,
   mainContent,
   onToolbarAction,
   resolveRendererView
@@ -158,7 +160,7 @@ export const AppShell = ({
 
   return (
     <div className="app-frame">
-      <Toolbar className="app-toolbar" brand="Sessionry" ariaLabel="Terminal actions">
+      <Toolbar className="app-toolbar" brand={brandText} ariaLabel="Terminal actions">
         {plugins.toolbarActionIds
           .map(actionId => plugins.actions.find(candidate => candidate.id === actionId))
           .filter((action): action is ActionDescriptor => action !== undefined)

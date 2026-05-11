@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <clipPath id="squircle"><rect x="0" y="0" width="1024" height="1024" rx="230" ry="230"></rect></clipPath>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e1b3a"></stop>
+      <stop offset="40%" stop-color="#2a1a52"></stop>
+      <stop offset="100%" stop-color="#0b0820"></stop>
+    </linearGradient>
+    <radialGradient id="topGloss" cx="30%" cy="15%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.32"></stop>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="aura" cx="50%" cy="105%" r="55%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.55"></stop>
+      <stop offset="70%" stop-color="#a78bfa" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="sStroke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"></stop>
+      <stop offset="100%" stop-color="#e9d8fd"></stop>
+    </linearGradient>
+    <linearGradient id="topShine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.20"></stop>
+      <stop offset="38%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#squircle)">
+    <rect width="1024" height="1024" fill="url(#bg)"></rect>
+    <rect width="1024" height="1024" fill="url(#topGloss)"></rect>
+    <rect width="1024" height="1024" fill="url(#aura)"></rect>
+    <g transform="translate(215,215) scale(5.94)">
+      <path d="M78 28 C 70 16, 30 16, 30 32 C 30 48, 70 48, 70 64 C 70 80, 30 80, 22 68" stroke="url(#sStroke)" stroke-width="14" stroke-linecap="round" fill="none"></path>
+      <circle cx="78" cy="28" r="6" fill="#a78bfa"></circle>
+    </g>
+    <rect width="1024" height="1024" fill="url(#topShine)"></rect>
+  </g>
+  <rect x="0.5" y="0.5" width="1023" height="1023" rx="229.5" ry="229.5" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1"></rect>
+</svg>
