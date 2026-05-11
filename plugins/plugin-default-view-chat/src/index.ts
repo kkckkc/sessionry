@@ -1,21 +1,23 @@
 import type { AppPlugin, MainPluginContext } from '@sessionry/plugin-api';
 import { chatPluginDefinition } from './definition';
 import type { ChatPluginSettings } from './settings';
-import { DEFAULT_CHAT_SETTINGS } from './settings';
+import { DEFAULT_CHAT_SETTINGS, normalizeChatSettings } from './settings';
 import { CHAT_IPC_CHANNELS } from './constants';
 import type {
   SendMessagePayload,
   LoadHistoryPayload,
-  ClearHistoryPayload
+  ClearHistoryPayload,
+  ListModelsPayload
 } from './types';
 
 const activateMain = async (context: MainPluginContext): Promise<void> => {
   // Dynamically import ChatService to avoid bundling node dependencies in renderer
   const { ChatService } = await import('./chatService');
 
-  const pluginSettings = (context.settings.plugins['plugin-default-view-chat'] as
-    | ChatPluginSettings
-    | undefined) ?? DEFAULT_CHAT_SETTINGS;
+  const pluginSettings = normalizeChatSettings(
+    (context.settings.plugins['plugin-default-view-chat'] as ChatPluginSettings | undefined) ??
+      DEFAULT_CHAT_SETTINGS
+  );
 
   // Get workspace root for history storage
   const workspaceState = context.workspace.snapshot;
@@ -24,7 +26,8 @@ const activateMain = async (context: MainPluginContext): Promise<void> => {
   const chatService = new ChatService(
     (channel, data) => context.ipc.emit(channel, data),
     pluginSettings,
-    workspaceRoot
+    workspaceRoot,
+    context.workspace
   );
 
   // Register IPC handlers
@@ -44,9 +47,10 @@ const activateMain = async (context: MainPluginContext): Promise<void> => {
     await chatService.clearHistory(paneId);
   });
 
-  context.ipc.handle(CHAT_IPC_CHANNELS.listModels, async () => {
+  context.ipc.handle(CHAT_IPC_CHANNELS.listModels, async (payload: unknown) => {
     try {
-      const models = await chatService.listModels();
+      const { provider } = (payload as ListModelsPayload | undefined) ?? {};
+      const models = await chatService.listModels(provider);
       return { models };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -59,9 +63,10 @@ const activateMain = async (context: MainPluginContext): Promise<void> => {
   context.workspace.subscribeAll(event => {
     if (event.type === 'settings.updated') {
       const afterSettings = event.after as unknown as { plugins?: Record<string, unknown> };
-      const newPluginSettings = (afterSettings.plugins?.['plugin-default-view-chat'] as
-        | ChatPluginSettings
-        | undefined) ?? DEFAULT_CHAT_SETTINGS;
+      const newPluginSettings = normalizeChatSettings(
+        (afterSettings.plugins?.['plugin-default-view-chat'] as ChatPluginSettings | undefined) ??
+          DEFAULT_CHAT_SETTINGS
+      );
 
       if (JSON.stringify(newPluginSettings) !== JSON.stringify(currentSettings)) {
         chatService.updateSettings(newPluginSettings);

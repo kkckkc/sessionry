@@ -818,6 +818,32 @@ export const WorkspacePaneTree = ({
     [plugins.paneCreations]
   );
 
+  const resolveDynamicPaneCreations = useCallback(
+    async (
+      paneGroupId: string,
+      activeChildOverride?: PaneGroupChild
+    ): Promise<PaneCreationContributionModel[]> => {
+      if (!resolvePaneCreations || !activeSession) {
+        return [];
+      }
+
+      const paneGroup = workspace.getPaneGroup(paneGroupId)?.data;
+      if (!paneGroup) {
+        return [];
+      }
+
+      return await Promise.resolve(
+        resolvePaneCreations({
+          workspace,
+          session: activeSession,
+          paneGroup,
+          activeChild: activeChildOverride
+        })
+      );
+    },
+    [activeSession, resolvePaneCreations, workspace]
+  );
+
   const handleAddPaneTypeToGroup = useCallback(
     async (paneGroupId: string, paneType: string) => {
       const entry = findPaneCreation(paneType);
@@ -825,6 +851,22 @@ export const WorkspacePaneTree = ({
       await handleCreatePane(paneGroupId, entry);
     },
     [findPaneCreation, handleCreatePane]
+  );
+
+  const handleAddDefaultChatPaneToGroup = useCallback(
+    async (paneGroupId: string, activeChildOverride?: PaneGroupChild) => {
+      const dynamicEntries = await resolveDynamicPaneCreations(paneGroupId, activeChildOverride);
+      const chatEntry =
+        dynamicEntries.find(entry => entry.paneType === 'chat' && !entry.disabled) ??
+        findPaneCreation('chat');
+
+      if (!chatEntry) {
+        return;
+      }
+
+      await handleCreatePane(paneGroupId, chatEntry);
+    },
+    [findPaneCreation, handleCreatePane, resolveDynamicPaneCreations]
   );
 
   const findParentPaneGroup = useCallback(
@@ -880,7 +922,7 @@ export const WorkspacePaneTree = ({
         if (!rootGroup) return;
 
         if (rootGroup.data.direction === 'stacked') {
-          await handleAddPaneTypeToGroup(rootGroup.id, 'chat');
+          await handleAddDefaultChatPaneToGroup(rootGroup.id);
         }
         return;
       }
@@ -891,15 +933,15 @@ export const WorkspacePaneTree = ({
       const parentGroup = findParentPaneGroup(focusedPaneId);
 
       if (parentGroup && parentGroup.data.direction === 'stacked') {
-        await handleAddPaneTypeToGroup(parentGroup.id, 'chat');
+        await handleAddDefaultChatPaneToGroup(parentGroup.id, { kind: 'pane', paneId: focusedPaneId });
       } else {
         const newGroup = await focusedPane.convertToTabs();
         if (newGroup) {
-          await handleAddPaneTypeToGroup(newGroup.id, 'chat');
+          await handleAddDefaultChatPaneToGroup(newGroup.id, { kind: 'pane', paneId: focusedPaneId });
         }
       }
     },
-    [activeSession, findParentPaneGroup, handleAddPaneTypeToGroup, workspace]
+    [activeSession, findParentPaneGroup, handleAddDefaultChatPaneToGroup, workspace]
   );
 
   useEffect(() => {

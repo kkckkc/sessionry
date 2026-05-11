@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { SettingsViewProps } from '@sessionry/plugin-api';
 import {
   SettingsSection,
@@ -12,10 +12,16 @@ import {
 } from '@sessionry/components';
 import type { SelectOption } from '@sessionry/components';
 
-import type { ChatPluginSettings } from './settings';
-import { DEFAULT_CHAT_SETTINGS, validateProviderConfig } from './settings';
-import { PROVIDER_OPTIONS, PROVIDER_MODELS } from './constants';
-import { CHAT_IPC_CHANNELS } from './constants';
+import type { ListModelsPayload } from './types';
+import {
+  DEFAULT_CHAT_SETTINGS,
+  createChatProviderEntry,
+  getDefaultModelForProviderType,
+  normalizeChatSettings,
+  validateProviderConfig
+} from './settings';
+import type { ChatPluginSettings, ChatProviderEntry, ChatProviderType } from './settings';
+import { PROVIDER_OPTIONS, PROVIDER_MODELS, CHAT_IPC_CHANNELS } from './constants';
 
 interface ListModelsResponse {
   models?: Array<{ id: string; name?: string }>;
@@ -24,33 +30,133 @@ interface ListModelsResponse {
 
 export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
   const [showApiKey, setShowApiKey] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
   const [fetchedModels, setFetchedModels] = useState<SelectOption[]>([]);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
 
-  const chatSettings = (settings as ChatPluginSettings) ?? DEFAULT_CHAT_SETTINGS;
-  const { provider, systemPrompt, persistHistory, maxHistoryMessages } = chatSettings;
+  const chatSettings = useMemo(
+    () => normalizeChatSettings(settings ?? DEFAULT_CHAT_SETTINGS),
+    [settings]
+  );
+
+  useEffect(() => {
+    if (
+      !selectedProviderId ||
+      !chatSettings.providers.some(provider => provider.id === selectedProviderId)
+    ) {
+      setSelectedProviderId(chatSettings.defaultProviderId ?? chatSettings.providers[0]?.id ?? null);
+    }
+  }, [chatSettings.defaultProviderId, chatSettings.providers, selectedProviderId]);
+
+  const selectedProvider =
+    chatSettings.providers.find(provider => provider.id === selectedProviderId) ??
+    chatSettings.providers[0];
+
+  const validationError = selectedProvider ? validateProviderConfig(selectedProvider) : null;
 
   const modelOptions: SelectOption[] =
-    provider.provider === 'custom'
-      ? []
-      : PROVIDER_MODELS[provider.provider].map(m => ({
-          value: m.value,
-          label: m.label
-        }));
+    selectedProvider && selectedProvider.type !== 'custom'
+      ? PROVIDER_MODELS[selectedProvider.type].map(model => ({
+          value: model.value,
+          label: model.label
+        }))
+      : [];
 
-  const updateProviderField = <K extends keyof typeof provider>(
-    field: K,
-    value: (typeof provider)[K]
+  const persistSettings = (nextSettings: ChatPluginSettings) => {
+    void onUpdate(nextSettings);
+  };
+
+  const updateProviders = (
+    updater: (providers: ChatProviderEntry[]) => {
+      providers: ChatProviderEntry[];
+      defaultProviderId?: string;
+      selectedProviderId?: string | null;
+    }
   ) => {
-    const newProvider = { ...provider, [field]: value };
-    const error = validateProviderConfig(newProvider);
-    setValidationError(error);
-
-    void onUpdate({
+    const result = updater(chatSettings.providers);
+    const nextSettings: ChatPluginSettings = {
       ...chatSettings,
-      provider: newProvider
+      providers: result.providers,
+      defaultProviderId: result.defaultProviderId ?? chatSettings.defaultProviderId
+    };
+
+    if (
+      !nextSettings.defaultProviderId ||
+      !nextSettings.providers.some(provider => provider.id === nextSettings.defaultProviderId)
+    ) {
+      nextSettings.defaultProviderId = nextSettings.providers[0]?.id;
+    }
+
+    setSelectedProviderId(
+      result.selectedProviderId === undefined
+        ? selectedProviderId
+        : result.selectedProviderId ?? nextSettings.providers[0]?.id ?? null
+    );
+    setFetchedModels([]);
+    setFetchModelsError(null);
+    persistSettings(nextSettings);
+  };
+
+  const updateProvider = (providerId: string, updates: Partial<ChatProviderEntry>) => {
+    updateProviders(providers => ({
+      providers: providers.map(provider => (provider.id === providerId ? { ...provider, ...updates } : provider))
+    }));
+  };
+
+  const handleProviderTypeChange = (providerId: string, typeValue: string) => {
+    const type = typeValue as ChatProviderType;
+    updateProviders(providers => ({
+      providers: providers.map(provider =>
+        provider.id === providerId
+          ? {
+              ...provider,
+              type,
+              model: getDefaultModelForProviderType(type),
+              ...(type === 'custom' ? {} : { baseUrl: provider.baseUrl ?? '' })
+            }
+          : provider
+      )
+    }));
+  };
+
+  const handleAddProvider = () => {
+    const defaultType = PROVIDER_OPTIONS[0]?.value as ChatProviderType;
+    const provider = createChatProviderEntry(defaultType, {
+      name: `${PROVIDER_OPTIONS.find(option => option.value === defaultType)?.label ?? 'Provider'}`
+    });
+
+    updateProviders(providers => ({
+      providers: [...providers, provider],
+      defaultProviderId: chatSettings.defaultProviderId ?? provider.id,
+      selectedProviderId: provider.id
+    }));
+  };
+
+  const handleSetDefaultProvider = (providerId: string) => {
+    updateProviders(providers => ({
+      providers,
+      defaultProviderId: providerId
+    }));
+  };
+
+  const handleRemoveProvider = (providerId: string) => {
+    if (chatSettings.providers.length <= 1) {
+      return;
+    }
+
+    updateProviders(providers => {
+      const remainingProviders = providers.filter(provider => provider.id !== providerId);
+      const nextSelected = remainingProviders[0]?.id ?? null;
+
+      return {
+        providers: remainingProviders,
+        defaultProviderId:
+          chatSettings.defaultProviderId === providerId
+            ? remainingProviders[0]?.id
+            : chatSettings.defaultProviderId,
+        selectedProviderId: selectedProviderId === providerId ? nextSelected : selectedProviderId
+      };
     });
   };
 
@@ -58,14 +164,13 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
     field: K,
     value: ChatPluginSettings[K]
   ) => {
-    void onUpdate({
+    persistSettings({
       ...chatSettings,
       [field]: value
     });
   };
 
-  const handleFetchModels = async () => {
-    // Only fetch if we haven't already or if there was an error
+  const handleFetchModels = async (provider: ChatProviderEntry) => {
     if (fetchedModels.length > 0 || isFetchingModels) return;
 
     setIsFetchingModels(true);
@@ -73,7 +178,8 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
 
     try {
       const result = await window.terminalApp.pluginIpc.invoke<ListModelsResponse>(
-        CHAT_IPC_CHANNELS.listModels
+        CHAT_IPC_CHANNELS.listModels,
+        { provider } satisfies ListModelsPayload
       );
 
       if (result.error) {
@@ -81,9 +187,9 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
         setFetchedModels([]);
       } else if (result.models) {
         const modelOptions = result.models
-          .map(m => ({
-            value: m.id,
-            label: m.name || m.id
+          .map(model => ({
+            value: model.id,
+            label: model.name || model.id
           }))
           .sort(
             (a, b) =>
@@ -94,8 +200,7 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
         setFetchModelsError(null);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch models';
-      setFetchModelsError(errorMessage);
+      setFetchModelsError(error instanceof Error ? error.message : 'Failed to fetch models');
       setFetchedModels([]);
     } finally {
       setIsFetchingModels(false);
@@ -103,200 +208,277 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
   };
 
   const handleComboboxOpen = (open: boolean) => {
-    if (open && provider.apiKey && provider.baseUrl) {
-      void handleFetchModels();
+    if (
+      open &&
+      selectedProvider &&
+      selectedProvider.type === 'custom' &&
+      selectedProvider.apiKey &&
+      selectedProvider.baseUrl
+    ) {
+      void handleFetchModels(selectedProvider);
     }
   };
 
   return (
     <div className="chat-settings">
-      <SettingsSection title="AI Provider Configuration">
-        <SettingSelect
-          label="Provider"
-          options={PROVIDER_OPTIONS.map(p => ({ value: p.value, label: p.label }))}
-          value={provider.provider}
-          onChange={value => {
-            const newProvider = value as typeof provider.provider;
-            const defaultModel =
-              newProvider === 'custom' ? '' : PROVIDER_MODELS[newProvider][0].value;
-            const newProviderConfig = {
-              ...provider,
-              provider: newProvider,
-              model: defaultModel
-            };
-            const error = validateProviderConfig(newProviderConfig);
-            setValidationError(error);
-
-            void onUpdate({
-              ...chatSettings,
-              provider: newProviderConfig
-            });
-          }}
-        />
-
+      <SettingsSection title="Providers">
         <SettingsField
-          label="API Key"
-          description="Your API key is stored securely and never shared"
+          label="Saved Providers"
+          description="Manage named chat providers available in the + menu"
           layout="vertical"
-          htmlFor="api-key"
         >
-          <div className="chat-settings-api-key-row">
-            <Input
-              id="api-key"
-              aria-label="API Key"
-              type={showApiKey ? 'text' : 'password'}
-              value={provider.apiKey}
-              onChange={e => updateProviderField('apiKey', e.target.value)}
-              placeholder="Enter your API key"
-              style={{ flex: 1, minWidth: 0 }}
-            />
-            <Button
-              type="button"
-              onClick={() => setShowApiKey(!showApiKey)}
-              variant="secondary"
-              size="medium"
-              style={{ flexShrink: 0 }}
-            >
-              {showApiKey ? 'Hide' : 'Show'}
-            </Button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="chat-provider-tabbar-row">
+              <div className="chat-provider-tabbar" role="tablist" aria-label="Configured chat providers">
+                {chatSettings.providers.map(provider => (
+                  <button
+                    key={provider.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={provider.id === selectedProvider?.id}
+                    className={`chat-provider-tab${provider.id === selectedProvider?.id ? ' is-active' : ''}`}
+                    onClick={() => setSelectedProviderId(provider.id)}
+                  >
+                    <span className="chat-provider-tab-label">{provider.name}</span>
+                    {chatSettings.providers.length > 1 ? (
+                      <span
+                        className="chat-provider-tab-close"
+                        role="button"
+                        aria-label={`Remove ${provider.name}`}
+                        tabIndex={0}
+                        onClick={event => {
+                          event.stopPropagation();
+                          handleRemoveProvider(provider.id);
+                        }}
+                        onKeyDown={event => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.stopPropagation();
+                            event.preventDefault();
+                            handleRemoveProvider(provider.id);
+                          }
+                        }}
+                      >
+                        ×
+                      </span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddProvider}
+                variant="secondary"
+                size="medium"
+                aria-label="Add provider"
+                title="Add provider"
+              >
+                +
+              </Button>
+            </div>
           </div>
         </SettingsField>
+      </SettingsSection>
 
-        {provider.provider !== 'custom' && (
-          <SettingSelect
-            label="Model"
-            description="Select the AI model to use"
-            options={modelOptions}
-            value={provider.model}
-            onChange={value => updateProviderField('model', value)}
-          />
-        )}
+      {selectedProvider ? (
+        <div className="chat-provider-pane">
+          <div className="chat-provider-pane-body">
+            <SettingsField label="Provider Name" htmlFor="provider-name">
+              <Input
+                id="provider-name"
+                value={selectedProvider.name}
+                onChange={e => updateProvider(selectedProvider.id, { name: e.target.value })}
+                placeholder="OpenAI"
+              />
+            </SettingsField>
 
-        {provider.provider === 'custom' && (
-          <>
+            <SettingToggle
+              label="Default Provider"
+              description="Use this provider for generic new chat actions"
+              checked={selectedProvider.id === chatSettings.defaultProviderId}
+              onChange={() => handleSetDefaultProvider(selectedProvider.id)}
+            />
+
+            <SettingSelect
+              label="Provider Type"
+              options={PROVIDER_OPTIONS.map(provider => ({
+                value: provider.value,
+                label: provider.label
+              }))}
+              value={selectedProvider.type}
+              onChange={value => handleProviderTypeChange(selectedProvider.id, value)}
+            />
+
+            <SettingsField
+              label="API Key"
+              description="Stored in settings and used only for this provider"
+              layout="vertical"
+              htmlFor="api-key"
+            >
+              <div className="chat-settings-api-key-row">
+                <Input
+                  id="api-key"
+                  aria-label="API Key"
+                  type={showApiKey ? 'text' : 'password'}
+                  value={selectedProvider.apiKey}
+                  onChange={e => updateProvider(selectedProvider.id, { apiKey: e.target.value })}
+                  placeholder="Enter your API key"
+                  style={{ flex: 1, minWidth: 0 }}
+                />
+                <Button
+                  type="button"
+                  onClick={() => setShowApiKey(value => !value)}
+                  variant="secondary"
+                  size="medium"
+                  style={{ flexShrink: 0 }}
+                >
+                  {showApiKey ? 'Hide' : 'Show'}
+                </Button>
+              </div>
+            </SettingsField>
+
             <SettingsField
               label="Base URL"
-              description="OpenAI-compatible API endpoint"
+              description={
+                selectedProvider.type === 'custom'
+                  ? 'Required for OpenAI-compatible providers'
+                  : 'Optional override for hosted or proxy endpoints'
+              }
               htmlFor="base-url"
             >
               <Input
                 id="base-url"
                 type="text"
-                value={provider.baseUrl || ''}
-                onChange={e => updateProviderField('baseUrl', e.target.value)}
-                placeholder="https://api.example.com/v1"
+                value={selectedProvider.baseUrl || ''}
+                onChange={e => updateProvider(selectedProvider.id, { baseUrl: e.target.value })}
+                placeholder={
+                  selectedProvider.type === 'custom' ? 'https://api.example.com/v1' : 'Optional'
+                }
+              />
+            </SettingsField>
+
+            {selectedProvider.type !== 'custom' ? (
+              <SettingSelect
+                label="Model"
+                description="Select the AI model to use"
+                options={modelOptions}
+                value={selectedProvider.model}
+                onChange={value => updateProvider(selectedProvider.id, { model: value })}
+              />
+            ) : (
+              <SettingsField
+                label="Model Name"
+                description="Enter a model name or select from the endpoint"
+                htmlFor="model-name"
+              >
+                <Combobox
+                  id="model-name"
+                  options={fetchedModels}
+                  value={selectedProvider.model}
+                  onChange={value => updateProvider(selectedProvider.id, { model: value })}
+                  onOpenChange={handleComboboxOpen}
+                  loading={isFetchingModels}
+                  loadingMessage="Fetching available models..."
+                  errorMessage={fetchModelsError || undefined}
+                  placeholder="gpt-4o-mini"
+                />
+              </SettingsField>
+            )}
+
+            <SettingsField
+              label="Temperature"
+              description={
+                <span className="chat-settings-range-description">
+                  <span>Controls randomness: 0 is focused, 2 is creative</span>
+                  <span>{selectedProvider.temperature ?? 0.7}</span>
+                </span>
+              }
+              htmlFor="temperature"
+            >
+              <input
+                id="temperature"
+                type="range"
+                min="0"
+                max="2"
+                step="0.1"
+                value={selectedProvider.temperature ?? 0.7}
+                onChange={e =>
+                  updateProvider(selectedProvider.id, { temperature: parseFloat(e.target.value) })
+                }
+                style={{ width: '100%' }}
               />
             </SettingsField>
 
             <SettingsField
-              label="Model Name"
-              description="Enter model name or select from available models"
-              htmlFor="model-name"
+              label="Max Tokens"
+              description="Maximum length of the response"
+              htmlFor="max-tokens"
             >
-              <Combobox
-                id="model-name"
-                options={fetchedModels}
-                value={provider.model}
-                onChange={value => updateProviderField('model', value)}
-                onOpenChange={handleComboboxOpen}
-                loading={isFetchingModels}
-                loadingMessage="Fetching available models..."
-                errorMessage={fetchModelsError || undefined}
-                placeholder="gpt-3.5-turbo"
+              <Input
+                id="max-tokens"
+                type="number"
+                value={selectedProvider.maxTokens ?? 2000}
+                onChange={e =>
+                  updateProvider(selectedProvider.id, {
+                    maxTokens: parseInt(e.target.value || '0', 10)
+                  })
+                }
+                min={1}
+                max={100000}
               />
             </SettingsField>
-          </>
-        )}
 
-        {validationError && (
-          <div
-            style={{
-              padding: '0.75rem',
-              backgroundColor: 'var(--color-error-bg)',
-              color: 'var(--color-error-text)',
-              borderRadius: '0.25rem',
-              fontSize: '0.875rem'
-            }}
-          >
-            {validationError}
+            {validationError && (
+              <div
+                style={{
+                  padding: '0.75rem',
+                  backgroundColor: 'var(--color-error-bg)',
+                  color: 'var(--color-error-text)',
+                  borderRadius: '0.25rem',
+                  fontSize: '0.875rem'
+                }}
+              >
+                {validationError}
+              </div>
+            )}
           </div>
-        )}
-      </SettingsSection>
-
-      <SettingsSection title="Advanced Settings">
-        <SettingsField
-          label="Temperature"
-          description={
-            <span className="chat-settings-range-description">
-              <span>Controls randomness: 0 is focused, 2 is creative</span>
-              <span>{provider.temperature ?? 0.7}</span>
-            </span>
-          }
-          htmlFor="temperature"
-        >
-          <input
-            id="temperature"
-            type="range"
-            min="0"
-            max="2"
-            step="0.1"
-            value={provider.temperature ?? 0.7}
-            onChange={e => updateProviderField('temperature', parseFloat(e.target.value))}
-            style={{ width: '100%' }}
-          />
-        </SettingsField>
-
-        <SettingsField
-          label="Max Tokens"
-          description="Maximum length of the response"
-          htmlFor="max-tokens"
-        >
-          <Input
-            id="max-tokens"
-            type="number"
-            value={provider.maxTokens ?? 2000}
-            onChange={e => updateProviderField('maxTokens', parseInt(e.target.value, 10))}
-            min={1}
-            max={100000}
-          />
-        </SettingsField>
-
-        <SettingsField
-          label="System Prompt"
-          description="Instructions that guide the AI's behavior"
-          htmlFor="system-prompt"
-        >
-          <Textarea
-            id="system-prompt"
-            value={systemPrompt}
-            onChange={e => updateSetting('systemPrompt', e.target.value)}
-            rows={4}
-          />
-        </SettingsField>
-      </SettingsSection>
+        </div>
+      ) : null}
 
       <SettingsSection title="History Settings">
         <SettingToggle
-          label="Persist chat history"
-          description="Save chat conversations across sessions"
-          checked={persistHistory}
+          label="Persist History"
+          description="Save chat history to disk per chat pane"
+          checked={chatSettings.persistHistory}
           onChange={checked => updateSetting('persistHistory', checked)}
         />
 
         <SettingsField
-          label="Max messages to keep"
-          description="Older messages will be automatically removed"
-          htmlFor="max-messages"
-          disabled={!persistHistory}
+          label="Max History Messages"
+          description="Maximum messages to keep per chat session"
+          htmlFor="max-history"
         >
           <Input
-            id="max-messages"
+            id="max-history"
             type="number"
-            value={maxHistoryMessages}
-            onChange={e => updateSetting('maxHistoryMessages', parseInt(e.target.value, 10))}
+            value={chatSettings.maxHistoryMessages}
+            onChange={e => updateSetting('maxHistoryMessages', parseInt(e.target.value || '0', 10))}
             min={1}
             max={1000}
-            disabled={!persistHistory}
+          />
+        </SettingsField>
+      </SettingsSection>
+
+      <SettingsSection title="System Prompt">
+        <SettingsField
+          label="System Prompt"
+          description="Instructions sent with every conversation"
+          htmlFor="system-prompt"
+        >
+          <Textarea
+            id="system-prompt"
+            value={chatSettings.systemPrompt}
+            onChange={e => updateSetting('systemPrompt', e.target.value)}
+            rows={8}
           />
         </SettingsField>
       </SettingsSection>

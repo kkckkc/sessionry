@@ -19,16 +19,6 @@ export const chatPluginDefinition: AppPlugin = {
       })
     }
   ],
-  paneCreations: [
-    {
-      id: 'chat',
-      title: 'Chat',
-      icon: 'TbMessageCircle',
-      order: 20,
-      paneType: 'chat',
-      defaultState: { name: 'Chat', title: 'Chat' }
-    }
-  ],
   views: [
     {
       id: 'pane.chat.default',
