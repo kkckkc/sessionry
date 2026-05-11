@@ -173,7 +173,7 @@ app.whenReady().then(async () => {
       
       // Try to match plugin directory - could be single segment or repo/plugin format
       let pluginDir: string | undefined;
-      let rest: string[];
+      let rest: string[] = [];
       
       // First try two-segment format (repo/plugin) for local dev plugins
       if (segments.length >= 2) {
