@@ -27,10 +27,13 @@ function cjsNamedExports(): Plugin {
         const mod = require(pkg)
         const names = Object.keys(mod).filter(k => k !== 'default' && k !== '__esModule')
         if (names.length === 0) return null
+        const hasDefaultExport = /export\s*\{[^}]*\bdefault\b/.test(code) ||
+          /export\s+default\b/.test(code)
         return code.replace(
           match[0],
           `import __mod from '${pkg}';\n` +
-          names.map(n => `export const ${n} = __mod.${n};`).join('\n')
+          names.map(n => `export const ${n} = __mod.${n};`).join('\n') +
+          (hasDefaultExport ? '' : `\nexport default __mod;`)
         )
       } catch {
         return null

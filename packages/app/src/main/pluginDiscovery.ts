@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { InstalledPlugin } from '@sessionry/plugin-api';
 import type { PluginManifest } from './pluginLoader';
-import { getUserPluginsDir } from './pluginLoader';
+import { getUserPluginsDir, getLocalDevPluginsDir } from './pluginLoader';
 
 /**
  * Discovers all plugins in the user plugins directory and returns them as InstalledPlugin entries.
@@ -44,6 +44,62 @@ export const discoverLocalPlugins = (): InstalledPlugin[] => {
 };
 
 /**
+ * Discovers all plugins in the local dev plugins directory and returns them as InstalledPlugin entries.
+ * This is used to auto-register local dev plugins in the configuration.
+ */
+export const discoverLocalDevPlugins = (): InstalledPlugin[] => {
+  const localDevDir = getLocalDevPluginsDir();
+  if (!fs.existsSync(localDevDir)) {
+    return [];
+  }
+
+  const discovered: InstalledPlugin[] = [];
+
+  try {
+    const repoEntries = fs.readdirSync(localDevDir, { withFileTypes: true });
+
+    for (const repoEntry of repoEntries) {
+      if (!repoEntry.isDirectory()) continue;
+
+      const packagesDir = path.join(localDevDir, repoEntry.name, 'packages');
+      if (!fs.existsSync(packagesDir)) continue;
+
+      const pluginEntries = fs.readdirSync(packagesDir, { withFileTypes: true });
+
+      for (const pluginEntry of pluginEntries) {
+        if (!pluginEntry.isDirectory()) continue;
+
+        const pluginDir = path.join(packagesDir, pluginEntry.name);
+        const manifestPath = path.join(pluginDir, 'plugin.json');
+
+        if (!fs.existsSync(manifestPath)) continue;
+
+        try {
+          const manifest: PluginManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+
+          discovered.push({
+            id: manifest.id,
+            source: 'local',
+            version: manifest.version,
+            enabled: true, // Enable by default for newly discovered plugins
+            path: pluginDir
+          });
+        } catch (err) {
+          console.error(
+            `[plugin-discovery] Failed to read manifest from ${pluginDir}:`,
+            err
+          );
+        }
+      }
+    }
+  } catch (err) {
+    console.error(`[plugin-discovery] Failed to scan local dev plugins directory:`, err);
+  }
+
+  return discovered;
+};
+
+/**
  * Syncs the plugin configuration with discovered local plugins.
  * - Adds newly discovered plugins
  * - Preserves enabled/disabled state for existing plugins
@@ -51,13 +107,15 @@ export const discoverLocalPlugins = (): InstalledPlugin[] => {
  */
 export const syncPluginConfiguration = (currentConfig: InstalledPlugin[]): InstalledPlugin[] => {
   const discovered = discoverLocalPlugins();
+  const localDevDiscovered = discoverLocalDevPlugins();
+  const allDiscovered = [...discovered, ...localDevDiscovered];
   const configMap = new Map(currentConfig.map(p => [p.id, p]));
-  const discoveredMap = new Map(discovered.map(p => [p.id, p]));
+  const discoveredMap = new Map(allDiscovered.map(p => [p.id, p]));
 
   const synced: InstalledPlugin[] = [];
 
   // Add or update discovered plugins
-  for (const plugin of discovered) {
+  for (const plugin of allDiscovered) {
     const existing = configMap.get(plugin.id);
     if (existing) {
       // Preserve enabled state and update version/path

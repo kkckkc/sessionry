@@ -25,7 +25,7 @@ import { ActionRegistry } from './actionRegistry';
 import { createPluginManager } from './pluginManager';
 import { builtInPlugins } from './plugins';
 import { SettingsStore } from './settingsStore';
-import { loadUserPlugins } from './pluginLoader';
+import { loadUserPlugins, loadLocalDevPlugins } from './pluginLoader';
 import { registerThemeHandlers } from './ipc/themeHandlers';
 import { registerPluginManagerHandlers } from './ipc/pluginManagerHandlers';
 import { PluginConfigStore } from './pluginConfigStore';
@@ -144,12 +144,16 @@ app.whenReady().then(async () => {
   const pluginConfigStore = new PluginConfigStore(pluginManagement);
 
   const userPlugins = await loadUserPlugins(pluginConfigStore);
+  const localDevPlugins = await loadLocalDevPlugins(pluginConfigStore);
   const enabledBuiltInPlugins = builtInPlugins.filter(
     plugin => plugin.id === BUILTIN_CORE_PLUGIN_ID || pluginConfigStore.isPluginEnabled(plugin.id)
   );
 
+  // Combine user and local dev plugins
+  const allUserPlugins = [...userPlugins, ...localDevPlugins];
+
   // Build an allowlist of dir names for loaded plugins to prevent path traversal.
-  const pluginDirMap = new Map(userPlugins.map(p => [p.dirName, p.pluginDir]));
+  const pluginDirMap = new Map(allUserPlugins.map(p => [p.dirName, p.pluginDir]));
   const hostLibsDir = path.join(__dirname, '../host');
 
   protocol.handle('sessionry', request => {
@@ -166,10 +170,30 @@ app.whenReady().then(async () => {
 
     if (url.host === 'plugin') {
       const segments = url.pathname.slice(1).split('/');
-      const dirName = segments[0];
-      const rest = segments.slice(1);
-      const pluginDir = pluginDirMap.get(dirName);
-      if (!pluginDir || rest.length === 0) return new Response('Not found', { status: 404 });
+      
+      // Try to match plugin directory - could be single segment or repo/plugin format
+      let pluginDir: string | undefined;
+      let rest: string[] = [];
+      
+      // First try two-segment format (repo/plugin) for local dev plugins
+      if (segments.length >= 2) {
+        const twoSegmentKey = `${segments[0]}/${segments[1]}`;
+        pluginDir = pluginDirMap.get(twoSegmentKey);
+        if (pluginDir) {
+          rest = segments.slice(2);
+        }
+      }
+      
+      // Fall back to single segment format for regular user plugins
+      if (!pluginDir && segments.length >= 1) {
+        pluginDir = pluginDirMap.get(segments[0]);
+        rest = segments.slice(1);
+      }
+      
+      if (!pluginDir || rest.length === 0) {
+        return new Response('Not found', { status: 404 });
+      }
+      
       const filePath = path.resolve(pluginDir, ...rest);
       if (!filePath.startsWith(pluginDir + path.sep)) {
         return new Response('Forbidden', { status: 403 });
@@ -188,7 +212,7 @@ app.whenReady().then(async () => {
     subscribeAll: listener => workspaceStore.subscribeAll(listener)
   });
   const vcsService = createVcsService();
-  const allPlugins = [...enabledBuiltInPlugins, ...userPlugins.map(p => p.plugin)];
+  const allPlugins = [...enabledBuiltInPlugins, ...allUserPlugins.map(p => p.plugin)];
   const actionRegistry = new ActionRegistry(allPlugins, workspaceApi, () => workspaceStore.read());
 
   const ipcApi: PluginIpcApi = {
@@ -208,7 +232,7 @@ app.whenReady().then(async () => {
       onBeforeQuit: handler => app.on('before-quit', handler)
     },
     enabledBuiltInPlugins,
-    userPlugins.map(p => p.plugin)
+    allUserPlugins.map(p => p.plugin)
   );
 
   // Helper function to update window title based on active project
@@ -243,7 +267,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle(IPC_CHANNELS.pluginModel, () => pluginManager.getViewModel());
   ipcMain.handle(IPC_CHANNELS.userPluginRenderers, () =>
-    userPlugins
+    allUserPlugins
       .filter(p => p.manifest.renderer != null)
       .map(p => ({
         pluginId: p.manifest.id,
