@@ -74,6 +74,48 @@ describe('AppShell', () => {
     expect(screen.getByTestId('workspace-content')).toBeInTheDocument();
   });
 
+  it('keeps the right sidebar toggle at the right edge of the toolbar actions', () => {
+    const toolbarPlugins: PluginViewModel = {
+      ...plugins,
+      actions: [
+        {
+          id: 'layout:toggle-right',
+          name: 'Toggle Right Sidebar',
+          description: 'Toggle right sidebar',
+          surfaces: ['toolbar']
+        },
+        {
+          id: 'app:open-settings',
+          name: 'Open Settings',
+          description: 'Open settings',
+          surfaces: ['toolbar']
+        }
+      ],
+      toolbarActionIds: ['layout:toggle-right', 'app:open-settings']
+    };
+
+    render(
+      <AppShell
+        plugins={toolbarPlugins}
+        workspace={workspace}
+        session={session}
+        leftVisible
+        rightVisible
+        statusBarVisible
+        mainContent={<div data-testid="workspace-content">workspace</div>}
+        onToolbarAction={() => {}}
+        resolveRendererView={() => null}
+      />
+    );
+
+    const toolbarButtons = screen.getAllByRole('button');
+
+    expect(toolbarButtons.map(button => button.textContent)).toEqual([
+      'Open Settings',
+      'Toggle Right Sidebar'
+    ]);
+  });
+
   it('renders a sidebar slot view when a matching slot view exists', () => {
     const sidebarPlugins: PluginViewModel = {
       ...plugins,

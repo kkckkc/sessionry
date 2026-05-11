@@ -17,7 +17,7 @@ export const terminalPanePluginDefinition: Omit<AppPlugin, 'activateMain'> = {
       description: 'Restart the active terminal session.',
       category: 'Terminal',
       defaultKeybinding: 'C-Shift-r',
-      surfaces: ['toolbar', 'palette'],
+      surfaces: ['palette'],
       run: () => ({
         status: 'completed',
         effects: [{ type: 'terminal.restart-active' }]
@@ -30,7 +30,7 @@ export const terminalPanePluginDefinition: Omit<AppPlugin, 'activateMain'> = {
       description: 'Clear the active terminal buffer.',
       category: 'Terminal',
       defaultKeybinding: 'C-l',
-      surfaces: ['toolbar', 'palette'],
+      surfaces: ['palette'],
       run: () => ({
         status: 'completed',
         effects: [{ type: 'terminal.clear-active' }]

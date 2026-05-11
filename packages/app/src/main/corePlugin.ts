@@ -11,7 +11,7 @@ export const corePlugin: AppPlugin = {
       description: 'Show or hide the left sidebar',
       category: 'Layout',
       defaultKeybinding: 'C-S-l',
-      surfaces: ['toolbar', 'palette'],
+      surfaces: ['palette'],
       run: async () => {
         return {
           status: 'completed',

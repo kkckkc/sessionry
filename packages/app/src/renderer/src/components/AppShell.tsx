@@ -84,6 +84,18 @@ const SidebarView = ({
 
 const MIN_SIDEBAR_WIDTH = 160;
 const MAX_SIDEBAR_WIDTH = 520;
+const RIGHT_EDGE_TOOLBAR_ACTION_IDS = new Set(['layout:toggle-right']);
+
+const resolveToolbarActions = (plugins: PluginViewModel): ActionDescriptor[] => {
+  const toolbarActions = plugins.toolbarActionIds
+    .map(actionId => plugins.actions.find(candidate => candidate.id === actionId))
+    .filter((action): action is ActionDescriptor => action !== undefined);
+
+  return [
+    ...toolbarActions.filter(action => !RIGHT_EDGE_TOOLBAR_ACTION_IDS.has(action.id)),
+    ...toolbarActions.filter(action => RIGHT_EDGE_TOOLBAR_ACTION_IDS.has(action.id))
+  ];
+};
 
 const startSidebarResize = (
   side: 'left' | 'right',
@@ -158,23 +170,20 @@ export const AppShell = ({
 
   return (
     <div className="app-frame">
-      <Toolbar className="app-toolbar" brand="Sessionry" ariaLabel="Terminal actions">
-        {plugins.toolbarActionIds
-          .map(actionId => plugins.actions.find(candidate => candidate.id === actionId))
-          .filter((action): action is ActionDescriptor => action !== undefined)
-          .map(action => {
-            const Icon = action.icon ? resolveTablerIcon(action.icon) : null;
-            return (
-              <ToolbarButton
-                key={action.id}
-                onClick={() => onToolbarAction(action.id)}
-                tooltip={action.name}
-                tooltipDelay={600}
-              >
-                {Icon ? <Icon size={15} /> : action.name}
-              </ToolbarButton>
-            );
-          })}
+      <Toolbar className="app-toolbar" brand="Sessionry" ariaLabel="Application actions">
+        {resolveToolbarActions(plugins).map(action => {
+          const Icon = action.icon ? resolveTablerIcon(action.icon) : null;
+          return (
+            <ToolbarButton
+              key={action.id}
+              onClick={() => onToolbarAction(action.id)}
+              tooltip={action.name}
+              tooltipDelay={600}
+            >
+              {Icon ? <Icon size={15} /> : action.name}
+            </ToolbarButton>
+          );
+        })}
       </Toolbar>
 
       <main className={workspaceClassName} style={{ gridTemplateColumns }}>
