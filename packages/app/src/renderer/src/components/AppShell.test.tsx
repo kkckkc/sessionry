@@ -41,6 +41,7 @@ const plugins: PluginViewModel = {
   ],
   toolbarActionIds: ['terminal:clear'],
   statusItems: [{ id: 'state', label: 'State', kind: 'session-state' }],
+  paneCreations: [],
   viewsBySlot: {}
 };
 

@@ -134,7 +134,7 @@
       cursor: pointer;
       font-size: var(--title-font-size);
       line-height: 1;
-      opacity: 0;
+      opacity: 0.6;
       transition:
         opacity 120ms ease,
         background-color 120ms ease;
@@ -143,16 +143,6 @@
         background: var(--border-strong);
         opacity: 1;
       }
-    }
-
-    &:hover > .tab-close,
-    &[data-active] > .tab-close {
-      opacity: 0.6;
-    }
-
-    &:hover > .tab-close:hover,
-    &[data-active] > .tab-close:hover {
-      opacity: 1;
     }
   }
 }

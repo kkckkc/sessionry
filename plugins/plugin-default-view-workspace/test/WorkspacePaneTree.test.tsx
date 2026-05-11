@@ -19,6 +19,18 @@ const plugins: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
   statusItems: [],
+  paneCreations: [
+    {
+      id: 'terminal',
+      title: 'Terminal',
+      icon: 'TbTerminal',
+      order: 10,
+      paneType: 'terminal',
+      defaultState: { name: 'Terminal', title: 'Terminal' },
+      pluginId: 'plugin-default-view-terminal',
+      pluginIcon: 'TbTerminal'
+    }
+  ],
   viewsBySlot: {
     'pane:terminal': [
       {

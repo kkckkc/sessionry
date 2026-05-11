@@ -101,6 +101,7 @@ const pluginModel: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
   statusItems: [],
+  paneCreations: [],
   viewsBySlot: {
     'pane:terminal': [
       {

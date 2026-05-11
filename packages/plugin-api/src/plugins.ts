@@ -4,7 +4,14 @@ import type { ActionContribution, ActionDescriptor } from './actions';
 import type { AppSettings } from './settings';
 import type { ThemeDefinition } from './themes';
 import type { VcsRegistryApi } from './vcs';
-import type { Pane, WorkspaceApi } from './workspace';
+import type {
+  Pane,
+  PaneGroupChild,
+  PaneGroupData,
+  PaneType,
+  SessionData,
+  WorkspaceApi
+} from './workspace';
 
 export type SidebarSide = 'left' | 'right';
 export type PluginViewSlotId = string;
@@ -34,6 +41,7 @@ export interface SidebarViewProps extends ViewProps {}
 
 export interface WorkspaceViewProps extends ViewProps {
   clearSignal: number;
+  resolvePaneCreations?: PaneCreationModelProvider;
 }
 
 export interface MultiViewProps extends ViewProps {
@@ -49,10 +57,43 @@ export interface StatusItemContribution {
   kind: 'session-state' | 'shell' | 'cwd' | 'connection';
 }
 
+export interface PaneCreationContext {
+  workspace: WorkspaceApi;
+  session: SessionData;
+  paneGroup: PaneGroupData;
+  activeChild?: PaneGroupChild;
+}
+
+export interface PaneCreationContribution {
+  id: string;
+  title: string;
+  icon?: string;
+  description?: string;
+  order?: number;
+  group?: string;
+  paneType: PaneType;
+  defaultState?: Record<string, unknown>;
+  disabled?: boolean;
+}
+
+export interface PaneCreationContributionModel extends PaneCreationContribution {
+  pluginId: string;
+  pluginIcon?: string;
+}
+
+export type PaneCreationProvider = (
+  context: PaneCreationContext
+) => PaneCreationContribution[] | Promise<PaneCreationContribution[]>;
+
+export type PaneCreationModelProvider = (
+  context: PaneCreationContext
+) => PaneCreationContributionModel[] | Promise<PaneCreationContributionModel[]>;
+
 export interface PluginViewModel {
   actions: ActionDescriptor[];
   toolbarActionIds: string[];
   statusItems: StatusItemContribution[];
+  paneCreations: PaneCreationContributionModel[];
   viewsBySlot: Record<string, PluginViewContribution[]>;
 }
 
@@ -105,6 +146,7 @@ export interface AppPlugin {
   viewMode?: PluginViewMode;
   actions?: ActionContribution[];
   statusItems?: StatusItemContribution[];
+  paneCreations?: PaneCreationContribution[];
   views?: PluginViewDefinition[];
   settingsView?: PluginSettingsViewDefinition;
   themes?: ThemeDefinition[];
@@ -125,6 +167,7 @@ export interface RendererPluginSettingsViewDefinition
 export interface RendererAppPlugin extends Omit<AppPlugin, 'views' | 'settingsView'> {
   views?: RendererPluginViewDefinition[];
   settingsView?: RendererPluginSettingsViewDefinition;
+  providePaneCreations?: PaneCreationProvider;
 }
 
 export interface PluginIpcApi {

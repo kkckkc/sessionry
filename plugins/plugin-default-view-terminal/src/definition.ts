@@ -43,6 +43,16 @@ export const terminalPanePluginDefinition: Omit<AppPlugin, 'activateMain'> = {
     { id: 'cwd', label: 'Directory', kind: 'cwd' },
     { id: 'connection', label: 'Connection', kind: 'connection' }
   ],
+  paneCreations: [
+    {
+      id: 'terminal',
+      title: 'Terminal',
+      icon: 'TbTerminal',
+      order: 10,
+      paneType: 'terminal',
+      defaultState: { name: 'Terminal', title: 'Terminal' }
+    }
+  ],
   views: [
     {
       id: 'pane.terminal.default',

@@ -160,6 +160,7 @@ const baseProps: PaneViewProps = {
     actions: [],
     toolbarActionIds: [],
     statusItems: [],
+    paneCreations: [],
     viewsBySlot: {}
   },
   workspace,

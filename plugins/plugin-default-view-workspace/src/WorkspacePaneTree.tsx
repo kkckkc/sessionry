@@ -7,16 +7,20 @@ import React, {
   type ReactNode
 } from 'react';
 
+import type { IconType } from 'react-icons';
+import * as TbIcons from 'react-icons/tb';
 import { TbLayoutColumns, TbLayoutRows, TbLayoutNavbar } from 'react-icons/tb';
 import { Tabs } from '@base-ui/react/tabs';
-import { ConfirmationDialog } from '@sessionry/components';
+import { ConfirmationDialog, Menu } from '@sessionry/components';
 import { PaneTitle } from './components/PaneTitle';
 import {
   getChildViewsForSlot,
   resolveActiveView,
   type Pane,
+  type PaneCreationContributionModel,
   type PaneGroup,
   type PaneGroupChild,
+  type Session,
   type WorkspaceStateSnapshot,
   type WorkspaceViewProps
 } from '@sessionry/plugin-api';
@@ -45,6 +49,22 @@ const getPaneDescription = (pane: Pane): string | null =>
 
 const getGroupTitle = (paneGroup: PaneGroup): string =>
   paneGroup.name.length > 0 ? paneGroup.name : 'Pane Group';
+
+const sortPaneCreations = (
+  entries: PaneCreationContributionModel[]
+): PaneCreationContributionModel[] =>
+  [...entries].sort((a, b) => {
+    const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+    if (orderDiff !== 0) return orderDiff;
+    return a.title.localeCompare(b.title);
+  });
+
+const resolveTablerIcon = (name?: string): IconType | null => {
+  if (!name) return null;
+  // biome-ignore lint/performance/noDynamicNamespaceImportAccess: Plugin icon names are resolved dynamically.
+  const icon = TbIcons[name as keyof typeof TbIcons];
+  return icon ? (icon as IconType) : null;
+};
 
 const getNodeName = (
   child: PaneGroupChild,
@@ -233,14 +253,18 @@ export const getActiveVisibleTerminalPaneId = (
 interface StackedPaneGroupProps {
   paneGroup: PaneGroup;
   activeChild?: PaneGroupChild;
+  activeSession: Session;
   paneById: Map<string, Pane>;
   groupById: Map<string, PaneGroup>;
+  plugins: WorkspaceViewProps['plugins'];
+  workspace: WorkspaceViewProps['workspace'];
+  resolvePaneCreations?: WorkspaceViewProps['resolvePaneCreations'];
   preferredSizeStyle?: CSSProperties;
   nestedInStackedPaneGroup?: boolean;
   onSelectStackedChild: (paneGroupId: string, childId: string) => void;
   onRemovePaneNode: (node: PaneGroupChild) => void;
   onRemovePaneGroup: (paneGroupId: string) => void;
-  onAddTerminalPane: (paneGroupId: string) => void;
+  onCreatePane: (paneGroupId: string, entry: PaneCreationContributionModel) => void;
   onSplitPaneGroup: (paneGroupId: string, direction: 'horizontal' | 'vertical') => void;
   renderChild: (child: PaneGroupChild, isActive: boolean) => ReactNode;
 }
@@ -248,21 +272,30 @@ interface StackedPaneGroupProps {
 const StackedPaneGroup = ({
   paneGroup,
   activeChild,
+  activeSession,
   paneById,
   groupById,
+  plugins,
+  workspace,
+  resolvePaneCreations,
   preferredSizeStyle,
   nestedInStackedPaneGroup = false,
   onSelectStackedChild,
   onRemovePaneNode,
   onRemovePaneGroup,
-  onAddTerminalPane,
+  onCreatePane,
   onSplitPaneGroup,
   renderChild
 }: StackedPaneGroupProps) => {
   const lastFocusedByChildRef = useRef(new Map<string, HTMLElement>());
   const panelByChildRef = useRef(new Map<string, HTMLDivElement>());
+  const [newPaneMenuOpen, setNewPaneMenuOpen] = useState(false);
+  const [dynamicPaneCreations, setDynamicPaneCreations] = useState<PaneCreationContributionModel[]>(
+    []
+  );
   const activeChildId = activeChild ? getNodeId(activeChild) : undefined;
   const title = getGroupTitle(paneGroup);
+  const paneCreations = sortPaneCreations([...plugins.paneCreations, ...dynamicPaneCreations]);
 
   useEffect(() => {
     if (!activeChildId) return;
@@ -277,6 +310,25 @@ const StackedPaneGroup = ({
 
     return () => window.cancelAnimationFrame(rafId);
   }, [activeChildId]);
+
+  const handleNewPaneMenuOpenChange = useCallback(
+    (open: boolean) => {
+      setNewPaneMenuOpen(open);
+      if (!open || !resolvePaneCreations) return;
+
+      void Promise.resolve(
+        resolvePaneCreations({
+          workspace,
+          session: activeSession,
+          paneGroup,
+          activeChild
+        })
+      ).then(entries => {
+        setDynamicPaneCreations(entries);
+      });
+    },
+    [activeChild, activeSession, paneGroup, resolvePaneCreations, workspace]
+  );
 
   return (
     <Tabs.Root
@@ -323,14 +375,38 @@ const StackedPaneGroup = ({
             );
           })}
         </Tabs.List>
-        <button
-          type="button"
-          className="tab-bar-action tab-bar-action--glyph"
-          aria-label="New tab"
-          onClick={() => onAddTerminalPane(paneGroup.id)}
-        >
-          +
-        </button>
+        <Menu.Root open={newPaneMenuOpen} onOpenChange={handleNewPaneMenuOpenChange}>
+          <Menu.Trigger
+            className="tab-bar-action tab-bar-action--glyph"
+            ariaLabel="New pane"
+            title="New pane"
+          >
+            +
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner>
+              <Menu.Popup className="pane-creation-menu">
+                {paneCreations.length > 0 ? (
+                  paneCreations.map(entry => {
+                    const Icon = resolveTablerIcon(entry.icon ?? entry.pluginIcon);
+                    return (
+                      <Menu.Item
+                        key={`${entry.pluginId}:${entry.id}`}
+                        disabled={entry.disabled}
+                        onClick={() => onCreatePane(paneGroup.id, entry)}
+                      >
+                        {Icon ? <Icon size={15} /> : null}
+                        <span>{entry.title}</span>
+                      </Menu.Item>
+                    );
+                  })
+                ) : (
+                  <Menu.Item disabled>No pane types available</Menu.Item>
+                )}
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
         <div className="tab-bar-actions">
           <button
             type="button"
@@ -593,6 +669,7 @@ export const WorkspacePaneTree = ({
   plugins,
   workspace,
   resolveRendererView,
+  resolvePaneCreations,
   clearSignal
 }: WorkspaceViewProps) => {
   const [, setRefreshKey] = useState(0);
@@ -715,21 +792,40 @@ export const WorkspacePaneTree = ({
     void workspace.getPane(paneId)?.convertToTabs();
   };
 
-  const handleAddTerminalPane = (paneGroupId: string) => {
-    if (!activeSession) return;
+  const handleCreatePane = useCallback(
+    async (paneGroupId: string, entry: PaneCreationContributionModel) => {
+      if (!activeSession) return;
 
-    void workspace
-      .getSession(activeSession.id)
-      ?.createPane({
-        type: 'terminal',
-        state: { name: 'Terminal', title: 'Terminal' },
+      const state: Record<string, unknown> = { ...(entry.defaultState ?? {}) };
+      if (typeof state.name !== 'string') state.name = entry.title;
+      if (typeof state.title !== 'string') state.title = entry.title;
+
+      const pane = await workspace.getSession(activeSession.id)?.createPane({
+        type: entry.paneType,
+        state,
         parentPaneGroupId: paneGroupId
-      })
-      .then(pane => {
-        if (!pane) return;
-        void workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: pane.id });
       });
-  };
+      if (!pane) return;
+
+      await workspace.getPaneGroup(paneGroupId)?.update({ activeChildId: pane.id });
+    },
+    [activeSession, workspace]
+  );
+
+  const findPaneCreation = useCallback(
+    (paneType: string): PaneCreationContributionModel | undefined =>
+      plugins.paneCreations.find(entry => entry.paneType === paneType && !entry.disabled),
+    [plugins.paneCreations]
+  );
+
+  const handleAddPaneTypeToGroup = useCallback(
+    async (paneGroupId: string, paneType: string) => {
+      const entry = findPaneCreation(paneType);
+      if (!entry) return;
+      await handleCreatePane(paneGroupId, entry);
+    },
+    [findPaneCreation, handleCreatePane]
+  );
 
   const findParentPaneGroup = useCallback(
     (paneId: string) => {
@@ -753,14 +849,7 @@ export const WorkspacePaneTree = ({
         if (!rootGroup) return;
 
         if (rootGroup.data.direction === 'stacked') {
-          const newPane = await workspace.getSession(activeSession.id)?.createPane({
-            type: 'terminal',
-            state: { name: 'Terminal', title: 'Terminal' },
-            parentPaneGroupId: rootGroup.id
-          });
-          if (newPane) {
-            await rootGroup.update({ activeChildId: newPane.id });
-          }
+          await handleAddPaneTypeToGroup(rootGroup.id, 'terminal');
         }
         return;
       }
@@ -771,29 +860,15 @@ export const WorkspacePaneTree = ({
       const parentGroup = findParentPaneGroup(focusedPaneId);
 
       if (parentGroup && parentGroup.data.direction === 'stacked') {
-        const newPane = await workspace.getSession(activeSession.id)?.createPane({
-          type: 'terminal',
-          state: { name: 'Terminal', title: 'Terminal' },
-          parentPaneGroupId: parentGroup.id
-        });
-        if (newPane) {
-          await parentGroup.update({ activeChildId: newPane.id });
-        }
+        await handleAddPaneTypeToGroup(parentGroup.id, 'terminal');
       } else {
         const newGroup = await focusedPane.convertToTabs();
         if (newGroup) {
-          const newPane = await workspace.getSession(activeSession.id)?.createPane({
-            type: 'terminal',
-            state: { name: 'Terminal', title: 'Terminal' },
-            parentPaneGroupId: newGroup.id
-          });
-          if (newPane) {
-            await newGroup.update({ activeChildId: newPane.id });
-          }
+          await handleAddPaneTypeToGroup(newGroup.id, 'terminal');
         }
       }
     },
-    [activeSession, findParentPaneGroup, workspace]
+    [activeSession, findParentPaneGroup, handleAddPaneTypeToGroup, workspace]
   );
 
   const handleNewChat = useCallback(
@@ -805,14 +880,7 @@ export const WorkspacePaneTree = ({
         if (!rootGroup) return;
 
         if (rootGroup.data.direction === 'stacked') {
-          const newPane = await workspace.getSession(activeSession.id)?.createPane({
-            type: 'chat',
-            state: { name: 'Chat', title: 'Chat' },
-            parentPaneGroupId: rootGroup.id
-          });
-          if (newPane) {
-            await rootGroup.update({ activeChildId: newPane.id });
-          }
+          await handleAddPaneTypeToGroup(rootGroup.id, 'chat');
         }
         return;
       }
@@ -823,29 +891,15 @@ export const WorkspacePaneTree = ({
       const parentGroup = findParentPaneGroup(focusedPaneId);
 
       if (parentGroup && parentGroup.data.direction === 'stacked') {
-        const newPane = await workspace.getSession(activeSession.id)?.createPane({
-          type: 'chat',
-          state: { name: 'Chat', title: 'Chat' },
-          parentPaneGroupId: parentGroup.id
-        });
-        if (newPane) {
-          await parentGroup.update({ activeChildId: newPane.id });
-        }
+        await handleAddPaneTypeToGroup(parentGroup.id, 'chat');
       } else {
         const newGroup = await focusedPane.convertToTabs();
         if (newGroup) {
-          const newPane = await workspace.getSession(activeSession.id)?.createPane({
-            type: 'chat',
-            state: { name: 'Chat', title: 'Chat' },
-            parentPaneGroupId: newGroup.id
-          });
-          if (newPane) {
-            await newGroup.update({ activeChildId: newPane.id });
-          }
+          await handleAddPaneTypeToGroup(newGroup.id, 'chat');
         }
       }
     },
-    [activeSession, findParentPaneGroup, workspace]
+    [activeSession, findParentPaneGroup, handleAddPaneTypeToGroup, workspace]
   );
 
   useEffect(() => {
@@ -943,14 +997,18 @@ export const WorkspacePaneTree = ({
           key={paneGroup.id}
           paneGroup={paneGroup}
           activeChild={activeChild}
+          activeSession={activeSession}
           paneById={paneById}
           groupById={groupById}
+          plugins={plugins}
+          workspace={workspace}
+          resolvePaneCreations={resolvePaneCreations}
           preferredSizeStyle={preferredSizeStyle}
           nestedInStackedPaneGroup={nestedInStackedPaneGroup}
           onSelectStackedChild={handleSelectStackedChild}
           onRemovePaneNode={handleRemovePaneNode}
           onRemovePaneGroup={handleRemovePaneGroup}
-          onAddTerminalPane={handleAddTerminalPane}
+          onCreatePane={handleCreatePane}
           onSplitPaneGroup={handleSplitPaneGroup}
           renderChild={(child, isActive) => renderNode(child, true, isActive, false, true)}
         />

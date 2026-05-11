@@ -130,6 +130,11 @@ export interface MenuTriggerProps {
    * Button title
    */
   title?: string;
+
+  /**
+   * Accessible label for icon-only triggers
+   */
+  ariaLabel?: string;
 }
 
 /**
@@ -139,10 +144,16 @@ export const MenuTrigger = ({
   children,
   disabled = false,
   className: customClassName,
-  title
+  title,
+  ariaLabel
 }: MenuTriggerProps) => {
   return (
-    <BaseMenu.Trigger className={customClassName} disabled={disabled} title={title}>
+    <BaseMenu.Trigger
+      className={customClassName}
+      disabled={disabled}
+      title={title}
+      aria-label={ariaLabel}
+    >
       {children}
     </BaseMenu.Trigger>
   );

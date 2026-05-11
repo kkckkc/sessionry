@@ -1,4 +1,6 @@
 import type {
+  PaneCreationContext,
+  PaneCreationContributionModel,
   RendererAppPlugin,
   RendererPluginSettingsViewDefinition,
   RendererViewRegistration
@@ -44,6 +46,10 @@ const rendererViewById = new Map<string, RegisteredRendererView>(
 );
 
 const rendererSettingsViewById = new Map<string, RegisteredRendererSettingsView>();
+const paneCreationProviders = new Map<
+  string,
+  NonNullable<RendererAppPlugin['providePaneCreations']>
+>();
 
 const registerPluginSettingsView = (plugin: RendererAppPlugin): void => {
   if (!plugin.settingsView) {
@@ -56,9 +62,15 @@ const registerPluginSettingsView = (plugin: RendererAppPlugin): void => {
   });
 };
 
+const registerPaneCreationProvider = (plugin: RendererAppPlugin): void => {
+  if (!plugin.providePaneCreations) return;
+  paneCreationProviders.set(plugin.id, plugin.providePaneCreations);
+};
+
 // Also register settings views
 for (const plugin of builtInRendererPlugins) {
   registerPluginSettingsView(plugin);
+  registerPaneCreationProvider(plugin);
 
   if (plugin.settingsView) {
     rendererViewById.set(plugin.settingsView.id, {
@@ -74,6 +86,26 @@ export const getRendererView = (viewId: string): RegisteredRendererView | null =
 export const getRendererSettingsViews = (): RegisteredRendererSettingsView[] =>
   Array.from(rendererSettingsViewById.values());
 
+export const getDynamicPaneCreations = async (
+  context: PaneCreationContext
+): Promise<PaneCreationContributionModel[]> => {
+  const results = await Promise.all(
+    Array.from(paneCreationProviders.entries()).map(async ([pluginId, provider]) => {
+      try {
+        return (await provider(context)).map(entry => ({
+          ...entry,
+          pluginId
+        }));
+      } catch (err) {
+        console.error(`[plugin-loader] Failed to resolve pane creations for plugin ${pluginId}:`, err);
+        return [];
+      }
+    })
+  );
+
+  return results.flat();
+};
+
 /** Loads renderer bundles for user-installed plugins and registers their views. */
 export const loadUserPluginRenderers = async (): Promise<void> => {
   const infos = await window.terminalApp.getUserPluginRenderers();
@@ -84,10 +116,12 @@ export const loadUserPluginRenderers = async (): Promise<void> => {
       for (const view of plugin.views ?? []) {
         rendererViewById.set(view.id, { ...view, pluginId });
       }
-      registerPluginSettingsView({
+      const pluginWithResolvedId = {
         ...plugin,
         id: pluginId
-      });
+      };
+      registerPluginSettingsView(pluginWithResolvedId);
+      registerPaneCreationProvider(pluginWithResolvedId);
     } catch (err) {
       console.error(`[plugin-loader] Failed to load renderer for plugin ${pluginId}:`, err);
     }

@@ -10,6 +10,7 @@ const plugins: PluginViewModel = {
   actions: [],
   toolbarActionIds: [],
   statusItems: [],
+  paneCreations: [],
   viewsBySlot: {}
 };
 
