@@ -32,11 +32,18 @@ export const normalizePlugins = (plugins: AppPlugin[]): PluginViewModel => {
       .entries()
   );
 
+  const toolbarActions = actions.filter(action => action.surfaces?.includes('toolbar'));
+  
+  // Sort toolbar actions: layout:toggle-right goes to the end
+  const sortedToolbarActions = toolbarActions.sort((a, b) => {
+    if (a.id === 'layout:toggle-right') return 1;
+    if (b.id === 'layout:toggle-right') return -1;
+    return 0;
+  });
+
   return {
     actions,
-    toolbarActionIds: actions
-      .filter(action => action.surfaces?.includes('toolbar'))
-      .map(action => action.id),
+    toolbarActionIds: sortedToolbarActions.map(action => action.id),
     statusItems,
     viewsBySlot
   };
