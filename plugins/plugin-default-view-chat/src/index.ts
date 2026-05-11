@@ -53,8 +53,7 @@ const activateMain = async (context: MainPluginContext): Promise<void> => {
         | ChatPluginSettings
         | undefined) ?? DEFAULT_CHAT_SETTINGS;
 
-      // Check if provider settings changed
-      if (JSON.stringify(newPluginSettings.provider) !== JSON.stringify(currentSettings.provider)) {
+      if (JSON.stringify(newPluginSettings) !== JSON.stringify(currentSettings)) {
         chatService.updateSettings(newPluginSettings);
       }
 

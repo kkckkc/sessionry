@@ -27,6 +27,12 @@
   }
 }
 
+.btn.is-medium {
+  padding: 0.5rem 0.75rem;
+  font-size: var(--body-font-size);
+  font-weight: var(--body-font-weight);
+}
+
 .btn.is-secondary {
   border-color: var(--border);
   background: var(--surface-high);

@@ -4,7 +4,9 @@ import {
   SettingsSection,
   SettingToggle,
   SettingSelect,
-  Input
+  Input,
+  Button,
+  Textarea
 } from '@sessionry/components';
 import type { SelectOption } from '@sessionry/components';
 
@@ -55,11 +57,9 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
     <div className="chat-settings">
       <SettingsSection
         title="AI Provider Configuration"
-        description="Configure your AI provider and authentication"
       >
         <SettingSelect
           label="Provider"
-          description="Select your AI provider"
           options={PROVIDER_OPTIONS.map(p => ({ value: p.value, label: p.label }))}
           value={provider.provider}
           onChange={value => {
@@ -81,42 +81,29 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
           }}
         />
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label
-            htmlFor="api-key"
-            style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 500
-            }}
-          >
-            API Key
-          </label>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div style={{ padding: '10px 0' }}>
+          <label className="input-label" htmlFor="api-key">API Key</label>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.25rem' }}>
             <Input
               id="api-key"
               type={showApiKey ? 'text' : 'password'}
               value={provider.apiKey}
               onChange={e => updateProviderField('apiKey', e.target.value)}
               placeholder="Enter your API key"
-              style={{ flex: 1 }}
+              style={{ flex: 1, minWidth: 0 }}
+              className="input-field"
             />
-            <button
+            <Button
               type="button"
               onClick={() => setShowApiKey(!showApiKey)}
-              style={{
-                padding: '0.5rem 1rem',
-                fontSize: '0.875rem',
-                cursor: 'pointer'
-              }}
+              variant="secondary"
+              size="medium"
+              style={{ flexShrink: 0 }}
             >
               {showApiKey ? 'Hide' : 'Show'}
-            </button>
+            </Button>
           </div>
-          <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.7 }}>
-            Your API key is stored securely and never shared
-          </p>
+          <p className="input-description" style={{ marginTop: '0.25rem' }}>Your API key is stored securely and never shared</p>
         </div>
 
         {provider.provider !== 'custom' && (
@@ -131,44 +118,22 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
 
         {provider.provider === 'custom' && (
           <>
-            <div style={{ marginBottom: '1rem' }}>
-              <label
-                htmlFor="base-url"
-                style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  fontSize: '0.875rem',
-                  fontWeight: 500
-                }}
-              >
-                Base URL
-              </label>
+            <div style={{ padding: '10px 0' }}>
               <Input
                 id="base-url"
+                label="Base URL"
+                description="OpenAI-compatible API endpoint"
                 type="text"
                 value={provider.baseUrl || ''}
                 onChange={e => updateProviderField('baseUrl', e.target.value)}
                 placeholder="https://api.example.com/v1"
               />
-              <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.7 }}>
-                OpenAI-compatible API endpoint
-              </p>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label
-                htmlFor="model-name"
-                style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  fontSize: '0.875rem',
-                  fontWeight: 500
-                }}
-              >
-                Model Name
-              </label>
+            <div style={{ padding: '10px 0' }}>
               <Input
                 id="model-name"
+                label="Model Name"
                 type="text"
                 value={provider.model}
                 onChange={e => updateProviderField('model', e.target.value)}
@@ -195,94 +160,65 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
 
       <SettingsSection
         title="Advanced Settings"
-        description="Fine-tune the AI behavior"
       >
-        <div style={{ marginBottom: '1rem' }}>
-          <label
-            htmlFor="temperature"
-            style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 500
-            }}
-          >
-            Temperature: {provider.temperature ?? 0.7}
-          </label>
-          <input
-            id="temperature"
-            type="range"
-            min="0"
-            max="2"
-            step="0.1"
-            value={provider.temperature ?? 0.7}
-            onChange={e => updateProviderField('temperature', parseFloat(e.target.value))}
-            style={{ width: '100%' }}
-          />
-          <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.7 }}>
-            Controls randomness: 0 is focused, 2 is creative
-          </p>
+        <div style={{ padding: '10px 0' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+            <label
+              htmlFor="temperature"
+              style={{
+                fontSize: '0.875rem',
+                color: 'var(--text)',
+                fontWeight: 500
+              }}
+            >
+              Temperature
+            </label>
+            <input
+              id="temperature"
+              type="range"
+              min="0"
+              max="2"
+              step="0.1"
+              value={provider.temperature ?? 0.7}
+              onChange={e => updateProviderField('temperature', parseFloat(e.target.value))}
+              style={{ width: '100%' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <p className="input-description" style={{ margin: 0 }}>
+                Controls randomness: 0 is focused, 2 is creative
+              </p>
+              <span style={{ fontSize: '0.875rem', color: 'var(--text)', fontWeight: 500 }}>
+                {provider.temperature ?? 0.7}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label
-            htmlFor="max-tokens"
-            style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 500
-            }}
-          >
-            Max Tokens
-          </label>
+        <div style={{ padding: '10px 0' }}>
           <Input
             id="max-tokens"
+            label="Max Tokens"
+            description="Maximum length of the response"
             type="number"
             value={provider.maxTokens ?? 2000}
             onChange={e => updateProviderField('maxTokens', parseInt(e.target.value, 10))}
             min={1}
             max={100000}
           />
-          <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.7 }}>
-            Maximum length of the response
-          </p>
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label
-            htmlFor="system-prompt"
-            style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 500
-            }}
-          >
-            System Prompt
-          </label>
-          <textarea
-            id="system-prompt"
-            value={systemPrompt}
-            onChange={e => updateSetting('systemPrompt', e.target.value)}
-            rows={4}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              fontSize: '0.875rem',
-              fontFamily: 'inherit',
-              resize: 'vertical'
-            }}
-          />
-          <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.7 }}>
-            Instructions that guide the AI's behavior
-          </p>
-        </div>
+        <Textarea
+          id="system-prompt"
+          label="System Prompt"
+          description="Instructions that guide the AI's behavior"
+          value={systemPrompt}
+          onChange={e => updateSetting('systemPrompt', e.target.value)}
+          rows={4}
+        />
       </SettingsSection>
 
       <SettingsSection
         title="History Settings"
-        description="Configure chat history persistence"
       >
         <SettingToggle
           label="Persist chat history"
@@ -291,20 +227,11 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
           onChange={checked => updateSetting('persistHistory', checked)}
         />
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label
-            htmlFor="max-messages"
-            style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 500
-            }}
-          >
-            Max messages to keep
-          </label>
+        <div style={{ padding: '10px 0' }}>
           <Input
             id="max-messages"
+            label="Max messages to keep"
+            description="Older messages will be automatically removed"
             type="number"
             value={maxHistoryMessages}
             onChange={e => updateSetting('maxHistoryMessages', parseInt(e.target.value, 10))}
@@ -312,9 +239,6 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
             max={1000}
             disabled={!persistHistory}
           />
-          <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.7 }}>
-            Older messages will be automatically removed
-          </p>
         </div>
       </SettingsSection>
     </div>

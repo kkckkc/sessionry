@@ -19,10 +19,12 @@ export function registerPluginManagerHandlers(
   pluginConfigStore: PluginConfigStore,
   settingsStore: SettingsStore,
   mainWindow: Electron.BrowserWindow | null,
-  builtInPlugins: AppPlugin[]
+  builtInPlugins: AppPlugin[],
+  userPlugins: AppPlugin[] = []
 ) {
   // Create plugin manager service instance
   const pluginManagerService = new PluginManagerService();
+  const userPluginById = new Map(userPlugins.map(plugin => [plugin.id, plugin]));
 
   // Set up progress event forwarding
   pluginManagerService.on('install:progress', (_packageName, downloaded, total) => {
@@ -187,6 +189,8 @@ export function registerPluginManagerHandlers(
             : pluginConfigStore.isPluginEnabled(plugin.id),
         canDisable: plugin.id !== BUILTIN_CORE_PLUGIN_ID,
         canUninstall: false, // Cannot be uninstalled
+        unsafeIpc: plugin.unsafeIpc === true,
+        ipcApproved: true,
         updateAvailable: false
       }));
 
@@ -206,6 +210,8 @@ export function registerPluginManagerHandlers(
           enabled: plugin.enabled,
           canDisable: true,
           canUninstall: true,
+          unsafeIpc: userPluginById.get(plugin.id)?.unsafeIpc === true,
+          ipcApproved: plugin.ipcApproved === true,
           updateAvailable: false // Will be populated by check-updates
         }));
 

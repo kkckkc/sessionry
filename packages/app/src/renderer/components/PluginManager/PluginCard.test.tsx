@@ -58,6 +58,36 @@ describe('PluginCard', () => {
       expect(screen.getByText('Disabled')).toBeInTheDocument();
     });
 
+    it('shows blocked IPC state and calls approval handler', () => {
+      const unsafePlugin = { ...installedPlugin, unsafeIpc: true, ipcApproved: false };
+      const onApproveIpc = vi.fn();
+
+      render(
+        <PluginCard
+          plugin={unsafePlugin}
+          variant="installed"
+          onApproveIpc={onApproveIpc}
+        />
+      );
+
+      expect(screen.getByText('IPC blocked')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Approve IPC'));
+      expect(onApproveIpc).toHaveBeenCalledWith('test-plugin');
+    });
+
+    it('shows approved IPC state and calls revoke handler', () => {
+      const unsafePlugin = { ...installedPlugin, unsafeIpc: true, ipcApproved: true };
+      const onRevokeIpc = vi.fn();
+
+      render(
+        <PluginCard plugin={unsafePlugin} variant="installed" onRevokeIpc={onRevokeIpc} />
+      );
+
+      expect(screen.getByText('IPC approved')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Revoke IPC'));
+      expect(onRevokeIpc).toHaveBeenCalledWith('test-plugin');
+    });
+
     it('calls onDisable when disable button is clicked', () => {
       const onDisable = vi.fn();
 

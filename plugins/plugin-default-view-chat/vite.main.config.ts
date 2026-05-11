@@ -3,15 +3,17 @@ import { resolve } from 'path';
 
 export default defineConfig({
   build: {
-    lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      formats: ['es'],
-      fileName: () => 'main.js'
-    },
+    ssr: resolve(__dirname, 'src/index.ts'),
+    target: 'node18',
     rollupOptions: {
-      external: ['@sessionry/plugin-api', 'electron']
+      external: ['@sessionry/plugin-api', 'electron'],
+      output: {
+        format: 'es',
+        entryFileNames: 'main.js',
+        chunkFileNames: '[name]-[hash].js'
+      }
     },
     outDir: 'dist',
-    emptyOutDir: false
+    emptyOutDir: true
   }
 });

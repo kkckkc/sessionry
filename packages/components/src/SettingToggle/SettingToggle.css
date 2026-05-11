@@ -1,10 +1,5 @@
 .sr-setting-toggle {
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.sr-setting-toggle:last-child {
-  border-bottom: none;
 }
 
 .sr-setting-toggle-header {

@@ -1,24 +1,18 @@
-/* Input Component */
-.input-container {
+/* Textarea Component */
+.textarea-field {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
 }
 
-.input-label {
+.textarea-label {
   font-size: var(--body-font-size);
   color: var(--text);
   font-weight: var(--body-font-weight);
   letter-spacing: -0.01em;
 }
 
-.input-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.input {
+.textarea {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -31,27 +25,29 @@
     border-color 0.15s,
     background 0.15s;
   outline: none;
+  resize: vertical;
+  line-height: 1.5;
 }
 
-.input::placeholder {
+.textarea::placeholder {
   color: var(--text-dim);
 }
 
-.input:hover:not(:disabled) {
+.textarea:hover:not(:disabled) {
   border-color: rgba(255, 255, 255, 0.14);
 }
 
-.input:focus {
+.textarea:focus {
   border-color: var(--border-active);
   background: var(--panel-bg);
 }
 
-.input:disabled {
+.textarea:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.input-description {
+.textarea-description {
   font-size: var(--body-sm-font-size);
   font-weight: var(--body-sm-font-weight);
   color: var(--text-muted);
@@ -59,11 +55,7 @@
   margin: 0;
 }
 
-.input-container.has-error .input-field {
-  border-color: #ef4444;
-}
-
-.input-error {
+.textarea-error {
   font-size: var(--body-sm-font-size);
   font-weight: var(--body-sm-font-weight);
   color: #ef4444;

@@ -600,6 +600,24 @@ const PluginManagerSettingsView = () => {
     }
   };
 
+  const handleApproveIpc = async (pluginId: string) => {
+    try {
+      await window.terminalApp.plugins.approveIpc(pluginId);
+      await refreshInstalledPlugins();
+    } catch (error) {
+      console.error('Failed to approve plugin IPC:', error);
+    }
+  };
+
+  const handleRevokeIpc = async (pluginId: string) => {
+    try {
+      await window.terminalApp.plugins.revokeIpc(pluginId);
+      await refreshInstalledPlugins();
+    } catch (error) {
+      console.error('Failed to revoke plugin IPC:', error);
+    }
+  };
+
   const getPluginsForTab = () => {
     switch (activeTab) {
       case 'installed':
@@ -701,6 +719,8 @@ const PluginManagerSettingsView = () => {
                   onUpdate={handleUpdate}
                   onEnable={handleEnable}
                   onDisable={handleDisable}
+                  onApproveIpc={handleApproveIpc}
+                  onRevokeIpc={handleRevokeIpc}
                   disabled={isLoading}
                 />
               ))}

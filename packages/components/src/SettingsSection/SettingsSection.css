@@ -7,13 +7,15 @@
 }
 
 .sr-settings-section-header {
-  font-size: var(--overline-font-size);
-  font-weight: var(--overline-font-weight);
+  font-size: var(--body-font-size);
+  font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text);
   margin-top: 20px;
   margin-bottom: 2px;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .sr-settings-section-header h2 {

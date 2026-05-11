@@ -81,6 +81,7 @@ export const Button = ({
   const className = [
     'btn',
     size === 'small' && 'is-small',
+    size === 'medium' && 'is-medium',
     variant === 'secondary' && 'is-secondary',
     variant === 'ghost' && 'is-ghost',
     variant === 'primary' && 'is-primary',

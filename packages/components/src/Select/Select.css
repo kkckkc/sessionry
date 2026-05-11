@@ -26,7 +26,7 @@
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--button-bg);
+  background: var(--panel-bg-soft);
   color: var(--text);
   font-size: var(--body-lg-font-size);
   font-weight: var(--body-lg-font-weight);

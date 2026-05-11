@@ -404,7 +404,13 @@ app.whenReady().then(async () => {
   registerThemeHandlers();
 
   // Register plugin manager IPC handlers
-  registerPluginManagerHandlers(pluginConfigStore, settingsStore, mainWindow, builtInPlugins);
+  registerPluginManagerHandlers(
+    pluginConfigStore,
+    settingsStore,
+    mainWindow,
+    builtInPlugins,
+    allUserPlugins.map(p => p.plugin)
+  );
 
   const createMenu = () => {
     const settings = settingsStore.read();
