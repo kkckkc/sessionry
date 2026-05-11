@@ -21,6 +21,7 @@ export interface VcsService {
   ) => Promise<ResolvedVcsStatus | null>;
   getDiff: (folder: string, file: VcsFileStatus) => Promise<string | null>;
   stageFiles: (folder: string, files: VcsFileStatus[]) => Promise<void>;
+  revertFiles: (folder: string, files: VcsFileStatus[]) => Promise<void>;
   commit: (folder: string, message: string) => Promise<void>;
   push: (folder: string) => Promise<void>;
   pull: (folder: string) => Promise<void>;
@@ -130,6 +131,15 @@ export const createVcsService = (options: CreateVcsServiceOptions = {}): VcsServ
       }
 
       await provider.stageFiles(folder, files);
+      cache.delete(folder);
+    },
+    revertFiles: async (folder, files) => {
+      const provider = getSortedProviders().find(provider => Boolean(provider.revertFiles));
+      if (!provider?.revertFiles) {
+        throw new Error('No VCS provider supports reverting files.');
+      }
+
+      await provider.revertFiles(folder, files);
       cache.delete(folder);
     },
     commit: async (folder, message) => {

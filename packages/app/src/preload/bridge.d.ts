@@ -52,6 +52,7 @@ export interface TerminalAppBridge {
     ) => Promise<ResolvedVcsStatus | null>;
     getDiff: (dirPath: string, file: VcsFileStatus) => Promise<string | null>;
     stageFiles: (dirPath: string, files: VcsFileStatus[]) => Promise<void>;
+    revertFiles: (dirPath: string, files: VcsFileStatus[]) => Promise<void>;
     commit: (dirPath: string, message: string) => Promise<void>;
     push: (dirPath: string) => Promise<void>;
     pull: (dirPath: string) => Promise<void>;

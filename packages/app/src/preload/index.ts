@@ -92,6 +92,8 @@ const api = {
       ipcRenderer.invoke(IPC_CHANNELS.vcsDiff, dirPath, file),
     stageFiles: (dirPath: string, files: VcsFileStatus[]) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsStageFiles, dirPath, files),
+    revertFiles: (dirPath: string, files: VcsFileStatus[]) =>
+      ipcRenderer.invoke(IPC_CHANNELS.vcsRevertFiles, dirPath, files),
     commit: (dirPath: string, message: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.vcsCommit, dirPath, message),
     push: (dirPath: string) => ipcRenderer.invoke(IPC_CHANNELS.vcsPush, dirPath),
