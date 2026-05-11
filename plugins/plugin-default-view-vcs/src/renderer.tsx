@@ -611,6 +611,7 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
   const stagedFiles = files.filter(isStagedFile);
   const unstagedFiles = files.filter(isUnstagedFile);
   const canCommit = stagedFiles.length > 0 && commitMessage.trim().length > 0 && !isMutating;
+  const activeSessionRoot = activeSession?.folder ?? '';
 
   const handleStageFiles = async (targetFiles: VcsFileStatus[]) => {
     if (!activeSessionFolder || targetFiles.length === 0) return;
@@ -773,11 +774,21 @@ const VcsView = ({ workspace }: SidebarViewProps) => {
           options.kind === 'staged'
             ? (file.stagedStatus ?? file.status)
             : (file.unstagedStatus ?? file.status);
+        const fullPath = `${activeSessionRoot}/${file.path}`;
 
         return (
           <li
             key={`${options.kind}:${file.oldPath ?? ''}:${file.path}:${index}`}
             className="vcs-file-item"
+            draggable
+            onDragStart={event => {
+              const dragText = window.terminalApp.formatPathForTerminal(
+                fullPath,
+                activeSessionRoot
+              );
+              event.dataTransfer.setData('text/plain', dragText);
+              event.dataTransfer.effectAllowed = 'copy';
+            }}
           >
             <button
               type="button"
