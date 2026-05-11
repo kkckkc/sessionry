@@ -87,7 +87,7 @@ const createSession = async (
   const session = await project.createSession({ name, folder: project.data.folder });
   await session.createPane({
     type: 'terminal',
-    state: { title: 'Terminal' },
+    state: { name: 'Terminal', title: 'Terminal' },
     parentPaneGroupId: session.data.rootPaneGroupId
   });
   await session.activate();

@@ -33,6 +33,11 @@ const getPaneTitle = (pane: Pane): string =>
         ? pane.type[0].toUpperCase() + pane.type.slice(1)
         : 'Pane';
 
+const getPaneName = (pane: Pane): string =>
+  typeof pane.state.name === 'string' && pane.state.name.length > 0
+    ? pane.state.name
+    : getPaneTitle(pane);
+
 const getPaneDescription = (pane: Pane): string | null =>
   typeof pane.state.description === 'string' && pane.state.description.length > 0
     ? pane.state.description
@@ -41,14 +46,14 @@ const getPaneDescription = (pane: Pane): string | null =>
 const getGroupTitle = (paneGroup: PaneGroup): string =>
   paneGroup.name.length > 0 ? paneGroup.name : 'Pane Group';
 
-const getNodeTitle = (
+const getNodeName = (
   child: PaneGroupChild,
   paneById: Map<string, Pane>,
   groupById: Map<string, PaneGroup>
 ): string => {
   if (child.kind === 'pane') {
     const pane = paneById.get(child.paneId);
-    return pane ? getPaneTitle(pane) : child.paneId;
+    return pane ? getPaneName(pane) : child.paneId;
   }
 
   const paneGroup = groupById.get(child.paneGroupId);
@@ -294,7 +299,7 @@ const StackedPaneGroup = ({
             const childId = getNodeId(child);
             return (
               <Tabs.Tab key={childId} value={childId} className="tab">
-                <span>{getNodeTitle(child, paneById, groupById)}</span>
+                <span>{getNodeName(child, paneById, groupById)}</span>
                 {/* biome-ignore lint/a11y/useSemanticElements: Interactive span with proper ARIA is intentional for styling */}
                 <span
                   className="tab-close"
@@ -717,7 +722,7 @@ export const WorkspacePaneTree = ({
       .getSession(activeSession.id)
       ?.createPane({
         type: 'terminal',
-        state: { title: 'Terminal' },
+        state: { name: 'Terminal', title: 'Terminal' },
         parentPaneGroupId: paneGroupId
       })
       .then(pane => {
@@ -750,7 +755,7 @@ export const WorkspacePaneTree = ({
         if (rootGroup.data.direction === 'stacked') {
           const newPane = await workspace.getSession(activeSession.id)?.createPane({
             type: 'terminal',
-            state: { title: 'Terminal' },
+            state: { name: 'Terminal', title: 'Terminal' },
             parentPaneGroupId: rootGroup.id
           });
           if (newPane) {
@@ -768,7 +773,7 @@ export const WorkspacePaneTree = ({
       if (parentGroup && parentGroup.data.direction === 'stacked') {
         const newPane = await workspace.getSession(activeSession.id)?.createPane({
           type: 'terminal',
-          state: { title: 'Terminal' },
+          state: { name: 'Terminal', title: 'Terminal' },
           parentPaneGroupId: parentGroup.id
         });
         if (newPane) {
@@ -779,7 +784,7 @@ export const WorkspacePaneTree = ({
         if (newGroup) {
           const newPane = await workspace.getSession(activeSession.id)?.createPane({
             type: 'terminal',
-            state: { title: 'Terminal' },
+            state: { name: 'Terminal', title: 'Terminal' },
             parentPaneGroupId: newGroup.id
           });
           if (newPane) {
@@ -802,7 +807,7 @@ export const WorkspacePaneTree = ({
         if (rootGroup.data.direction === 'stacked') {
           const newPane = await workspace.getSession(activeSession.id)?.createPane({
             type: 'chat',
-            state: { title: 'Chat' },
+            state: { name: 'Chat', title: 'Chat' },
             parentPaneGroupId: rootGroup.id
           });
           if (newPane) {
@@ -820,7 +825,7 @@ export const WorkspacePaneTree = ({
       if (parentGroup && parentGroup.data.direction === 'stacked') {
         const newPane = await workspace.getSession(activeSession.id)?.createPane({
           type: 'chat',
-          state: { title: 'Chat' },
+          state: { name: 'Chat', title: 'Chat' },
           parentPaneGroupId: parentGroup.id
         });
         if (newPane) {
@@ -831,7 +836,7 @@ export const WorkspacePaneTree = ({
         if (newGroup) {
           const newPane = await workspace.getSession(activeSession.id)?.createPane({
             type: 'chat',
-            state: { title: 'Chat' },
+            state: { name: 'Chat', title: 'Chat' },
             parentPaneGroupId: newGroup.id
           });
           if (newPane) {

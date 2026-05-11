@@ -16,6 +16,7 @@ const terminalInstances: Array<{ options: { theme?: unknown }; unicode: { active
 const mutationObserverInstances: MutationObserverMock[] = [];
 
 const onDataCallbacks: Array<(data: string) => void> = [];
+const onTitleChangeCallbacks: Array<(title: string) => void> = [];
 const onTerminalDataCallbacks: Array<(event: { sessionId: string; data: string }) => void> = [];
 
 vi.mock('@xterm/addon-fit', () => ({
@@ -62,6 +63,10 @@ vi.mock('@xterm/xterm', () => ({
     }
     onData(callback: (data: string) => void) {
       onDataCallbacks.push(callback);
+      return { dispose: vi.fn() };
+    }
+    onTitleChange(callback: (title: string) => void) {
+      onTitleChangeCallbacks.push(callback);
       return { dispose: vi.fn() };
     }
   }
@@ -164,9 +169,45 @@ const baseProps: PaneViewProps = {
   visible: true
 };
 
+const createWorkspaceWithPane = (state: Record<string, unknown>) => {
+  const update = vi.fn(async input => {
+    if (input.state) state = input.state;
+  });
+
+  const testWorkspace: WorkspaceApi = {
+    ...workspace,
+    getPane: id =>
+      id === 'pane-terminal'
+        ? ({
+            id,
+            get data() {
+              return {
+                id: 'pane-terminal',
+                sessionId: 'session-1',
+                type: 'terminal',
+                state
+              };
+            },
+            session: null,
+            split: async () => {
+              throw new Error('Not implemented in test');
+            },
+            convertToTabs: async () => {
+              throw new Error('Not implemented in test');
+            },
+            update,
+            remove: async () => {}
+          } as any)
+        : null
+  };
+
+  return { workspace: testWorkspace, update };
+};
+
 describe('TerminalPaneView', () => {
   beforeEach(() => {
     onDataCallbacks.length = 0;
+    onTitleChangeCallbacks.length = 0;
     onTerminalDataCallbacks.length = 0;
     fitMock.mockClear();
     clearMock.mockClear();
@@ -276,6 +317,72 @@ describe('TerminalPaneView', () => {
     onTerminalDataCallbacks[0]?.({ sessionId: 'other-pane', data: 'noise' });
 
     expect(writeMock).not.toHaveBeenCalled();
+  });
+
+  it('updates the pane title when the terminal emits a title change', async () => {
+    const { workspace, update } = createWorkspaceWithPane({
+      title: 'Terminal',
+      isDirty: true
+    });
+
+    render(<TerminalPaneView {...baseProps} workspace={workspace} visible />);
+    await act(async () => {});
+
+    await act(async () => {
+      onTitleChangeCallbacks[0]?.(' npm test ');
+    });
+
+    expect(update).toHaveBeenCalledWith({
+      state: {
+        name: 'Terminal',
+        title: 'npm test',
+        isDirty: true
+      }
+    });
+  });
+
+  it('does not update pane state for duplicate terminal title changes', async () => {
+    const { workspace, update } = createWorkspaceWithPane({
+      title: 'Terminal',
+      isDirty: true
+    });
+
+    render(<TerminalPaneView {...baseProps} workspace={workspace} visible />);
+    await act(async () => {});
+
+    await act(async () => {
+      onTitleChangeCallbacks[0]?.('top');
+      onTitleChangeCallbacks[0]?.('top');
+    });
+
+    expect(update).toHaveBeenCalledTimes(1);
+    expect(update).toHaveBeenCalledWith({
+      state: {
+        name: 'Terminal',
+        title: 'top',
+        isDirty: true
+      }
+    });
+  });
+
+  it('restores the default pane title when the terminal emits a blank title', async () => {
+    const { workspace, update } = createWorkspaceWithPane({
+      title: 'Running command'
+    });
+
+    render(<TerminalPaneView {...baseProps} workspace={workspace} visible />);
+    await act(async () => {});
+
+    await act(async () => {
+      onTitleChangeCallbacks[0]?.('   ');
+    });
+
+    expect(update).toHaveBeenCalledWith({
+      state: {
+        name: 'Running command',
+        title: 'Terminal'
+      }
+    });
   });
 
   it('sends internal dragged text to the terminal input without executing it', async () => {
