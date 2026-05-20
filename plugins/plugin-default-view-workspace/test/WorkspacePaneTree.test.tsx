@@ -260,6 +260,46 @@ describe('WorkspacePaneTree', () => {
     expect(screen.getByTestId('pane-pane-outline').querySelector('.header')).toBeNull();
   });
 
+  it('shows dynamic pane creation entries in the stacked pane + menu', async () => {
+    render(
+      <WorkspacePaneTree
+        plugins={plugins}
+        workspace={createWorkspaceStub()}
+        resolveRendererView={() => paneRendererRegistration}
+        resolvePaneCreations={async () => [
+          {
+            id: 'chat-openai',
+            title: 'Chat with OpenAI',
+            paneType: 'chat',
+            pluginId: 'plugin-default-view-chat',
+            defaultState: {
+              title: 'Chat with OpenAI',
+              providerId: 'openai'
+            }
+          },
+          {
+            id: 'chat-anthropic',
+            title: 'Chat with Anthropic',
+            paneType: 'chat',
+            pluginId: 'plugin-default-view-chat',
+            defaultState: {
+              title: 'Chat with Anthropic',
+              providerId: 'anthropic'
+            }
+          }
+        ]}
+        clearSignal={0}
+      />
+    );
+
+    fireEvent.click(screen.getAllByLabelText('New pane')[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Chat with OpenAI')).toBeInTheDocument();
+      expect(screen.getByText('Chat with Anthropic')).toBeInTheDocument();
+    });
+  });
+
   it('uses pane names for tabs and pane titles for pane headers', () => {
     const namedSnapshot: WorkspaceStateSnapshot = {
       ...snapshot,

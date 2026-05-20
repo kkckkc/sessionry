@@ -46,3 +46,16 @@ export interface ClearHistoryPayload {
 export interface ChatHistoryResponse {
   messages: Message[];
 }
+
+export interface ListModelsPayload {
+  provider: {
+    id?: string;
+    name?: string;
+    type?: string;
+    apiKey?: string;
+    model?: string;
+    baseUrl?: string;
+    temperature?: number;
+    maxTokens?: number;
+  };
+}

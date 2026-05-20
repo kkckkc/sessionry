@@ -235,3 +235,11 @@
 .tab-bar--secondary .tab[data-active] {
   border-color: transparent;
 }
+
+.tab-bar--inline {
+  border: none !important;
+  background: transparent !important;
+  height: auto !important;
+  padding: 0 !important;
+  flex: 1 1 0 !important;
+}
