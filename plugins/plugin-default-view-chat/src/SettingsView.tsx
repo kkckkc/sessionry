@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Tabs } from '@base-ui/react/tabs';
 import type { SettingsViewProps } from '@sessionry/plugin-api';
 import {
   SettingsSection,
@@ -6,9 +7,11 @@ import {
   SettingToggle,
   SettingSelect,
   Combobox,
+  ConfirmationDialog,
   Input,
   Button,
-  Textarea
+  Textarea,
+  TabBar
 } from '@sessionry/components';
 import type { SelectOption } from '@sessionry/components';
 
@@ -34,6 +37,7 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
   const [fetchedModels, setFetchedModels] = useState<SelectOption[]>([]);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
 
   const chatSettings = useMemo(
     () => normalizeChatSettings(settings ?? DEFAULT_CHAT_SETTINGS),
@@ -145,6 +149,15 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
       return;
     }
 
+    setPendingRemoveId(providerId);
+  };
+
+  const confirmRemoveProvider = () => {
+    if (!pendingRemoveId) return;
+
+    const providerId = pendingRemoveId;
+    setPendingRemoveId(null);
+
     updateProviders(providers => {
       const remainingProviders = providers.filter(provider => provider.id !== providerId);
       const nextSelected = remainingProviders[0]?.id ?? null;
@@ -227,53 +240,37 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
           description="Manage named chat providers available in the + menu"
           layout="vertical"
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
             <div className="chat-provider-tabbar-row">
-              <div className="chat-provider-tabbar" role="tablist" aria-label="Configured chat providers">
-                {chatSettings.providers.map(provider => (
-                  <button
-                    key={provider.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={provider.id === selectedProvider?.id}
-                    className={`chat-provider-tab${provider.id === selectedProvider?.id ? ' is-active' : ''}`}
-                    onClick={() => setSelectedProviderId(provider.id)}
-                  >
-                    <span className="chat-provider-tab-label">{provider.name}</span>
-                    {chatSettings.providers.length > 1 ? (
-                      <span
-                        className="chat-provider-tab-close"
-                        role="button"
-                        aria-label={`Remove ${provider.name}`}
-                        tabIndex={0}
-                        onClick={event => {
-                          event.stopPropagation();
-                          handleRemoveProvider(provider.id);
-                        }}
-                        onKeyDown={event => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.stopPropagation();
-                            event.preventDefault();
-                            handleRemoveProvider(provider.id);
-                          }
-                        }}
-                      >
-                        ×
-                      </span>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
-              <Button
+              <Tabs.Root
+                value={selectedProvider?.id ?? ''}
+                onValueChange={value => setSelectedProviderId(value)}
+                render={<div className="chat-provider-tabbar-root" />}
+              >
+                <TabBar
+                  variant="inline"
+                  value={selectedProvider?.id ?? undefined}
+                  onValueChange={value => setSelectedProviderId(value)}
+                  ariaLabel="Configured chat providers"
+                  items={chatSettings.providers.map(provider => ({
+                    label: provider.name,
+                    value: provider.id,
+                    onClose:
+                      chatSettings.providers.length > 1
+                        ? () => handleRemoveProvider(provider.id)
+                        : undefined
+                  }))}
+                />
+              </Tabs.Root>
+              <button
                 type="button"
+                className="chat-provider-tabbar-action"
                 onClick={handleAddProvider}
-                variant="secondary"
-                size="medium"
                 aria-label="Add provider"
                 title="Add provider"
               >
                 +
-              </Button>
+              </button>
             </div>
           </div>
         </SettingsField>
@@ -482,6 +479,16 @@ export const ChatSettingsView = ({ settings, onUpdate }: SettingsViewProps) => {
           />
         </SettingsField>
       </SettingsSection>
+
+      <ConfirmationDialog
+        open={pendingRemoveId !== null}
+        title="Remove Provider"
+        message={`Are you sure you want to remove "${chatSettings.providers.find(p => p.id === pendingRemoveId)?.name ?? 'this provider'}"?`}
+        intent="danger"
+        confirmLabel="Remove"
+        onConfirm={confirmRemoveProvider}
+        onCancel={() => setPendingRemoveId(null)}
+      />
     </div>
   );
 };

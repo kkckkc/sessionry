@@ -26,7 +26,7 @@ export interface TabBarProps {
   /**
    * Visual variant of the tab bar.
    */
-  variant: 'primary' | 'secondary';
+  variant: 'primary' | 'secondary' | 'inline';
 
   /**
    * Controlled active tab value. Used to keep the active tab visible when overflow occurs.
@@ -156,14 +156,8 @@ export const TabBar = ({ items, variant, value, onValueChange, ariaLabel }: TabB
       return;
     }
 
-    const updateWidth = () => {
-      setContainerWidth(container.clientWidth);
-    };
-
-    updateWidth();
-
     const resizeObserver = new ResizeObserver(() => {
-      updateWidth();
+      setContainerWidth(container.clientWidth);
     });
     resizeObserver.observe(container);
 
@@ -173,6 +167,13 @@ export const TabBar = ({ items, variant, value, onValueChange, ariaLabel }: TabB
   }, []);
 
   useLayoutEffect(() => {
+    // Measure container and item widths together so overflow calculations
+    // always use consistent values (avoids async ResizeObserver lag).
+    setContainerWidth(prev => {
+      const current = rootRef.current?.clientWidth ?? 0;
+      return current === prev ? prev : current;
+    });
+
     const nextWidths = Object.fromEntries(
       items.map(item => [item.value, itemMeasureRefs.current.get(item.value)?.offsetWidth ?? 0])
     );
