@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.0](https://github.com/kkckkc/sessionry/compare/v0.2.0...v0.3.0) (2026-05-20)
+
+
+### Features
+
+* ability to configure terminal font ([484b406](https://github.com/kkckkc/sessionry/commit/484b40608f9eac804db79e8ec692dc5cfabeef43))
+* ability to create different types of panes ([1e3bdb4](https://github.com/kkckkc/sessionry/commit/1e3bdb45fa4d58c688c819df5a99fc859a224913))
+* ability to select chat model ([ebe2b23](https://github.com/kkckkc/sessionry/commit/ebe2b232f5a74083f2d56457404293aabbdab64f))
+* additional operations in VCS change view ([1c20485](https://github.com/kkckkc/sessionry/commit/1c204858069188392435899f2036e50b40ee7409))
+* chat view ([7166e26](https://github.com/kkckkc/sessionry/commit/7166e261dd6c599e60d0522fc406840ba0aa72a0))
+* command palette ([b209d33](https://github.com/kkckkc/sessionry/commit/b209d33c38223d5ac5290eefb13c454f3adad65e))
+* easier development of local plugins ([8aca246](https://github.com/kkckkc/sessionry/commit/8aca246ff7a744b95df1b0e2ea590231da235fc6))
+* multiple chat providers ([72cb3a3](https://github.com/kkckkc/sessionry/commit/72cb3a3f96ea6d9e378fda3328ed48c373734d99))
+* new and close tab keybindings ([a93dbd4](https://github.com/kkckkc/sessionry/commit/a93dbd4654aab39199d7fcf28c57f840df7e1d53))
+* pane title to reflect terminal title ([c874bda](https://github.com/kkckkc/sessionry/commit/c874bdae71b924a48dbd3d6210e411be2af9d6dd))
+* terminal presets ([f0a32f8](https://github.com/kkckkc/sessionry/commit/f0a32f8c4ba7cc80e0e3454731d17fb0a710fbb8))
+
+
+### Bug Fixes
+
+* opt-enter for newline ([762252b](https://github.com/kkckkc/sessionry/commit/762252b0b704a9b48e05c2651c76d2a90971dede))
+* unicode character width to be rendered correctly ([a76092d](https://github.com/kkckkc/sessionry/commit/a76092d6875742712ab2e2f5814887fd310d8ef4))
+
 ## [0.2.0](https://github.com/kkckkc/sessionry/compare/v0.1.0...v0.2.0) (2026-05-10)
 
 
